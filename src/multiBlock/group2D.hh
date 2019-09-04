@@ -77,15 +77,15 @@ plint Group2D::generateLattice(std::string name, plint envelopeWidth, plint grid
     return add(block, name);
 }
 
-template<class ParticleFieldT>
-plint Group2D::generateParticleField(std::string name, plint envelopeWidth, plint gridLevel) {
-    // Although groups offer a default constructor for efficiency reasons, you
-    // must start by adding a multi-block to the group before anything else.
-    PLB_ASSERT(!blocks.empty());
-    MultiBlock2D* block = generateMultiParticleField2D<ParticleFieldT>(*blocks[0], envelopeWidth).release();
-    block->setRefinementLevel(gridLevel);
-    return add(block, name);
-}
+// template<class ParticleFieldT>
+// plint Group2D::generateParticleField(std::string name, plint envelopeWidth, plint gridLevel) {
+//     // Although groups offer a default constructor for efficiency reasons, you
+//     // must start by adding a multi-block to the group before anything else.
+//     PLB_ASSERT(!blocks.empty());
+//     MultiBlock2D* block = generateMultiParticleField2D<ParticleFieldT>(*blocks[0], envelopeWidth).release();
+//     block->setRefinementLevel(gridLevel);
+//     return add(block, name);
+// }
 
 
 template<typename T>
@@ -196,32 +196,32 @@ MultiBlockLattice2D<T, Descriptor>& Group2D::getLattice(std::string name) {
     return *lattice;
 }
 
-template<class ParticleFieldT>
-MultiParticleField2D<ParticleFieldT>& Group2D::getParticleField(plint id) {
-    if (id >= (plint)blocks.size()) {
-        plbLogicError("Group has no block of ID " + util::val2str(id));
-    }
-    MultiParticleField2D<ParticleFieldT>* field = dynamic_cast<MultiParticleField2D<ParticleFieldT>*>(blocks[id]);
-    if (!field) {
-        plbLogicError("Block with ID " + util::val2str(id) + " is not a particle-field");
-    }
-    return *field;
-}
+// template<class ParticleFieldT>
+// MultiParticleField2D<ParticleFieldT>& Group2D::getParticleField(plint id) {
+//     if (id >= (plint)blocks.size()) {
+//         plbLogicError("Group has no block of ID " + util::val2str(id));
+//     }
+//     MultiParticleField2D<ParticleFieldT>* field = dynamic_cast<MultiParticleField2D<ParticleFieldT>*>(blocks[id]);
+//     if (!field) {
+//         plbLogicError("Block with ID " + util::val2str(id) + " is not a particle-field");
+//     }
+//     return *field;
+// }
 
-template<class ParticleFieldT>
-MultiParticleField2D<ParticleFieldT>& Group2D::getParticleField(std::string name) {
-    std::map<std::string, plint>::const_iterator it = ids.find(name);
-    if (it==ids.end()) {
-        plbLogicError("Group has no block of name " + name);
-    }
-    plint id = it->second;
-    PLB_ASSERT( id < (plint)blocks.size() );
-    MultiParticleField2D<ParticleFieldT>* field = dynamic_cast<MultiParticleField2D<ParticleFieldT>*>(blocks[id]);
-    if (!field) {
-        plbLogicError("Block with name \"" + name + "\" is not a particle-field");
-    }
-    return *field;
-}
+// template<class ParticleFieldT>
+// MultiParticleField2D<ParticleFieldT>& Group2D::getParticleField(std::string name) {
+//     std::map<std::string, plint>::const_iterator it = ids.find(name);
+//     if (it==ids.end()) {
+//         plbLogicError("Group has no block of name " + name);
+//     }
+//     plint id = it->second;
+//     PLB_ASSERT( id < (plint)blocks.size() );
+//     MultiParticleField2D<ParticleFieldT>* field = dynamic_cast<MultiParticleField2D<ParticleFieldT>*>(blocks[id]);
+//     if (!field) {
+//         plbLogicError("Block with name \"" + name + "\" is not a particle-field");
+//     }
+//     return *field;
+// }
 
 } // namespace plb
 

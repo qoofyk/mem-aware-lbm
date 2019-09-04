@@ -44,11 +44,11 @@ public:
             OffLatticeModel3D<T,BoundaryType>* offLatticeModel_,
             VoxelizedDomain3D<T>& voxelizedDomain_,
             MultiBlockLattice3D<T,Descriptor>& lattice_ );
-    OffLatticeBoundaryCondition3D (
-            OffLatticeModel3D<T,BoundaryType>* offLatticeModel_,
-            VoxelizedDomain3D<T>& voxelizedDomain_,
-            MultiBlockLattice3D<T,Descriptor>& lattice_,
-            MultiParticleField3D<DenseParticleField3D<T,Descriptor> >& particleField_ );
+    // OffLatticeBoundaryCondition3D (
+    //         OffLatticeModel3D<T,BoundaryType>* offLatticeModel_,
+    //         VoxelizedDomain3D<T>& voxelizedDomain_,
+    //         MultiBlockLattice3D<T,Descriptor>& lattice_,
+    //         MultiParticleField3D<DenseParticleField3D<T,Descriptor> >& particleField_ );
     OffLatticeBoundaryCondition3D (
             OffLatticeBoundaryCondition3D<T,Descriptor,BoundaryType> const& rhs );
     ~OffLatticeBoundaryCondition3D();

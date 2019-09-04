@@ -97,16 +97,16 @@ plint Group3D::generateLattice(std::string name, plint envelopeWidth, plint grid
     return addNoCheck(block, name);
 }
 
-template<typename T, template<typename U> class Descriptor>
-plint Group3D::generateDenseParticles(std::string name, plint envelopeWidth, plint gridLevel) {
-    // Although groups offer a default constructor for efficiency reasons, you
-    // must start by adding a multi-block to the group before anything else.
-    PLB_ASSERT(!blocks.empty());
-    MultiBlock3D* block = generateMultiParticleField3D<T, Descriptor, DenseParticleField3D<T,Descriptor> > (
-                                  *blocks[0], envelopeWidth ).release();
-    block->setRefinementLevel(gridLevel);
-    return addNoCheck(block, name);
-}
+// template<typename T, template<typename U> class Descriptor>
+// plint Group3D::generateDenseParticles(std::string name, plint envelopeWidth, plint gridLevel) {
+//     // Although groups offer a default constructor for efficiency reasons, you
+//     // must start by adding a multi-block to the group before anything else.
+//     PLB_ASSERT(!blocks.empty());
+//     MultiBlock3D* block = generateMultiParticleField3D<T, Descriptor, DenseParticleField3D<T,Descriptor> > (
+//                                   *blocks[0], envelopeWidth ).release();
+//     block->setRefinementLevel(gridLevel);
+//     return addNoCheck(block, name);
+// }
 
 template<typename T>
 MultiScalarField3D<T>& Group3D::getScalar(plint id) {
@@ -217,34 +217,34 @@ MultiBlockLattice3D<T, Descriptor>& Group3D::getLattice(std::string name) {
 }
 
 
-template<typename T, template<typename U> class Descriptor>
-MultiParticleField3D<DenseParticleField3D<T, Descriptor> >& Group3D::getDenseParticles(plint id) {
-    if (id >= (plint)blocks.size()) {
-        plbLogicError("Group has no block of ID " + util::val2str(id));
-    }
-    MultiParticleField3D<DenseParticleField3D<T,Descriptor> >* particles =
-        dynamic_cast<MultiParticleField3D<DenseParticleField3D<T,Descriptor> >*>(blocks[id]);
-    if (!particles) {
-        plbLogicError("Block with ID " + util::val2str(id) + " is not a dense particle-field");
-    }
-    return *particles;
-}
+// template<typename T, template<typename U> class Descriptor>
+// MultiParticleField3D<DenseParticleField3D<T, Descriptor> >& Group3D::getDenseParticles(plint id) {
+//     if (id >= (plint)blocks.size()) {
+//         plbLogicError("Group has no block of ID " + util::val2str(id));
+//     }
+//     MultiParticleField3D<DenseParticleField3D<T,Descriptor> >* particles =
+//         dynamic_cast<MultiParticleField3D<DenseParticleField3D<T,Descriptor> >*>(blocks[id]);
+//     if (!particles) {
+//         plbLogicError("Block with ID " + util::val2str(id) + " is not a dense particle-field");
+//     }
+//     return *particles;
+// }
 
-template<typename T, template<typename U> class Descriptor>
-MultiParticleField3D<DenseParticleField3D<T, Descriptor> >& Group3D::getDenseParticles(std::string name) {
-    std::map<std::string, plint>::const_iterator it = ids.find(name);
-    if (it==ids.end()) {
-        plbLogicError("Group has no block of name " + name);
-    }
-    plint id = it->second;
-    PLB_ASSERT( id < (plint)blocks.size() );
-    MultiParticleField3D<DenseParticleField3D<T,Descriptor> >* particles =
-        dynamic_cast<MultiParticleField3D<DenseParticleField3D<T,Descriptor> >*>(blocks[id]);
-    if (!particles) {
-        plbLogicError("Block with name \"" + name + "\" is not a dense particle-field");
-    }
-    return *particles;
-}
+// template<typename T, template<typename U> class Descriptor>
+// MultiParticleField3D<DenseParticleField3D<T, Descriptor> >& Group3D::getDenseParticles(std::string name) {
+//     std::map<std::string, plint>::const_iterator it = ids.find(name);
+//     if (it==ids.end()) {
+//         plbLogicError("Group has no block of name " + name);
+//     }
+//     plint id = it->second;
+//     PLB_ASSERT( id < (plint)blocks.size() );
+//     MultiParticleField3D<DenseParticleField3D<T,Descriptor> >* particles =
+//         dynamic_cast<MultiParticleField3D<DenseParticleField3D<T,Descriptor> >*>(blocks[id]);
+//     if (!particles) {
+//         plbLogicError("Block with name \"" + name + "\" is not a dense particle-field");
+//     }
+//     return *particles;
+// }
 
 template<typename T, typename TConv>
 void addTransform (

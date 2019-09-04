@@ -27,20 +27,20 @@
 #include <core/headers3D.hh>
 #include <basicDynamics/headers3D.hh>
 #include <boundaryCondition/headers3D.hh>
-#include <complexDynamics/headers3D.hh>
-#include <multiPhysics/headers3D.hh>
+// #include <complexDynamics/headers3D.hh>
+// #include <multiPhysics/headers3D.hh>
 #include <io/headers3D.hh>
 #include <atomicBlock/headers3D.hh>
 #include <multiBlock/headers3D.hh>
 #include <multiGrid/headers3D.hh>
 #include <algorithm/headers3D.hh>
 #include <dataProcessors/headers3D.hh>
-#include <particles/headers3D.hh>
+// #include <particles/headers3D.hh>
 #include <offLattice/headers3D.hh>
 #include <libraryInterfaces/headers3D.hh>
 #include <finiteDifference/headers3D.hh>
 #include <coProcessors/headers3D.hh>
-#include <gridRefinement/headers3D.hh>
+// #include <gridRefinement/headers3D.hh>
 
 // Include also 2D data structures. They are for
 // example required to write 2D images.

@@ -1284,81 +1284,81 @@ std::auto_ptr<MultiBlockLattice3D<T,Descriptor> > reparallelize (
 
 /* *************** 4. MultiParticleField ************************************** */
 
-template<typename T, template<typename U> class Descriptor>
-std::auto_ptr<MultiParticleField3D<DenseParticleField3D<T,Descriptor> > > generateMultiDenseParticleField (
-        Box3D boundingBox, plint envelopeWidth )
-{
-    return std::auto_ptr<MultiParticleField3D<DenseParticleField3D<T,Descriptor> > > (
-        new MultiParticleField3D<DenseParticleField3D<T,Descriptor> > (
-            defaultMultiBlockPolicy3D().getMultiBlockManagement(boundingBox, envelopeWidth),
-            defaultMultiBlockPolicy3D().getCombinedStatistics() )
-    );
-}
+// template<typename T, template<typename U> class Descriptor>
+// std::auto_ptr<MultiParticleField3D<DenseParticleField3D<T,Descriptor> > > generateMultiDenseParticleField (
+//         Box3D boundingBox, plint envelopeWidth )
+// {
+//     return std::auto_ptr<MultiParticleField3D<DenseParticleField3D<T,Descriptor> > > (
+//         new MultiParticleField3D<DenseParticleField3D<T,Descriptor> > (
+//             defaultMultiBlockPolicy3D().getMultiBlockManagement(boundingBox, envelopeWidth),
+//             defaultMultiBlockPolicy3D().getCombinedStatistics() )
+//     );
+// }
 
-template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
-std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
-        Box3D boundingBox, plint envelopeWidth )
-{
-    return std::auto_ptr<MultiParticleField3D<ParticleFieldT> > (
-        new MultiParticleField3D<ParticleFieldT> (
-            defaultMultiBlockPolicy3D().getMultiBlockManagement(boundingBox, envelopeWidth),
-            defaultMultiBlockPolicy3D().getCombinedStatistics() )
-    );
-}
+// template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
+// std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
+//         Box3D boundingBox, plint envelopeWidth )
+// {
+//     return std::auto_ptr<MultiParticleField3D<ParticleFieldT> > (
+//         new MultiParticleField3D<ParticleFieldT> (
+//             defaultMultiBlockPolicy3D().getMultiBlockManagement(boundingBox, envelopeWidth),
+//             defaultMultiBlockPolicy3D().getCombinedStatistics() )
+//     );
+// }
 
-template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
-std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
-        MultiBlock3D& multiBlock, plint envelopeWidth )
-{
-    MultiBlockManagement3D sparseBlockManagement(multiBlock.getMultiBlockManagement());
-    MultiParticleField3D<ParticleFieldT>* field = new MultiParticleField3D<ParticleFieldT> (
-            MultiBlockManagement3D (
-                sparseBlockManagement.getSparseBlockStructure(),
-                sparseBlockManagement.getThreadAttribution().clone(),
-                envelopeWidth, sparseBlockManagement.getRefinementLevel() ),
-            defaultMultiBlockPolicy3D().getCombinedStatistics() );
+// template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
+// std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
+//         MultiBlock3D& multiBlock, plint envelopeWidth )
+// {
+//     MultiBlockManagement3D sparseBlockManagement(multiBlock.getMultiBlockManagement());
+//     MultiParticleField3D<ParticleFieldT>* field = new MultiParticleField3D<ParticleFieldT> (
+//             MultiBlockManagement3D (
+//                 sparseBlockManagement.getSparseBlockStructure(),
+//                 sparseBlockManagement.getThreadAttribution().clone(),
+//                 envelopeWidth, sparseBlockManagement.getRefinementLevel() ),
+//             defaultMultiBlockPolicy3D().getCombinedStatistics() );
 
-    field->periodicity().toggle(0, multiBlock.periodicity().get(0));
-    field->periodicity().toggle(1, multiBlock.periodicity().get(1));
-    field->periodicity().toggle(2, multiBlock.periodicity().get(2));
+//     field->periodicity().toggle(0, multiBlock.periodicity().get(0));
+//     field->periodicity().toggle(1, multiBlock.periodicity().get(1));
+//     field->periodicity().toggle(2, multiBlock.periodicity().get(2));
 
-    return std::auto_ptr<MultiParticleField3D<ParticleFieldT> >(field);
-}
+//     return std::auto_ptr<MultiParticleField3D<ParticleFieldT> >(field);
+// }
 
-template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
-std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
-        MultiBlockManagement3D const& management, PeriodicitySwitch3D const& periodicity,
-        plint envelopeWidth )
-{
-    MultiBlockManagement3D sparseBlockManagement(management);
-    MultiParticleField3D<ParticleFieldT>* field = new MultiParticleField3D<ParticleFieldT> (
-            MultiBlockManagement3D (
-                sparseBlockManagement.getSparseBlockStructure(),
-                sparseBlockManagement.getThreadAttribution().clone(),
-                envelopeWidth, sparseBlockManagement.getRefinementLevel() ),
-            defaultMultiBlockPolicy3D().getCombinedStatistics() );
+// template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
+// std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
+//         MultiBlockManagement3D const& management, PeriodicitySwitch3D const& periodicity,
+//         plint envelopeWidth )
+// {
+//     MultiBlockManagement3D sparseBlockManagement(management);
+//     MultiParticleField3D<ParticleFieldT>* field = new MultiParticleField3D<ParticleFieldT> (
+//             MultiBlockManagement3D (
+//                 sparseBlockManagement.getSparseBlockStructure(),
+//                 sparseBlockManagement.getThreadAttribution().clone(),
+//                 envelopeWidth, sparseBlockManagement.getRefinementLevel() ),
+//             defaultMultiBlockPolicy3D().getCombinedStatistics() );
 
-    field->periodicity().toggle(0, periodicity.get(0));
-    field->periodicity().toggle(1, periodicity.get(1));
-    field->periodicity().toggle(2, periodicity.get(2));
+//     field->periodicity().toggle(0, periodicity.get(0));
+//     field->periodicity().toggle(1, periodicity.get(1));
+//     field->periodicity().toggle(2, periodicity.get(2));
 
-    return std::auto_ptr<MultiParticleField3D<ParticleFieldT> >(field);
-}
+//     return std::auto_ptr<MultiParticleField3D<ParticleFieldT> >(field);
+// }
 
-template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
-std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
-        MultiBlockManagement3D const& management, plint envelopeWidth )
-{
-    MultiBlockManagement3D sparseBlockManagement(management);
-    MultiParticleField3D<ParticleFieldT>* field = new MultiParticleField3D<ParticleFieldT> (
-            MultiBlockManagement3D (
-                sparseBlockManagement.getSparseBlockStructure(),
-                sparseBlockManagement.getThreadAttribution().clone(),
-                envelopeWidth, sparseBlockManagement.getRefinementLevel() ),
-            defaultMultiBlockPolicy3D().getCombinedStatistics() );
+// template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
+// std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
+//         MultiBlockManagement3D const& management, plint envelopeWidth )
+// {
+//     MultiBlockManagement3D sparseBlockManagement(management);
+//     MultiParticleField3D<ParticleFieldT>* field = new MultiParticleField3D<ParticleFieldT> (
+//             MultiBlockManagement3D (
+//                 sparseBlockManagement.getSparseBlockStructure(),
+//                 sparseBlockManagement.getThreadAttribution().clone(),
+//                 envelopeWidth, sparseBlockManagement.getRefinementLevel() ),
+//             defaultMultiBlockPolicy3D().getCombinedStatistics() );
 
-    return std::auto_ptr<MultiParticleField3D<ParticleFieldT> >(field);
-}
+//     return std::auto_ptr<MultiParticleField3D<ParticleFieldT> >(field);
+// }
 
 }  // namespace plb
 

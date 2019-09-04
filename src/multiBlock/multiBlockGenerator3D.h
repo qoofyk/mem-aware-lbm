@@ -38,7 +38,7 @@
 #include "core/globalDefs.h"
 #include "multiBlock/multiDataField3D.h"
 #include "multiBlock/multiBlockLattice3D.h"
-#include "particles/multiParticleField3D.h"
+// #include "particles/multiParticleField3D.h"
 #include "multiBlock/multiContainerBlock3D.h"
 #include "multiBlock/sparseBlockStructure3D.h"
 #include <memory>
@@ -629,26 +629,26 @@ std::auto_ptr<MultiBlockLattice3D<T, Descriptor> > reparallelize (
 /// Generate a multi-particle-field from scratch. As opposed to the standard
 ///   constructor, this factory function takes a full bounding-box, as well
 ///   as the envelope-width, as arguments.
-template<typename T, template<typename U> class Descriptor>
-std::auto_ptr<MultiParticleField3D<DenseParticleField3D<T,Descriptor> > > generateMultiDenseParticleField (
-        Box3D boundingBox, plint envelopeWidth=1 );
+// template<typename T, template<typename U> class Descriptor>
+// std::auto_ptr<MultiParticleField3D<DenseParticleField3D<T,Descriptor> > > generateMultiDenseParticleField (
+//         Box3D boundingBox, plint envelopeWidth=1 );
 
-template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
-std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
-        Box3D boundingBox, plint envelopeWidth=1 );
+// template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
+// std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
+//         Box3D boundingBox, plint envelopeWidth=1 );
 
-template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
-std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
-        MultiBlock3D& multiBlock, plint envelopeWidth );
+// template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
+// std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
+//         MultiBlock3D& multiBlock, plint envelopeWidth );
 
-template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
-std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
-        MultiBlockManagement3D const& management, PeriodicitySwitch3D const& periodicity,
-        plint envelopeWidth );
+// template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
+// std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
+//         MultiBlockManagement3D const& management, PeriodicitySwitch3D const& periodicity,
+//         plint envelopeWidth );
 
-template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
-std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
-        MultiBlockManagement3D const& management, plint envelopeWidth );
+// template<typename T, template<typename U> class Descriptor, class ParticleFieldT>
+// std::auto_ptr<MultiParticleField3D<ParticleFieldT> > generateMultiParticleField3D (
+//         MultiBlockManagement3D const& management, plint envelopeWidth );
 
 /* *************** 5. MultiContainerBlock ************************************ */
 

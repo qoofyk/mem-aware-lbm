@@ -32,7 +32,7 @@
 #include "multiBlock/multiBlockLattice2D.h"
 #include "multiBlock/multiDataField2D.h"
 #include "multiBlock/multiContainerBlock2D.h"
-#include "particles/multiParticleField2D.h"
+// #include "particles/multiParticleField2D.h"
 #include <vector>
 #include <string>
 #include <map>
@@ -95,10 +95,10 @@ public:
     MultiBlockLattice2D<T, Descriptor>& getLattice(plint id);
     template<typename T, template<typename U> class Descriptor>
     MultiBlockLattice2D<T, Descriptor>& getLattice(std::string name);
-    template<class ParticleFieldT>
-    MultiParticleField2D<ParticleFieldT>& getParticleField(plint id);
-    template<class ParticleFieldT>
-    MultiParticleField2D<ParticleFieldT>& getParticleField(std::string name);
+    // template<class ParticleFieldT>
+    // MultiParticleField2D<ParticleFieldT>& getParticleField(plint id);
+    // template<class ParticleFieldT>
+    // MultiParticleField2D<ParticleFieldT>& getParticleField(std::string name);
     MultiContainerBlock2D& getContainer(plint id);
     MultiContainerBlock2D& getContainer(std::string name);
 private:

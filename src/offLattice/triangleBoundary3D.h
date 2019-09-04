@@ -31,7 +31,7 @@
 #include "offLattice/triangleSet.h"
 #include "offLattice/triangularSurfaceMesh.h"
 #include "offLattice/offLatticeBoundaryProfiles3D.h"
-#include "particles/multiParticleField3D.h"
+// #include "particles/multiParticleField3D.h"
 #include "multiBlock/redistribution3D.h"
 #include "multiBlock/multiDataField3D.h"
 #include "atomicBlock/atomicContainerBlock3D.h"
@@ -380,8 +380,8 @@ public:
     MultiScalarField3D<int> const& getVoxelMatrix() const;
     MultiContainerBlock3D& getTriangleHash();
     MultiBlockManagement3D const& getMultiBlockManagement() const;
-    template<class ParticleFieldT>
-    void adjustVoxelization(MultiParticleField3D<ParticleFieldT>& particles, bool dynamicMesh);
+    // template<class ParticleFieldT>
+    // void adjustVoxelization(MultiParticleField3D<ParticleFieldT>& particles, bool dynamicMesh);
     void reparallelize(MultiBlockRedistribute3D const& redistribute);
     void reparallelize(MultiBlockManagement3D const& newManagement);
     TriangleBoundary3D<T> const& getBoundary() const { return boundary; }
@@ -397,8 +397,8 @@ private:
     void extendEnvelopeWidth (
             MultiScalarField3D<int>& fullVoxelMatrix, plint envelopeWidth );
     void createTriangleHash();
-    template<class ParticleFieldT>
-    void reCreateTriangleHash(MultiParticleField3D<ParticleFieldT>& particles);
+    // template<class ParticleFieldT>
+    // void reCreateTriangleHash(MultiParticleField3D<ParticleFieldT>& particles);
     void computeOuterMask();
 private:
     int flowType;

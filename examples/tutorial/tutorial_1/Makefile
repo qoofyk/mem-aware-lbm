@@ -1,5 +1,5 @@
 ##########################################################################
-## Makefile.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+## Makefile.
 ##
 ## The present Makefile is a pure configuration file, in which 
 ## you can select compilation options. Compilation dependencies
@@ -65,7 +65,7 @@ profileFlags = -pg
 ##########################################################################
 
 #SCons     = $(palabosRoot)/scons/scons.py -j 6 -f $(palabosRoot)/SConstruct
-SCons     = /home/fuyuan/Software/anaconda3/bin/scons -j 20 -f $(palabosRoot)/SConstruct
+SCons     = /home/fuyuan/Software/anaconda3/bin/scons -j 1 -f $(palabosRoot)/SConstruct
 
 SConsArgs = palabosRoot=$(palabosRoot) \
             projectFiles="$(projectFiles)" \

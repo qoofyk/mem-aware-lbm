@@ -38,8 +38,8 @@
 #include "boundaryCondition/neumannCondition3D.hh"
 #include "boundaryCondition/bounceBackModels.hh"
 #include "boundaryCondition/bounceBackModels3D.hh"
-#include "boundaryCondition/NLD_boundaryDynamics3D.hh"
-#include "boundaryCondition/NLD_boundaries3D.hh"
+// #include "boundaryCondition/NLD_boundaryDynamics3D.hh"
+// #include "boundaryCondition/NLD_boundaries3D.hh"
 #include "boundaryCondition/spongeZones3D.hh"
 
 #ifndef PLB_BGP

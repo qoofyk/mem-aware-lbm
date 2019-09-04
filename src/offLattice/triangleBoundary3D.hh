@@ -1175,24 +1175,24 @@ MultiContainerBlock3D&
     return *triangleHash;
 }
 
-template<typename T>
-template<class ParticleFieldT>
-void VoxelizedDomain3D<T>::adjustVoxelization (
-        MultiParticleField3D<ParticleFieldT>& particles, bool dynamicMesh )
-{
-    if (dynamicMesh) {
-        boundary.pushSelect(1,1); // Closed, Dynamic.
-    }
-    else {
-        boundary.pushSelect(1,0); // Closed, Static.
-    }
-    reCreateTriangleHash(particles);
-    MultiScalarField3D<int>* newVoxelMatrix =
-        revoxelize(boundary.getMesh(), *voxelMatrix, *triangleHash, borderWidth).release();
-    std::swap(voxelMatrix, newVoxelMatrix);
-    delete newVoxelMatrix;
-    boundary.popSelect();
-}
+// template<typename T>
+// template<class ParticleFieldT>
+// void VoxelizedDomain3D<T>::adjustVoxelization (
+//         MultiParticleField3D<ParticleFieldT>& particles, bool dynamicMesh )
+// {
+//     if (dynamicMesh) {
+//         boundary.pushSelect(1,1); // Closed, Dynamic.
+//     }
+//     else {
+//         boundary.pushSelect(1,0); // Closed, Static.
+//     }
+//     reCreateTriangleHash(particles);
+//     MultiScalarField3D<int>* newVoxelMatrix =
+//         revoxelize(boundary.getMesh(), *voxelMatrix, *triangleHash, borderWidth).release();
+//     std::swap(voxelMatrix, newVoxelMatrix);
+//     delete newVoxelMatrix;
+//     boundary.popSelect();
+// }
 
 template<typename T>
 void VoxelizedDomain3D<T>::reparallelize(MultiBlockRedistribute3D const& redistribute) {
@@ -1291,30 +1291,30 @@ void VoxelizedDomain3D<T>::createTriangleHash()
             triangleHash->getBoundingBox(), hashArg );
 }
 
-template<typename T>
-template<class ParticleFieldT>
-void VoxelizedDomain3D<T>::reCreateTriangleHash (
-        MultiParticleField3D<ParticleFieldT>& particles )
-{
-    // The lids are non-parallel, an info which must be provided
-    //   to the hash algorithm by means of a list of barycenters.
-    //   This is a necessary and sufficient information because
-    //   all triangles connected to the barycenters are non-parallel,
-    //   and all non-parallel triangles are connected to a barycenter.
-    std::vector<Lid> const& lids = boundary.getInletOutlet();
-    plint numLids = (plint) lids.size();
-    std::vector<plint> lidBaryCenters(numLids);
-    for (plint iLid=0; iLid<numLids; ++iLid) {
-        lidBaryCenters[iLid] = lids[iLid].centerVertex;
-    }
+// template<typename T>
+// template<class ParticleFieldT>
+// void VoxelizedDomain3D<T>::reCreateTriangleHash (
+//         MultiParticleField3D<ParticleFieldT>& particles )
+// {
+//     // The lids are non-parallel, an info which must be provided
+//     //   to the hash algorithm by means of a list of barycenters.
+//     //   This is a necessary and sufficient information because
+//     //   all triangles connected to the barycenters are non-parallel,
+//     //   and all non-parallel triangles are connected to a barycenter.
+//     std::vector<Lid> const& lids = boundary.getInletOutlet();
+//     plint numLids = (plint) lids.size();
+//     std::vector<plint> lidBaryCenters(numLids);
+//     for (plint iLid=0; iLid<numLids; ++iLid) {
+//         lidBaryCenters[iLid] = lids[iLid].centerVertex;
+//     }
 
-    std::vector<MultiBlock3D*> hashParticleArg;
-    hashParticleArg.push_back(triangleHash);
-    hashParticleArg.push_back(&particles);
-    applyProcessingFunctional (
-            new ReAssignTriangleHash<T,ParticleFieldT>(boundary.getMesh(),lidBaryCenters),
-            triangleHash->getBoundingBox(), hashParticleArg );
-}
+//     std::vector<MultiBlock3D*> hashParticleArg;
+//     hashParticleArg.push_back(triangleHash);
+//     hashParticleArg.push_back(&particles);
+//     applyProcessingFunctional (
+//             new ReAssignTriangleHash<T,ParticleFieldT>(boundary.getMesh(),lidBaryCenters),
+//             triangleHash->getBoundingBox(), hashParticleArg );
+// }
 
 /* ******** DetectBorderLineFunctional3D ************************************* */
 

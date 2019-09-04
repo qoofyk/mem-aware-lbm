@@ -31,7 +31,7 @@
 #include "core/globalDefs.h"
 #include "multiBlock/multiBlockLattice3D.h"
 #include "multiBlock/multiDataField3D.h"
-#include "particles/multiParticleField3D.h"
+// #include "particles/multiParticleField3D.h"
 #include "multiBlock/multiContainerBlock3D.h"
 #include <vector>
 #include <string>
@@ -99,10 +99,10 @@ public:
     MultiBlockLattice3D<T, Descriptor>& getLattice(plint id);
     template<typename T, template<typename U> class Descriptor>
     MultiBlockLattice3D<T, Descriptor>& getLattice(std::string name);
-    template<typename T, template<typename U> class Descriptor>
-    MultiParticleField3D<DenseParticleField3D<T, Descriptor> >& getDenseParticles(plint id);
-    template<typename T, template<typename U> class Descriptor>
-    MultiParticleField3D<DenseParticleField3D<T, Descriptor> >& getDenseParticles(std::string name);
+    // template<typename T, template<typename U> class Descriptor>
+    // MultiParticleField3D<DenseParticleField3D<T, Descriptor> >& getDenseParticles(plint id);
+    // template<typename T, template<typename U> class Descriptor>
+    // MultiParticleField3D<DenseParticleField3D<T, Descriptor> >& getDenseParticles(std::string name);
     MultiContainerBlock3D& getContainer(plint id);
     MultiContainerBlock3D& getContainer(std::string name);
 private:

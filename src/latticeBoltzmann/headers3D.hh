@@ -27,6 +27,6 @@
  */
 #include "latticeBoltzmann/nearestNeighborLattices3D.hh"
 #include "latticeBoltzmann/extendedNeighborhoodLattices3D.hh"
-#include "latticeBoltzmann/advectionDiffusionLattices.hh"
-#include "latticeBoltzmann/mrtLattices.hh"
+// #include "latticeBoltzmann/advectionDiffusionLattices.hh"
+// #include "latticeBoltzmann/mrtLattices.hh"
 

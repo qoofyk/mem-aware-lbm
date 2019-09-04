@@ -43,10 +43,10 @@
 #include "offLattice/offLatticeModel3D.hh"
 #include "offLattice/guoOffLatticeModel3D.hh"
 #include "offLattice/bouzidiOffLatticeModel3D.hh"
-#include "offLattice/guoAdvDiffOffLatticeModel3D.hh"
+// #include "offLattice/guoAdvDiffOffLatticeModel3D.hh"
 #include "offLattice/triangleSetGenerator.hh"
-#include "offLattice/immersedWalls3D.hh"
-#include "offLattice/immersedAdvectionDiffusionWalls3D.hh"
+// #include "offLattice/immersedWalls3D.hh"
+// #include "offLattice/immersedAdvectionDiffusionWalls3D.hh"
 #include "offLattice/filippovaHaenelOffLatticeModel3D.hh"
 
 #ifndef PLB_BGP

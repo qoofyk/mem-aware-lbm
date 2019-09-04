@@ -38,7 +38,7 @@
 #include "core/globalDefs.h"
 #include "multiBlock/multiDataField2D.h"
 #include "multiBlock/multiBlockLattice2D.h"
-#include "particles/multiParticleField2D.h"
+// #include "particles/multiParticleField2D.h"
 #include "multiBlock/multiContainerBlock2D.h"
 #include "multiBlock/sparseBlockStructure2D.h"
 #include <memory>
@@ -582,17 +582,17 @@ std::auto_ptr<MultiBlockLattice2D<T, Descriptor> > reparallelize (
 /// Generate a multi-particle-field from scratch. As opposed to the standard
 ///   constructor, this factory function takes a full bounding-box, as well
 ///   as the envelope-width, as arguments.
-template<typename T, template<typename U> class Descriptor>
-std::auto_ptr<MultiParticleField2D<DenseParticleField2D<T,Descriptor> > > generateMultiDenseParticleField (
-        Box2D boundingBox, plint envelopeWidth=1 );
+// template<typename T, template<typename U> class Descriptor>
+// std::auto_ptr<MultiParticleField2D<DenseParticleField2D<T,Descriptor> > > generateMultiDenseParticleField (
+//         Box2D boundingBox, plint envelopeWidth=1 );
 
-template<class ParticleFieldT>
-std::auto_ptr<MultiParticleField2D<ParticleFieldT> > generateMultiParticleField2D (
-        Box2D boundingBox, plint envelopeWidth=1 );
+// template<class ParticleFieldT>
+// std::auto_ptr<MultiParticleField2D<ParticleFieldT> > generateMultiParticleField2D (
+//         Box2D boundingBox, plint envelopeWidth=1 );
 
-template<class ParticleFieldT>
-std::auto_ptr<MultiParticleField2D<ParticleFieldT> > generateMultiParticleField2D (
-        MultiBlock2D& multiBlock, plint envelopeWidth );
+// template<class ParticleFieldT>
+// std::auto_ptr<MultiParticleField2D<ParticleFieldT> > generateMultiParticleField2D (
+//         MultiBlock2D& multiBlock, plint envelopeWidth );
 
 
 /* *************** 5. MultiContainerBlock ************************************ */

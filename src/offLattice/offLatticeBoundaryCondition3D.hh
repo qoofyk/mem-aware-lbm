@@ -66,36 +66,36 @@ OffLatticeBoundaryCondition3D<T,Descriptor,BoundaryType>::
             offLatticePattern.getBoundingBox(), offLatticeIniArg );
 }
 
-template< typename T,
-          template<typename U> class Descriptor,
-          class BoundaryType >
-OffLatticeBoundaryCondition3D<T,Descriptor,BoundaryType>::
-    OffLatticeBoundaryCondition3D (
-        OffLatticeModel3D<T,BoundaryType>* offLatticeModel_,
-        VoxelizedDomain3D<T>& voxelizedDomain_,
-        MultiBlockLattice3D<T,Descriptor>& lattice_,
-        MultiParticleField3D<DenseParticleField3D<T,Descriptor> >& particleField_ )
-    : offLatticeModel(offLatticeModel_),
-      voxelizedDomain(voxelizedDomain_),
-      lattice(lattice_),
-      boundaryShapeArg(particleField_),
-      offLatticePattern(lattice)
-{
-    // It is very important that the "offLatticePattern" container block
-    // has the same multi-block management as the lattice used in the
-    // simulation.
-    std::vector<MultiBlock3D*> offLatticeIniArg;
-    // First argument for compute-off-lattice-pattern.
-    offLatticeIniArg.push_back(&offLatticePattern);
-    // Remaining arguments for inner-flow-shape.
-    offLatticeIniArg.push_back(&voxelizedDomain.getVoxelMatrix());
-    offLatticeIniArg.push_back(&voxelizedDomain.getTriangleHash());
-    offLatticeIniArg.push_back(&boundaryShapeArg);
-    applyProcessingFunctional (
-            new OffLatticePatternFunctional3D<T,BoundaryType> (
-                offLatticeModel->clone() ),
-            offLatticePattern.getBoundingBox(), offLatticeIniArg );
-}
+// template< typename T,
+//           template<typename U> class Descriptor,
+//           class BoundaryType >
+// OffLatticeBoundaryCondition3D<T,Descriptor,BoundaryType>::
+//     OffLatticeBoundaryCondition3D (
+//         OffLatticeModel3D<T,BoundaryType>* offLatticeModel_,
+//         VoxelizedDomain3D<T>& voxelizedDomain_,
+//         MultiBlockLattice3D<T,Descriptor>& lattice_,
+//         MultiParticleField3D<DenseParticleField3D<T,Descriptor> >& particleField_ )
+//     : offLatticeModel(offLatticeModel_),
+//       voxelizedDomain(voxelizedDomain_),
+//       lattice(lattice_),
+//       boundaryShapeArg(particleField_),
+//       offLatticePattern(lattice)
+// {
+//     // It is very important that the "offLatticePattern" container block
+//     // has the same multi-block management as the lattice used in the
+//     // simulation.
+//     std::vector<MultiBlock3D*> offLatticeIniArg;
+//     // First argument for compute-off-lattice-pattern.
+//     offLatticeIniArg.push_back(&offLatticePattern);
+//     // Remaining arguments for inner-flow-shape.
+//     offLatticeIniArg.push_back(&voxelizedDomain.getVoxelMatrix());
+//     offLatticeIniArg.push_back(&voxelizedDomain.getTriangleHash());
+//     offLatticeIniArg.push_back(&boundaryShapeArg);
+//     applyProcessingFunctional (
+//             new OffLatticePatternFunctional3D<T,BoundaryType> (
+//                 offLatticeModel->clone() ),
+//             offLatticePattern.getBoundingBox(), offLatticeIniArg );
+// }
 
 template< typename T,
           template<typename U> class Descriptor,

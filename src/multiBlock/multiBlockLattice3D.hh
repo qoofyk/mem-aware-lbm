@@ -418,7 +418,7 @@ void MultiBlockLattice3D<T,Descriptor>::allocateAndInitialize()
     this->getInternalStatistics().subscribeAverage(); // Subscribe average uSqr
     this->getInternalStatistics().subscribeMax();     // Subscribe max uSqr
 
-    for (pluint iBlock=0; iBlock< this->getLocalInfo().getBlocks().size(); ++iBlock) {
+    for (pluint iBlock=0; iBlock<this->getLocalInfo().getBlocks().size(); ++iBlock) {
         plint blockId = this->getLocalInfo().getBlocks()[iBlock];
         SmartBulk3D bulk(this->getMultiBlockManagement(), blockId);
         Box3D envelope = bulk.computeEnvelope();

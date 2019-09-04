@@ -31,7 +31,7 @@
 #include "atomicBlock/atomicContainerBlock3D.h"
 #include "multiBlock/multiContainerBlock3D.h"
 #include "multiBlock/multiDataField3D.h"
-#include "particles/particleField3D.h"
+// #include "particles/particleField3D.h"
 #include "offLattice/triangularSurfaceMesh.h"
 
 namespace plb {

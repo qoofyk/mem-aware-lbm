@@ -1169,45 +1169,45 @@ std::auto_ptr<MultiBlockLattice2D<T,Descriptor> > reparallelize (
 
 /* *************** 4. MultiParticleField ************************************** */
 
-template<typename T, template<typename U> class Descriptor>
-std::auto_ptr<MultiParticleField2D<DenseParticleField2D<T,Descriptor> > > generateMultiDenseParticleField (
-        Box2D boundingBox, plint envelopeWidth )
-{
-    return std::auto_ptr<MultiParticleField2D<DenseParticleField2D<T,Descriptor> > > (
-        new MultiParticleField2D<DenseParticleField2D<T,Descriptor> > (
-            defaultMultiBlockPolicy2D().getMultiBlockManagement(boundingBox, envelopeWidth),
-            defaultMultiBlockPolicy2D().getCombinedStatistics() )
-    );
-}
+// template<typename T, template<typename U> class Descriptor>
+// std::auto_ptr<MultiParticleField2D<DenseParticleField2D<T,Descriptor> > > generateMultiDenseParticleField (
+//         Box2D boundingBox, plint envelopeWidth )
+// {
+//     return std::auto_ptr<MultiParticleField2D<DenseParticleField2D<T,Descriptor> > > (
+//         new MultiParticleField2D<DenseParticleField2D<T,Descriptor> > (
+//             defaultMultiBlockPolicy2D().getMultiBlockManagement(boundingBox, envelopeWidth),
+//             defaultMultiBlockPolicy2D().getCombinedStatistics() )
+//     );
+// }
 
-template<class ParticleFieldT>
-std::auto_ptr<MultiParticleField2D<ParticleFieldT> > generateMultiParticleField2D (
-        Box2D boundingBox, plint envelopeWidth )
-{
-    return std::auto_ptr<MultiParticleField2D<ParticleFieldT> > (
-        new MultiParticleField2D<ParticleFieldT> (
-            defaultMultiBlockPolicy2D().getMultiBlockManagement(boundingBox, envelopeWidth),
-            defaultMultiBlockPolicy2D().getCombinedStatistics() )
-    );
-}
+// template<class ParticleFieldT>
+// std::auto_ptr<MultiParticleField2D<ParticleFieldT> > generateMultiParticleField2D (
+//         Box2D boundingBox, plint envelopeWidth )
+// {
+//     return std::auto_ptr<MultiParticleField2D<ParticleFieldT> > (
+//         new MultiParticleField2D<ParticleFieldT> (
+//             defaultMultiBlockPolicy2D().getMultiBlockManagement(boundingBox, envelopeWidth),
+//             defaultMultiBlockPolicy2D().getCombinedStatistics() )
+//     );
+// }
 
-template<class ParticleFieldT>
-std::auto_ptr<MultiParticleField2D<ParticleFieldT> > generateMultiParticleField2D (
-        MultiBlock2D& multiBlock, plint envelopeWidth )
-{
-    MultiBlockManagement2D sparseBlockManagement(multiBlock.getMultiBlockManagement());
-    MultiParticleField2D<ParticleFieldT>* field = new MultiParticleField2D<ParticleFieldT> (
-            MultiBlockManagement2D (
-                sparseBlockManagement.getSparseBlockStructure(),
-                sparseBlockManagement.getThreadAttribution().clone(),
-                envelopeWidth, sparseBlockManagement.getRefinementLevel() ),
-            defaultMultiBlockPolicy2D().getCombinedStatistics() );
+// template<class ParticleFieldT>
+// std::auto_ptr<MultiParticleField2D<ParticleFieldT> > generateMultiParticleField2D (
+//         MultiBlock2D& multiBlock, plint envelopeWidth )
+// {
+//     MultiBlockManagement2D sparseBlockManagement(multiBlock.getMultiBlockManagement());
+//     MultiParticleField2D<ParticleFieldT>* field = new MultiParticleField2D<ParticleFieldT> (
+//             MultiBlockManagement2D (
+//                 sparseBlockManagement.getSparseBlockStructure(),
+//                 sparseBlockManagement.getThreadAttribution().clone(),
+//                 envelopeWidth, sparseBlockManagement.getRefinementLevel() ),
+//             defaultMultiBlockPolicy2D().getCombinedStatistics() );
 
-    field->periodicity().toggle(0, multiBlock.periodicity().get(0));
-    field->periodicity().toggle(1, multiBlock.periodicity().get(1));
+//     field->periodicity().toggle(0, multiBlock.periodicity().get(0));
+//     field->periodicity().toggle(1, multiBlock.periodicity().get(1));
 
-    return std::auto_ptr<MultiParticleField2D<ParticleFieldT> >(field);
-}
+//     return std::auto_ptr<MultiParticleField2D<ParticleFieldT> >(field);
+// }
 
 
 }  // namespace plb
