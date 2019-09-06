@@ -37,7 +37,7 @@
 #include <algorithm/headers3D.h>
 #include <dataProcessors/headers3D.h>
 // #include <particles/headers3D.h>
-#include <offLattice/headers3D.h>
+// #include <offLattice/headers3D.h>
 #include <libraryInterfaces/headers3D.h>
 #include <finiteDifference/headers3D.h>
 #include <coProcessors/headers3D.h>
