@@ -35,7 +35,7 @@
 #include "atomicBlock/dataProcessorWrapper2D.h"
 #include "multiBlock/reductiveMultiDataProcessorWrapper2D.h"
 #include "multiBlock/multiDataProcessorWrapper2D.h"
-#include "multiGrid/gridConversion2D.h"
+// #include "multiGrid/gridConversion2D.h"
 
 
 namespace plb {
@@ -260,261 +260,261 @@ void GaussSeidelSolver( MultiScalarField2D<T>& initialValue,
     pcout << "Gauss-Seidel iterations: " << maxIter << std::endl;
 }
 
-/* ************ MultiGrid method *************** */
-/// Iterate Gauss-Sidel for a given number of iterations
-template<typename T>
-MultiScalarField2D<T>* smooth( MultiScalarField2D<T>& initialValue, 
-                               MultiScalarField2D<T>& rhs, Box2D const& domain,
-                               plint smoothIters){
-    // create the solution for Jacobi
-    MultiScalarField2D<T> jacobiValue(initialValue); 
-    jacobiValue.reset();
+// /* ************ MultiGrid method *************** */
+// /// Iterate Gauss-Sidel for a given number of iterations
+// template<typename T>
+// MultiScalarField2D<T>* smooth( MultiScalarField2D<T>& initialValue, 
+//                                MultiScalarField2D<T>& rhs, Box2D const& domain,
+//                                plint smoothIters){
+//     // create the solution for Jacobi
+//     MultiScalarField2D<T> jacobiValue(initialValue); 
+//     jacobiValue.reset();
     
-    // copy initialValue
-    MultiScalarField2D<T> initialCopy(initialValue);
-    // the result holder
-    MultiScalarField2D<T>* newValue = new MultiScalarField2D<T>(initialValue);
+//     // copy initialValue
+//     MultiScalarField2D<T> initialCopy(initialValue);
+//     // the result holder
+//     MultiScalarField2D<T>* newValue = new MultiScalarField2D<T>(initialValue);
     
-    // iteration over the original system: one Jacobi + one Gauss-Seidel
-    plint v1 = smoothIters;
-    for (plint iV1=0; iV1< v1; ++iV1){
-        newValue->swap(initialCopy);
-        JacobiIteration<T>(initialCopy, jacobiValue, rhs, domain);
-        GaussSeidelIteration<T>(initialCopy, jacobiValue, *newValue, rhs, domain);
-    }
+//     // iteration over the original system: one Jacobi + one Gauss-Seidel
+//     plint v1 = smoothIters;
+//     for (plint iV1=0; iV1< v1; ++iV1){
+//         newValue->swap(initialCopy);
+//         JacobiIteration<T>(initialCopy, jacobiValue, rhs, domain);
+//         GaussSeidelIteration<T>(initialCopy, jacobiValue, *newValue, rhs, domain);
+//     }
    
-    return newValue;
-}
+//     return newValue;
+// }
 
-/// Iterate Gauss-Sidel and then interpolate the result (go up in the V)
-template<typename T>
-MultiScalarField2D<T>* smoothAndInterpolate( MultiScalarField2D<T>& initialValue, 
-                                             MultiScalarField2D<T>& rhs, Box2D const& domain,
-                                             plint smoothIters )
-{
-    // smooth
-    MultiScalarField2D<T>* coarseNewValue = smooth(initialValue,rhs,domain,smoothIters);
-    // interpolate
-    MultiScalarField2D<T>* fineNewValue = new MultiScalarField2D<T>(*refine<T>(*coarseNewValue,1,-1,-1,-1));
-    delete coarseNewValue;
+// /// Iterate Gauss-Sidel and then interpolate the result (go up in the V)
+// template<typename T>
+// MultiScalarField2D<T>* smoothAndInterpolate( MultiScalarField2D<T>& initialValue, 
+//                                              MultiScalarField2D<T>& rhs, Box2D const& domain,
+//                                              plint smoothIters )
+// {
+//     // smooth
+//     MultiScalarField2D<T>* coarseNewValue = smooth(initialValue,rhs,domain,smoothIters);
+//     // interpolate
+//     MultiScalarField2D<T>* fineNewValue = new MultiScalarField2D<T>(*refine<T>(*coarseNewValue,1,-1,-1,-1));
+//     delete coarseNewValue;
     
-    return fineNewValue;
-}
+//     return fineNewValue;
+// }
 
-/// Iterate Gauss-Sidel and then compute the error (the finest level in the V)
-template<typename T>
-MultiScalarField2D<T>* smoothAndComputeError( MultiScalarField2D<T>& initialValue, MultiScalarField2D<T>& rhs, 
-                         Box2D const& domain, T& newError, plint smoothIters ){
+// /// Iterate Gauss-Sidel and then compute the error (the finest level in the V)
+// template<typename T>
+// MultiScalarField2D<T>* smoothAndComputeError( MultiScalarField2D<T>& initialValue, MultiScalarField2D<T>& rhs, 
+//                          Box2D const& domain, T& newError, plint smoothIters ){
     
-    MultiScalarField2D<T>* newValue = smooth(initialValue,rhs,domain,smoothIters);
-    // compute the new defect norm
-    MultiScalarField2D<T>* newDefect = computeGaussSeidelDefect<T>(*newValue, rhs, domain);
-    newError = computeEuclidianNorm<T>(*newDefect, domain);
-    delete newDefect;
+//     MultiScalarField2D<T>* newValue = smooth(initialValue,rhs,domain,smoothIters);
+//     // compute the new defect norm
+//     MultiScalarField2D<T>* newDefect = computeGaussSeidelDefect<T>(*newValue, rhs, domain);
+//     newError = computeEuclidianNorm<T>(*newDefect, domain);
+//     delete newDefect;
     
-    return newValue;
-}
+//     return newValue;
+// }
 
-/// Iterate Gauss-Sidel and then compute the defect (the last level before the coarsest grid)
-template<typename T>
-MultiScalarField2D<T>* smoothAndComputeCoarseDefect( MultiScalarField2D<T>& initialValue, 
-                                               MultiScalarField2D<T>& rhs, Box2D const& domain,
-                                               plint smoothIters ){
+// /// Iterate Gauss-Sidel and then compute the defect (the last level before the coarsest grid)
+// template<typename T>
+// MultiScalarField2D<T>* smoothAndComputeCoarseDefect( MultiScalarField2D<T>& initialValue, 
+//                                                MultiScalarField2D<T>& rhs, Box2D const& domain,
+//                                                plint smoothIters ){
     
-    MultiScalarField2D<T>* newValue = smooth(initialValue,rhs,domain,smoothIters);
-    // compute the new defect norm
-    MultiScalarField2D<T>* newDefect = computeGaussSeidelDefect<T>(*newValue, rhs, domain);
-    MultiScalarField2D<T>* coarseDefect = new MultiScalarField2D<T>(*coarsen<T>(*newDefect, 1, -1,1,1));
-    delete newDefect;
+//     MultiScalarField2D<T>* newValue = smooth(initialValue,rhs,domain,smoothIters);
+//     // compute the new defect norm
+//     MultiScalarField2D<T>* newDefect = computeGaussSeidelDefect<T>(*newValue, rhs, domain);
+//     MultiScalarField2D<T>* coarseDefect = new MultiScalarField2D<T>(*coarsen<T>(*newDefect, 1, -1,1,1));
+//     delete newDefect;
     
-    return coarseDefect;
-}
+//     return coarseDefect;
+// }
 
-template<typename T> 
-void generateRHS(MultiScalarField2D<T>& originalRHS, std::vector<MultiScalarField2D<T>* >& rhs){
-    plint vectorSize = (plint) rhs.size();
-    rhs[vectorSize-1] = new MultiScalarField2D<T>(originalRHS);
-    for (plint iLevel=vectorSize-2; iLevel>=0; iLevel--){
-        rhs[iLevel] = new MultiScalarField2D<T>( *coarsen<T>(*rhs[iLevel+1],1,-1,1,1));
-    }
-}
+// template<typename T> 
+// void generateRHS(MultiScalarField2D<T>& originalRHS, std::vector<MultiScalarField2D<T>* >& rhs){
+//     plint vectorSize = (plint) rhs.size();
+//     rhs[vectorSize-1] = new MultiScalarField2D<T>(originalRHS);
+//     for (plint iLevel=vectorSize-2; iLevel>=0; iLevel--){
+//         rhs[iLevel] = new MultiScalarField2D<T>( *coarsen<T>(*rhs[iLevel+1],1,-1,1,1));
+//     }
+// }
 
-template<typename T>
-T multiGridVCycle( MultiScalarField2D<T>& initialValue, MultiScalarField2D<T>& newValue,
-                   MultiScalarField2D<T>& rhs, Box2D const& domain, plint depth ){
+// template<typename T>
+// T multiGridVCycle( MultiScalarField2D<T>& initialValue, MultiScalarField2D<T>& newValue,
+//                    MultiScalarField2D<T>& rhs, Box2D const& domain, plint depth ){
     
     
-    PLB_PRECONDITION(depth>=1);
+//     PLB_PRECONDITION(depth>=1);
         
-    // containers of the values to not lose anything
-    std::vector<MultiScalarField2D<T>* > newValues(depth+1);
-    std::vector<MultiScalarField2D<T>* > defects(depth+1);
+//     // containers of the values to not lose anything
+//     std::vector<MultiScalarField2D<T>* > newValues(depth+1);
+//     std::vector<MultiScalarField2D<T>* > defects(depth+1);
     
-    plint smoothIters1 = 5;
-    plint smoothIters2 = 5;
-    // we go down until the level before the coarsest
-    newValues[depth] = smooth<T>(initialValue,rhs,initialValue.getBoundingBox(), smoothIters1);
-    defects[depth]  = computeGaussSeidelDefect<T>(*newValues[depth],rhs,initialValue.getBoundingBox());
-    defects[depth-1] = new MultiScalarField2D<T>(*coarsen<T>(*defects[depth],1,-1,1,1));
-    *defects[depth-1] = *plb::multiply(-1.0,*defects[depth-1]);
+//     plint smoothIters1 = 5;
+//     plint smoothIters2 = 5;
+//     // we go down until the level before the coarsest
+//     newValues[depth] = smooth<T>(initialValue,rhs,initialValue.getBoundingBox(), smoothIters1);
+//     defects[depth]  = computeGaussSeidelDefect<T>(*newValues[depth],rhs,initialValue.getBoundingBox());
+//     defects[depth-1] = new MultiScalarField2D<T>(*coarsen<T>(*defects[depth],1,-1,1,1));
+//     *defects[depth-1] = *plb::multiply(-1.0,*defects[depth-1]);
     
-    /// GOING DOWN THE V
-    for (plint iLevel=depth-1; iLevel>=1; iLevel--){
+//     /// GOING DOWN THE V
+//     for (plint iLevel=depth-1; iLevel>=1; iLevel--){
         
-        // create initial solution = 0
-        MultiScalarField2D<T> initialSolution(*defects[iLevel]);
-        initialSolution.reset();
-        // smooth the new system
-        newValues[iLevel] = smooth<T>( initialSolution,*defects[iLevel],
-                                         initialSolution.getBoundingBox(), smoothIters1);
-        MultiScalarField2D<T>* tempDefect =
-            computeGaussSeidelDefect<T>(*newValues[iLevel],*defects[iLevel],newValues[iLevel]->getBoundingBox());
-        defects[iLevel-1] = new 
-                    MultiScalarField2D<T>(*coarsen<T>(*tempDefect,1,-1,1,1));
-        *defects[iLevel-1] = *plb::multiply(-1.0,*defects[iLevel-1]); // change the sign
-        delete tempDefect;
-    }
+//         // create initial solution = 0
+//         MultiScalarField2D<T> initialSolution(*defects[iLevel]);
+//         initialSolution.reset();
+//         // smooth the new system
+//         newValues[iLevel] = smooth<T>( initialSolution,*defects[iLevel],
+//                                          initialSolution.getBoundingBox(), smoothIters1);
+//         MultiScalarField2D<T>* tempDefect =
+//             computeGaussSeidelDefect<T>(*newValues[iLevel],*defects[iLevel],newValues[iLevel]->getBoundingBox());
+//         defects[iLevel-1] = new 
+//                     MultiScalarField2D<T>(*coarsen<T>(*tempDefect,1,-1,1,1));
+//         *defects[iLevel-1] = *plb::multiply(-1.0,*defects[iLevel-1]); // change the sign
+//         delete tempDefect;
+//     }
     
-    /// THE EDGE OF THE V
-    // resolve the system exactly for the coarse system
-    MultiScalarField2D<T> initialValueCoarse(*defects[0]);
-    MultiScalarField2D<T> resultCoarse(*defects[0]); // container for the coarse solution to the correction scheme
-    initialValueCoarse.reset(); // for the correction 0 is a good first approximation
+//     /// THE EDGE OF THE V
+//     // resolve the system exactly for the coarse system
+//     MultiScalarField2D<T> initialValueCoarse(*defects[0]);
+//     MultiScalarField2D<T> resultCoarse(*defects[0]); // container for the coarse solution to the correction scheme
+//     initialValueCoarse.reset(); // for the correction 0 is a good first approximation
     
-    T tolerance = 1e-5;
-    plint maxIter = 100;
-    GaussSeidelSolver<T>( initialValueCoarse, resultCoarse,
-                          *defects[0],resultCoarse.getBoundingBox(),tolerance, maxIter );
+//     T tolerance = 1e-5;
+//     plint maxIter = 100;
+//     GaussSeidelSolver<T>( initialValueCoarse, resultCoarse,
+//                           *defects[0],resultCoarse.getBoundingBox(),tolerance, maxIter );
 
-    newValues[0] = new MultiScalarField2D<T>(resultCoarse);
-    // we interpolate the error computed in the coarse grid and add it to the original result from level 1
-    MultiScalarField2D<T>* v_h = new MultiScalarField2D<T>(*refine<T>( *newValues[0], 1, -1 ,-1,-1));
-    // compute new approximation as newValue = u_h + v_h
-    *newValues[1] = *plb::add(*newValues[1],*v_h);
-    delete v_h;
+//     newValues[0] = new MultiScalarField2D<T>(resultCoarse);
+//     // we interpolate the error computed in the coarse grid and add it to the original result from level 1
+//     MultiScalarField2D<T>* v_h = new MultiScalarField2D<T>(*refine<T>( *newValues[0], 1, -1 ,-1,-1));
+//     // compute new approximation as newValue = u_h + v_h
+//     *newValues[1] = *plb::add(*newValues[1],*v_h);
+//     delete v_h;
     
-    /// GOING UP THE V
-    // go up interpolating and smoothing up to the level before the finest
-    for (plint iLevel=1; iLevel<depth; ++iLevel){
-        MultiScalarField2D<T>* tempNewVal = smoothAndInterpolate<T>( *newValues[iLevel], *defects[iLevel], 
-                                                                    newValues[iLevel]->getBoundingBox(), smoothIters2);
-        *newValues[iLevel+1] = *plb::add(*newValues[iLevel+1],*tempNewVal);
-        delete tempNewVal;
+//     /// GOING UP THE V
+//     // go up interpolating and smoothing up to the level before the finest
+//     for (plint iLevel=1; iLevel<depth; ++iLevel){
+//         MultiScalarField2D<T>* tempNewVal = smoothAndInterpolate<T>( *newValues[iLevel], *defects[iLevel], 
+//                                                                     newValues[iLevel]->getBoundingBox(), smoothIters2);
+//         *newValues[iLevel+1] = *plb::add(*newValues[iLevel+1],*tempNewVal);
+//         delete tempNewVal;
 
-    }
+//     }
     
-    // we smooth and compute the new error in the finest level
-    T newError = 0.0;
-    MultiScalarField2D<T>* result = smoothAndComputeError( *newValues[depth], rhs,
-                                                           newValues[depth]->getBoundingBox(),
-                                                           newError, smoothIters2 );
-    // copy new initial value
-    newValue = *result;
-    delete result;
+//     // we smooth and compute the new error in the finest level
+//     T newError = 0.0;
+//     MultiScalarField2D<T>* result = smoothAndComputeError( *newValues[depth], rhs,
+//                                                            newValues[depth]->getBoundingBox(),
+//                                                            newError, smoothIters2 );
+//     // copy new initial value
+//     newValue = *result;
+//     delete result;
     
-    // CLEAN-UP
-    for (plint iLevel = 0; iLevel <= depth; ++iLevel){
-        delete newValues[iLevel];
-        delete defects[iLevel];
-    }
+//     // CLEAN-UP
+//     for (plint iLevel = 0; iLevel <= depth; ++iLevel){
+//         delete newValues[iLevel];
+//         delete defects[iLevel];
+//     }
     
-    return newError;
-}
+//     return newError;
+// }
 
-template<typename T>
-std::vector<MultiScalarField2D<T>* > fullMultiGrid( MultiScalarField2D<T>& initialValue, 
-                                                    MultiScalarField2D<T>& originalRhs, Box2D const& domain,         
-                                                    plint gridLevels, plint ncycles )
-{
-    PLB_PRECONDITION( gridLevels>=2 && ncycles>=1 );
+// template<typename T>
+// std::vector<MultiScalarField2D<T>* > fullMultiGrid( MultiScalarField2D<T>& initialValue, 
+//                                                     MultiScalarField2D<T>& originalRhs, Box2D const& domain,         
+//                                                     plint gridLevels, plint ncycles )
+// {
+//     PLB_PRECONDITION( gridLevels>=2 && ncycles>=1 );
     
-    std::vector<MultiScalarField2D<T>* > rhs(gridLevels);
-    std::vector<MultiScalarField2D<T>* > solutions(gridLevels);
+//     std::vector<MultiScalarField2D<T>* > rhs(gridLevels);
+//     std::vector<MultiScalarField2D<T>* > solutions(gridLevels);
     
-    // create all the right-hand sides from restriction over rhs
-    generateRHS(originalRhs, rhs);
+//     // create all the right-hand sides from restriction over rhs
+//     generateRHS(originalRhs, rhs);
     
-    // Initial solution computed exactly on the coarsest grid
-    MultiScalarField2D<T> initialSolution(*rhs[0]);
-    MultiScalarField2D<T> initialValueCoarse(*rhs[0]);
-    initialValueCoarse.reset();
-    GaussSeidelSolver<T>(initialValueCoarse, initialSolution, *rhs[0],initialSolution.getBoundingBox());
-    solutions[0] = new MultiScalarField2D<T>(initialSolution);
+//     // Initial solution computed exactly on the coarsest grid
+//     MultiScalarField2D<T> initialSolution(*rhs[0]);
+//     MultiScalarField2D<T> initialValueCoarse(*rhs[0]);
+//     initialValueCoarse.reset();
+//     GaussSeidelSolver<T>(initialValueCoarse, initialSolution, *rhs[0],initialSolution.getBoundingBox());
+//     solutions[0] = new MultiScalarField2D<T>(initialSolution);
     
-    // MAIN LOOP (at each time we add one more level)
-    for (plint iLevel=1; iLevel<gridLevels; ++iLevel){
-        pcout << "Level: " << iLevel << std::endl;
-        // interpolate the iLevel-1 solution
-        MultiScalarField2D<T>* initialSolutionLevel = new
-                MultiScalarField2D<T>( *refine<T>(*solutions[iLevel-1],1,-1,-1,-1) );
-        MultiScalarField2D<T> newValue(*initialSolutionLevel);
-        // for each level we itere ncycles
-        for (plint iNcycle=0; iNcycle<ncycles*iLevel; ++iNcycle){
-            // we use a V cycle with the current number of grids
-            T error;
-            error = multiGridVCycle<T>( *initialSolutionLevel, newValue, *rhs[iLevel], domain, iLevel);
-            pcout << "\tError=" << error << std::endl;
-            newValue.swap(*initialSolutionLevel);
-        }
+//     // MAIN LOOP (at each time we add one more level)
+//     for (plint iLevel=1; iLevel<gridLevels; ++iLevel){
+//         pcout << "Level: " << iLevel << std::endl;
+//         // interpolate the iLevel-1 solution
+//         MultiScalarField2D<T>* initialSolutionLevel = new
+//                 MultiScalarField2D<T>( *refine<T>(*solutions[iLevel-1],1,-1,-1,-1) );
+//         MultiScalarField2D<T> newValue(*initialSolutionLevel);
+//         // for each level we itere ncycles
+//         for (plint iNcycle=0; iNcycle<ncycles*iLevel; ++iNcycle){
+//             // we use a V cycle with the current number of grids
+//             T error;
+//             error = multiGridVCycle<T>( *initialSolutionLevel, newValue, *rhs[iLevel], domain, iLevel);
+//             pcout << "\tError=" << error << std::endl;
+//             newValue.swap(*initialSolutionLevel);
+//         }
         
-        // save the current level solution
-        solutions[iLevel] = new MultiScalarField2D<T>(*initialSolutionLevel);
-        delete initialSolutionLevel;        
-    }
+//         // save the current level solution
+//         solutions[iLevel] = new MultiScalarField2D<T>(*initialSolutionLevel);
+//         delete initialSolutionLevel;        
+//     }
     
-    // CLEAN-UP
-    for (plint iLevel=0; iLevel<gridLevels; ++iLevel){
-        delete rhs[iLevel];
-    }
+//     // CLEAN-UP
+//     for (plint iLevel=0; iLevel<gridLevels; ++iLevel){
+//         delete rhs[iLevel];
+//     }
     
-    return solutions;
-}
+//     return solutions;
+// }
 
-template<typename T>
-std::vector<MultiScalarField2D<T>* > simpleMultiGrid( MultiScalarField2D<T>& initialValue, 
-                                                    MultiScalarField2D<T>& originalRhs, Box2D const& domain,         
-                                                    plint gridLevels )
-{
-    PLB_PRECONDITION( gridLevels>=2 );
+// template<typename T>
+// std::vector<MultiScalarField2D<T>* > simpleMultiGrid( MultiScalarField2D<T>& initialValue, 
+//                                                     MultiScalarField2D<T>& originalRhs, Box2D const& domain,         
+//                                                     plint gridLevels )
+// {
+//     PLB_PRECONDITION( gridLevels>=2 );
     
-    std::vector<MultiScalarField2D<T>* > rhs(gridLevels);
-    std::vector<MultiScalarField2D<T>* > solutions(gridLevels);
+//     std::vector<MultiScalarField2D<T>* > rhs(gridLevels);
+//     std::vector<MultiScalarField2D<T>* > solutions(gridLevels);
     
-    // create all the right-hand sides from restriction over rhs
-    generateRHS(originalRhs, rhs);
+//     // create all the right-hand sides from restriction over rhs
+//     generateRHS(originalRhs, rhs);
     
-    // Initial solution computed exactly on the coarsest grid
-    pcout << "Level: 0" << std::endl;
-    pcout << "Size of the field : " << rhs[0]->getNx() << " x " << rhs[0]->getNy() << std::endl;
-    MultiScalarField2D<T> initialSolution(*rhs[0]);
-    MultiScalarField2D<T> initialValueCoarse(*rhs[0]);
-    initialValueCoarse.reset();
-    GaussSeidelSolver<T>(initialValueCoarse, initialSolution, *rhs[0],initialSolution.getBoundingBox());
-    solutions[0] = new MultiScalarField2D<T>(initialSolution);
+//     // Initial solution computed exactly on the coarsest grid
+//     pcout << "Level: 0" << std::endl;
+//     pcout << "Size of the field : " << rhs[0]->getNx() << " x " << rhs[0]->getNy() << std::endl;
+//     MultiScalarField2D<T> initialSolution(*rhs[0]);
+//     MultiScalarField2D<T> initialValueCoarse(*rhs[0]);
+//     initialValueCoarse.reset();
+//     GaussSeidelSolver<T>(initialValueCoarse, initialSolution, *rhs[0],initialSolution.getBoundingBox());
+//     solutions[0] = new MultiScalarField2D<T>(initialSolution);
     
-    // MAIN LOOP (at each time we add one more level)
-    for (plint iLevel=1; iLevel<gridLevels; ++iLevel){
-        pcout << "Level: " << iLevel << std::endl;
+//     // MAIN LOOP (at each time we add one more level)
+//     for (plint iLevel=1; iLevel<gridLevels; ++iLevel){
+//         pcout << "Level: " << iLevel << std::endl;
         
-        // interpolate the iLevel-1 solution
-        MultiScalarField2D<T>* initialSolutionLevel = new
-                MultiScalarField2D<T>( *refine<T>(*solutions[iLevel-1],1,-1,-1,-1) );
-        MultiScalarField2D<T> newValue(*initialSolutionLevel);
-        pcout << "Size of the field : " << newValue.getNx() << " x " << newValue.getNy() << std::endl;
-        GaussSeidelSolver<T>(*initialSolutionLevel, newValue, *rhs[iLevel],initialSolutionLevel->getBoundingBox());
+//         // interpolate the iLevel-1 solution
+//         MultiScalarField2D<T>* initialSolutionLevel = new
+//                 MultiScalarField2D<T>( *refine<T>(*solutions[iLevel-1],1,-1,-1,-1) );
+//         MultiScalarField2D<T> newValue(*initialSolutionLevel);
+//         pcout << "Size of the field : " << newValue.getNx() << " x " << newValue.getNy() << std::endl;
+//         GaussSeidelSolver<T>(*initialSolutionLevel, newValue, *rhs[iLevel],initialSolutionLevel->getBoundingBox());
         
-        // save the current level solution
-        solutions[iLevel] = new MultiScalarField2D<T>(*initialSolutionLevel);
-        delete initialSolutionLevel;
-    }
+//         // save the current level solution
+//         solutions[iLevel] = new MultiScalarField2D<T>(*initialSolutionLevel);
+//         delete initialSolutionLevel;
+//     }
     
-    // CLEAN-UP
-    for (plint iLevel=0; iLevel<gridLevels; ++iLevel){
-        delete rhs[iLevel];
-    }
+//     // CLEAN-UP
+//     for (plint iLevel=0; iLevel<gridLevels; ++iLevel){
+//         delete rhs[iLevel];
+//     }
     
-    return solutions;
-}
+//     return solutions;
+// }
 
 
 // General Stencils.
