@@ -436,6 +436,8 @@ void BlockLattice2D<T,Descriptor>::linearBulkCollideAndStream(Box2D domain) {
     // Make sure domain is contained within current lattice
     PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
+    // printf("Inside blockwiseBulkCollideAndStream\n");
+    
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             grid[iX][iY].collide(this->getInternalStatistics());
@@ -454,6 +456,7 @@ void BlockLattice2D<T,Descriptor>::blockwiseBulkCollideAndStream(Box2D domain) {
     // Make sure domain is contained within current lattice
     PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
+    // printf("Inside blockwiseBulkCollideAndStream\n");
     // For cache efficiency, memory is traversed block-wise. The two outer loops enumerate
     //   the blocks, whereas the two inner loops enumerate the cells inside each block.
     const plint blockSize = cachePolicy().getBlockSize();

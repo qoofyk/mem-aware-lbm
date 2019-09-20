@@ -65,7 +65,7 @@ profileFlags = -pg
 # to SConstruct. It is recommended not to modify anything there.
 ##########################################################################
 
-SCons     = $(palabosRoot)/scons/scons-3.1.1/build/bin/scons -j 6 -f $(palabosRoot)/SConstruct
+SCons     = $(palabosRoot)/scons/scons-3.1.1/build/bin/scons -j 8 -f $(palabosRoot)/SConstruct
 
 SConsArgs = palabosRoot=$(palabosRoot) \
             projectFiles="$(projectFiles)" \

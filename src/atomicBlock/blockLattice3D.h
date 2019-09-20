@@ -176,6 +176,14 @@ public:
     void boundaryStream(Box3D bound, Box3D domain);
     /// Apply collision and streaming step to bulk (non-boundary) cells
     void bulkCollideAndStream(Box3D domain);
+    /// 2 steps
+    void collideRevertAndBoundSwapStream(Box3D domain);
+    void collideRevertAndBoundSwapStream(Box3D domain, plint iX, plint iY, plint iZ);
+    void step2_2nd_CollideAndStream(Box3D domain, plint iX, plint iY, plint iZ);
+    void step2CollideAndStream(Box3D domain);
+    void step2CollideAndStream_init(Box3D domain);
+    void step2CollideAndStream_bulk(Box3D domain);
+    void step2CollideAndStream_end(Box3D domain);
 private:
     /// Generic implementation of bulkCollideAndStream(domain).
     void linearBulkCollideAndStream(Box3D domain);

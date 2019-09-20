@@ -103,23 +103,39 @@ int main(int argc, char* argv[]) {
     plint numCells = lattice.getBoundingBox().nCells();
 
     // Run at least three iterations.
-    plint numIter = std::max( (plint)3,
-                              (plint)(estimateSus*wishNumSeconds/numCells+0.5));
+    // plint numIter = std::max( (plint)3,
+    //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
+    plint numIter = 200;
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
 
     cavitySetup(lattice, parameters, *boundaryCondition);
 
+    // // Run the benchmark once "to warm up the machine".
+    // for (plint iT=0; iT<numIter; ++iT) {
+    //     lattice.collideAndStream();
+    // }
+
+    // // Run the benchmark for good.
+    // global::timer("benchmark").start();
+    // global::profiler().turnOn();
+    // for (plint iT=0; iT<numIter; ++iT) {
+    //     lattice.collideAndStream();
+    // }
+
     // Run the benchmark once "to warm up the machine".
-    for (plint iT=0; iT<numIter; ++iT) {
+    for (plint iT=0; iT<numIter; iT += 2) {
+        // pcout << "iT=" << iT << std::endl;
         lattice.collideAndStream();
     }
 
+    // pcout << "Start bench!" << std::endl;
     // Run the benchmark for good.
     global::timer("benchmark").start();
     global::profiler().turnOn();
-    for (plint iT=0; iT<numIter; ++iT) {
+    for (plint iT=0; iT<numIter; iT += 2) {
+        // pcout << "iT=" << iT << std::endl;
         lattice.collideAndStream();
     }
 
