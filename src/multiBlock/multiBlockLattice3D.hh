@@ -365,6 +365,7 @@ template<typename T, template<typename U> class Descriptor>
 void MultiBlockLattice3D<T,Descriptor>::collideAndStreamImplementation() {
     ThreadAttribution const& threadAttribution=this->getMultiBlockManagement().getThreadAttribution();
     if (threadAttribution.hasCoProcessors()) {
+        printf("hasCoProcessors\n");
         for ( typename BlockMap::iterator it = blockLattices.begin();
               it != blockLattices.end(); ++it )
         {
@@ -384,7 +385,8 @@ void MultiBlockLattice3D<T,Descriptor>::collideAndStreamImplementation() {
         }
     }
     else  {
-        // printf("collideAndStream else part\n");
+        printf("collideAndStream else part\n");
+        fflush(stdout);
         for ( typename BlockMap::iterator it = blockLattices.begin();
               it != blockLattices.end(); ++it)
         {

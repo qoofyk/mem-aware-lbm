@@ -104,6 +104,7 @@ int main(int argc, char* argv[]) {
     // Run at least three iterations.
     // plint numIter = std::max( (plint)3,
     //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
+
     plint numIter = 2;
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
