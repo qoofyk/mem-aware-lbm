@@ -433,11 +433,18 @@ void MultiBlockLattice3D<T,Descriptor>::allocateAndInitialize()
     for (pluint iBlock=0; iBlock<this->getLocalInfo().getBlocks().size(); ++iBlock) {
         plint blockId = this->getLocalInfo().getBlocks()[iBlock];
         SmartBulk3D bulk(this->getMultiBlockManagement(), blockId);
+
+        printf("iBlock=%ld, getBulk, Nx=%ld, Ny=%ld, Nz=%ld\n", 
+            iBlock, bulk.getBulk().getNx(), bulk.getBulk().getNy(), bulk.getBulk().getNz());
+
         Box3D envelope = bulk.computeEnvelope();
         BlockLattice3D<T,Descriptor>* newLattice
             = new BlockLattice3D<T,Descriptor> (
                     envelope.getNx(), envelope.getNy(), envelope.getNz(),
                     backgroundDynamics->clone() );
+
+        printf("iBlock=%ld, Nx=%ld, Ny=%ld, Nz=%ld\n", 
+            iBlock, envelope.getNx(), envelope.getNy(), envelope.getNz());
         newLattice -> setLocation(Dot3D(envelope.x0, envelope.y0, envelope.z0));
         blockLattices[blockId] = newLattice;
     }
@@ -454,6 +461,8 @@ void MultiBlockLattice3D<T,Descriptor>::eliminateStatisticsInEnvelope()
         plint maxX = block.getNx()-1;
         plint maxY = block.getNy()-1;
         plint maxZ = block.getNz()-1;
+
+        printf("iBlock=%ld, maxX=%ld, maxY=%ld, maxZ=%ld\n", it->first, maxX, maxY, maxZ);
         
         block.specifyStatisticsStatus(Box3D(0, maxX, 0, maxY, 0, envelopeWidth-1), false);
         block.specifyStatisticsStatus(Box3D(0, maxX, 0, maxY, maxZ-envelopeWidth+1, maxZ), false);

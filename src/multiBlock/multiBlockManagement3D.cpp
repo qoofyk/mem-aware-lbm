@@ -425,6 +425,7 @@ Box3D SmartBulk3D::getBulk() const {
 
 Box3D SmartBulk3D::computeEnvelope() const
 {
+    // printf("envelopeWidth=%ld\n", envelopeWidth);
     return bulk.enlarge(envelopeWidth);
 }
 
