@@ -199,6 +199,9 @@ void SparseBlockStructure3D::defaultGridN()
     if (gridNy < 1) gridNy = 1;
     gridNz = (plint)(0.5+(double)boundingBox.getNz()/uniformNcell*uniformGridN);
     if (gridNz < 1) gridNz = 1;
+
+    printf("SparseBlockStructure3D::defaultGridN gridNx=%ld, gridNy=%ld, gridNz=%ld\n", 
+        gridNx, gridNy, gridNz);
 }
 
 void SparseBlockStructure3D::iniGridParameters()
@@ -215,6 +218,9 @@ void SparseBlockStructure3D::iniGridParameters()
     if (boundingBox.getNz() % gridNz != 0) {
         ++gridLz;
     }
+
+    printf("SparseBlockStructure3D::iniGridParameters gridLx=%ld, gridLy=%ld, gridLz=%ld\n", 
+        gridLx, gridLy, gridLz);
 }
 
 plint SparseBlockStructure3D::gridPosX(plint realX) const {
@@ -328,6 +334,14 @@ void SparseBlockStructure3D::computeOverlaps (
     }
 }
 
+void print(std::vector <plint> const& a){
+    std::cout << "The vector elements are : ";
+
+    for (std::vector<plint>::const_iterator i = a.begin(); i != a.end(); ++i)
+        std::cout << *i << ' ';
+    std::cout << std::endl;
+}
+
 void SparseBlockStructure3D::findNeighbors (
         Box3D const& bulk, plint neighborhoodWidth,
         std::vector<plint>& neighbors, plint excludeId ) const
@@ -335,14 +349,23 @@ void SparseBlockStructure3D::findNeighbors (
     Box3D extendedBlock(bulk.enlarge(neighborhoodWidth));
     Box3D gridBox = getGridBox(extendedBlock);
 
+    printf("findNeighbors: \
+extendedBlock[x0,x1:y0,y1:z0,z1]=[%ld,%ld:%ld,%ld:%ld,%ld]\n\
+gridBox[x0,x1:y0,y1:z0,z1]=[%ld,%ld:%ld,%ld:%ld,%ld]\n",
+        extendedBlock.x0, extendedBlock.x1, extendedBlock.y0, extendedBlock.y1,
+        extendedBlock.z0, extendedBlock.z1,
+        gridBox.x0, gridBox.x1, gridBox.y0, gridBox.y1, gridBox.z0, gridBox.z1);
+
     std::set<plint> idsToTest;
     for (plint gridX=gridBox.x0; gridX<=gridBox.x1; ++gridX) {
         for (plint gridY=gridBox.y0; gridY<=gridBox.y1; ++gridY) {
             for (plint gridZ=gridBox.z0; gridZ<=gridBox.z1; ++gridZ) {
+                printf("%ld, %ld, %ld\n", gridX, gridY, gridZ);
                 GridT::const_iterator gridIter
                     = grid.find(Dot3D(gridX,gridY,gridZ));
                 if (gridIter != grid.end()) {
                     std::vector<plint> const& blockList = gridIter->second;
+                    print(blockList);
                     idsToTest.insert(blockList.begin(), blockList.end());
                 }
             }
@@ -372,6 +395,7 @@ void SparseBlockStructure3D::findNeighbors (
 {
     Box3D bulk = bulks.find(blockId)->second;
     findNeighbors(bulk, neighborhoodWidth, neighbors, blockId);
+    print(neighbors);
 }
 
 void SparseBlockStructure3D::swap(SparseBlockStructure3D& rhs) {
@@ -404,6 +428,8 @@ void SparseBlockStructure3D::integrateBlock(plint blockId, Box3D bulk) {
         for (plint gridY=gridBox.y0; gridY<=gridBox.y1; ++gridY) {
             for (plint gridZ=gridBox.z0; gridZ<=gridBox.z1; ++gridZ) {
                 grid[Dot3D(gridX,gridY,gridZ)].push_back(blockId);
+                printf("integrateBlock: [gridX %ld, gridY %ld, gridZ %ld] -> [blockId %ld]\n", 
+                    gridX, gridY, gridZ, blockId);
             }
         }
     }

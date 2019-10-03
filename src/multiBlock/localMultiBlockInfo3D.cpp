@@ -50,7 +50,7 @@ LocalMultiBlockInfo3D::LocalMultiBlockInfo3D (
 {
     computeMyBlocks(sparseBlock,attribution);
     computeAllNormalOverlaps(sparseBlock);
-    computeAllPeriodicOverlaps(sparseBlock);
+    // computeAllPeriodicOverlaps(sparseBlock);
     // This is important: the overlaps must be sorted so they
     //   appear in the same order on different processors, to
     //   guarantee a match in the communication pattern.
@@ -121,11 +121,19 @@ void LocalMultiBlockInfo3D::computeNormalOverlaps (
         if (intersect( neighborBulk.getBulk(),
                        bulk.computeNonPeriodicEnvelope(), intersection) )
         {
+            printf("computeNormalOverlaps-1: neighborId %ld, blockId %ld, \
+inter[%ld,%ld : %ld,%ld : %ld,%ld]\n", 
+                neighborId, blockId, intersection.x0, intersection.x1, 
+                intersection.y0, intersection.y1, intersection.z0, intersection.z1);
             normalOverlaps.push_back(Overlap3D(neighborId, blockId, intersection));
         }
         if (intersect( bulk.getBulk(),
                        neighborBulk.computeNonPeriodicEnvelope(), intersection) )
         {
+            printf("computeNormalOverlaps-2: blockId %ld, neighborId %ld, \
+inter[%ld,%ld : %ld,%ld : %ld,%ld]\n", 
+                blockId, neighborId, intersection.x0, intersection.x1, 
+                intersection.y0, intersection.y1, intersection.z0, intersection.z1);
             normalOverlaps.push_back(Overlap3D(blockId, neighborId, intersection));
         }
     }
