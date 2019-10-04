@@ -436,7 +436,7 @@ void MultiBlockLattice3D<T,Descriptor>::allocateAndInitialize()
         plint blockId = this->getLocalInfo().getBlocks()[iBlock];
         SmartBulk3D bulk(this->getMultiBlockManagement(), blockId);
 
-        printf("iBlock=%ld, getBulk, Nx=%ld, Ny=%ld, Nz=%ld\n", 
+        printf("allocateAndInitialize: iBlock=%ld, getBulk, Nx=%ld, Ny=%ld, Nz=%ld\n", 
             iBlock, bulk.getBulk().getNx(), bulk.getBulk().getNy(), bulk.getBulk().getNz());
 
         Box3D envelope = bulk.computeEnvelope();
@@ -445,7 +445,7 @@ void MultiBlockLattice3D<T,Descriptor>::allocateAndInitialize()
                     envelope.getNx(), envelope.getNy(), envelope.getNz(),
                     backgroundDynamics->clone() );
 
-        printf("iBlock=%ld, Nx=%ld, Ny=%ld, Nz=%ld\n", 
+        printf("allocateAndInitialize: iBlock=%ld, envelope, Nx=%ld, Ny=%ld, Nz=%ld\n", 
             iBlock, envelope.getNx(), envelope.getNy(), envelope.getNz());
         newLattice -> setLocation(Dot3D(envelope.x0, envelope.y0, envelope.z0));
         blockLattices[blockId] = newLattice;
