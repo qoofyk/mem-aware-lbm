@@ -264,6 +264,9 @@ Box3D MultiBlockLattice3D<T,Descriptor>::extendPeriodic(Box3D const& box, plint 
     bool periodicX = this->periodicity().get(0);
     bool periodicY = this->periodicity().get(1);
     bool periodicZ = this->periodicity().get(2);
+
+    printf("extendPeriodic: periodicX,Y,Z=%d, %d, %d\n", periodicX, periodicY, periodicZ);
+
     if (periodicX) {
         if (periodicBox.x0 == boundingBox.x0) {
             periodicBox.x0 -= envelopeWidth;
@@ -337,8 +340,8 @@ void MultiBlockLattice3D<T,Descriptor>::collideAndStream() {
 
     collideAndStreamImplementation();
 
-    this->executeInternalProcessors();
-    this->evaluateStatistics();
+    // this->executeInternalProcessors();
+    // this->evaluateStatistics();
 
     // 2steps: iT += 2
     this->incrementTime();
@@ -435,18 +438,19 @@ void MultiBlockLattice3D<T,Descriptor>::allocateAndInitialize()
     for (pluint iBlock=0; iBlock<this->getLocalInfo().getBlocks().size(); ++iBlock) {
         plint blockId = this->getLocalInfo().getBlocks()[iBlock];
         SmartBulk3D bulk(this->getMultiBlockManagement(), blockId);
-
+#if 0
         printf("allocateAndInitialize: iBlock=%ld, getBulk, Nx=%ld, Ny=%ld, Nz=%ld\n", 
             iBlock, bulk.getBulk().getNx(), bulk.getBulk().getNy(), bulk.getBulk().getNz());
-
+#endif
         Box3D envelope = bulk.computeEnvelope();
         BlockLattice3D<T,Descriptor>* newLattice
             = new BlockLattice3D<T,Descriptor> (
                     envelope.getNx(), envelope.getNy(), envelope.getNz(),
                     backgroundDynamics->clone() );
-
+#if 0
         printf("allocateAndInitialize: iBlock=%ld, envelope, Nx=%ld, Ny=%ld, Nz=%ld\n", 
             iBlock, envelope.getNx(), envelope.getNy(), envelope.getNz());
+#endif
         newLattice -> setLocation(Dot3D(envelope.x0, envelope.y0, envelope.z0));
         blockLattices[blockId] = newLattice;
     }
@@ -464,8 +468,9 @@ void MultiBlockLattice3D<T,Descriptor>::eliminateStatisticsInEnvelope()
         plint maxY = block.getNy()-1;
         plint maxZ = block.getNz()-1;
 
-        printf("iBlock=%ld, maxX=%ld, maxY=%ld, maxZ=%ld\n", it->first, maxX, maxY, maxZ);
-        
+#if 0
+        printf("eliminateStatisticsInEnvelope: iBlock=%ld, maxX=%ld, maxY=%ld, maxZ=%ld\n", it->first, maxX, maxY, maxZ);
+#endif
         block.specifyStatisticsStatus(Box3D(0, maxX, 0, maxY, 0, envelopeWidth-1), false);
         block.specifyStatisticsStatus(Box3D(0, maxX, 0, maxY, maxZ-envelopeWidth+1, maxZ), false);
         block.specifyStatisticsStatus(Box3D(0, maxX, 0, envelopeWidth-1, 0, maxZ), false);

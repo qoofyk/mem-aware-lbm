@@ -50,7 +50,7 @@ LocalMultiBlockInfo3D::LocalMultiBlockInfo3D (
 {
     computeMyBlocks(sparseBlock,attribution);
     computeAllNormalOverlaps(sparseBlock);
-    // computeAllPeriodicOverlaps(sparseBlock);
+    computeAllPeriodicOverlaps(sparseBlock);
     // This is important: the overlaps must be sorted so they
     //   appear in the same order on different processors, to
     //   guarantee a match in the communication pattern.

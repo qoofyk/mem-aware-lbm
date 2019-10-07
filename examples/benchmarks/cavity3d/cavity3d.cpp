@@ -112,17 +112,15 @@ int main(int argc, char* argv[]) {
 
     cavitySetup(lattice, parameters, *boundaryCondition);
 
-    // // Run the benchmark once "to warm up the machine".
-    // for (plint iT=0; iT<numIter; ++iT) {
-    //     lattice.collideAndStream();
-    // }
-
-    // // Run the benchmark for good.
-    // global::timer("benchmark").start();
-    // global::profiler().turnOn();
-    // for (plint iT=0; iT<numIter; ++iT) {
-    //     lattice.collideAndStream();
-    // }
+    pcout << "Init: Velocity norm of the box: " << endl;
+    // Box3D mybox(0, 4, 0, 4, 0, 4);
+    // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
+    for (plint iX=0; iX<=4; ++iX){
+        for (plint iY=0; iY<=4; ++iY){
+            Box3D line(iX, iX, iY, iY, 0, 4);
+            pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, line)) << endl;
+        }
+    }
 
     // Run the benchmark once "to warm up the machine".
     // for (plint iT=0; iT<numIter; iT += 2) {
@@ -137,6 +135,15 @@ int main(int argc, char* argv[]) {
     for (plint iT=0; iT<numIter; iT += 2) {
         pcout << "iT=" << iT << std::endl;
         lattice.collideAndStream();
+    }
+
+    pcout << "After: Velocity norm of the box: " << endl;
+    // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
+    for (plint iX=0; iX<=4; ++iX){
+        for (plint iY=0; iY<=4; ++iY){
+            Box3D line(iX, iX, iY, iY, 0, 4);
+            pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, line)) << endl;
+        }
     }
 
     pcout << "After " << numIter << " iterations: "

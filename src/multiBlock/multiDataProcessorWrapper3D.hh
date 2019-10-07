@@ -484,6 +484,7 @@ void applyProcessingFunctional (
         MultiBlockLattice3D<T1,Descriptor>& lattice,
         MultiScalarField3D<T2>& field )
 {
+    printf("Here!!!!\n");
     executeDataProcessor( BoxProcessorGenerator3D(functional, domain),
                           lattice, field );
 }
