@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     // plint numIter = std::max( (plint)3,
     //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
 
-    plint numIter = 2;
+    plint numIter = 1;
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     global::profiler().turnOn();
     for (plint iT=0; iT<numIter; iT += 2) {
         pcout << "iT=" << iT << std::endl;
-        lattice.collideAndStream();
+        lattice.step2collideAndStream();
     }
 
     pcout << "After: Velocity norm of the box: " << endl;

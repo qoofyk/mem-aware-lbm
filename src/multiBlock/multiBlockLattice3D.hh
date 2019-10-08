@@ -343,8 +343,6 @@ void MultiBlockLattice3D<T,Descriptor>::collideAndStream() {
     // this->executeInternalProcessors();
     // this->evaluateStatistics();
 
-    // 2steps: iT += 2
-    this->incrementTime();
     this->incrementTime();
     //printf("incrementTime\n");
 
@@ -401,7 +399,69 @@ void MultiBlockLattice3D<T,Descriptor>::collideAndStreamImplementation() {
             Box3D domain = extendPeriodic(bulk.computeNonPeriodicEnvelope(),
                                           this->getMultiBlockManagement().getEnvelopeWidth());
 
-            // it->second -> collideAndStream( bulk.toLocal(domain) );
+            it->second -> collideAndStream( bulk.toLocal(domain) );
+            // it->second -> step2CollideAndStream( bulk.toLocal(domain) );
+        }
+    }
+}
+
+template<typename T, template<typename U> class Descriptor>
+void MultiBlockLattice3D<T,Descriptor>::step2collideAndStream() {
+    global::profiler().start("cycle");
+
+    step2collideAndStreamImplementation();
+
+    // this->executeInternalProcessors();
+    // this->evaluateStatistics();
+
+    // 2steps: iT += 2
+    this->incrementTime();
+    this->incrementTime();
+    //printf("incrementTime\n");
+
+    global::profiler().stop("cycle");
+    if (global::profiler().cyclingIsAutomatic()) {
+        global::profiler().cycle();
+    }
+}
+
+template<typename T, template<typename U> class Descriptor>
+void MultiBlockLattice3D<T,Descriptor>::step2collideAndStreamImplementation() {
+    ThreadAttribution const& threadAttribution=this->getMultiBlockManagement().getThreadAttribution();
+    if (threadAttribution.hasCoProcessors()) {
+        printf("hasCoProcessors\n");
+        for ( typename BlockMap::iterator it = blockLattices.begin();
+              it != blockLattices.end(); ++it )
+        {
+            plint blockId = it->first;
+            int handle = threadAttribution.getCoProcessorHandle(blockId);
+            if (handle>=0) {
+                 global::defaultCoProcessor3D<T>().collideAndStream(handle);
+            }
+            else {
+                SmartBulk3D bulk(this->getMultiBlockManagement(), blockId);
+                // CollideAndStream must be applied to full domain,
+                //   including currently active envelopes.
+                Box3D domain = extendPeriodic(bulk.computeNonPeriodicEnvelope(),
+                                              this->getMultiBlockManagement().getEnvelopeWidth());
+                it->second -> collideAndStream( bulk.toLocal(domain) );
+            }
+        }
+    }
+    else  {
+        printf("collideAndStream else part\n");
+        fflush(stdout);
+        for ( typename BlockMap::iterator it = blockLattices.begin();
+              it != blockLattices.end(); ++it)
+        {
+            SmartBulk3D bulk(this->getMultiBlockManagement(), it->first);
+            // CollideAndStream must be applied to full domain,
+            //   including currently active envelopes.
+
+            // disable periodic?
+            Box3D domain = extendPeriodic(bulk.computeNonPeriodicEnvelope(),
+                                          this->getMultiBlockManagement().getEnvelopeWidth());
+
             it->second -> step2CollideAndStream( bulk.toLocal(domain) );
         }
     }

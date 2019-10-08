@@ -119,6 +119,7 @@ public:
     virtual void copyReceive (
                 MultiBlock3D const& fromBlock, Box3D const& fromDomain,
                 Box3D const& toDomain, modif::ModifT whichData=modif::dataStructure );
+    virtual void step2collideAndStream();
 public:
     BlockMap& getBlockLattices();
     BlockMap const& getBlockLattices() const;
@@ -133,6 +134,8 @@ private:
     void streamImplementation();
     void allocateAndInitialize();
     void eliminateStatisticsInEnvelope();
+    void step2collideAndStreamImplementation();
+
     Box3D extendPeriodic(Box3D const& box, plint envelopeWidth) const;
 private:
     Dynamics<T,Descriptor>* backgroundDynamics;
