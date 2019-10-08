@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Run the benchmark once "to warm up the machine".
-    for (plint iT=0; iT<numIter; iT += 1) {
+    for (plint iT=0; iT<numIter; iT += 2) {
         // pcout << "iT=" << iT << std::endl;
         lattice.collideAndStream();
     }
@@ -134,9 +134,9 @@ int main(int argc, char* argv[]) {
     // Run the benchmark for good.
     global::timer("benchmark").start();
     global::profiler().turnOn();
-    for (plint iT=0; iT<numIter; iT += 1) {
+    for (plint iT=0; iT<numIter; iT += 2) {
         // pcout << "iT=" << iT << std::endl;
-        lattice.collideAndStream();
+        lattice.step2collideAndStream();
     }
 
     pcout << "After " << numIter << " iterations: "
@@ -154,8 +154,8 @@ int main(int argc, char* argv[]) {
             Box3D line(iX, iX, iY, iY, 0, N);
             pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, line)) << endl;
         }
-    }    
-#endif
+    }
+#endif    
 
     delete boundaryCondition;
 }
