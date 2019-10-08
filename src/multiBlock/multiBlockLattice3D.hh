@@ -265,7 +265,7 @@ Box3D MultiBlockLattice3D<T,Descriptor>::extendPeriodic(Box3D const& box, plint 
     bool periodicY = this->periodicity().get(1);
     bool periodicZ = this->periodicity().get(2);
 
-    printf("extendPeriodic: periodicX,Y,Z=%d, %d, %d\n", periodicX, periodicY, periodicZ);
+    // printf("extendPeriodic: periodicX,Y,Z=%d, %d, %d\n", periodicX, periodicY, periodicZ);
 
     if (periodicX) {
         if (periodicBox.x0 == boundingBox.x0) {
@@ -341,7 +341,7 @@ void MultiBlockLattice3D<T,Descriptor>::collideAndStream() {
     collideAndStreamImplementation();
 
     // this->executeInternalProcessors();
-    // this->evaluateStatistics();
+    this->evaluateStatistics();
 
     this->incrementTime();
     //printf("incrementTime\n");
@@ -386,8 +386,8 @@ void MultiBlockLattice3D<T,Descriptor>::collideAndStreamImplementation() {
         }
     }
     else  {
-        printf("collideAndStream else part\n");
-        fflush(stdout);
+        // printf("collideAndStream else part\n");
+        // fflush(stdout);
         for ( typename BlockMap::iterator it = blockLattices.begin();
               it != blockLattices.end(); ++it)
         {
@@ -412,7 +412,7 @@ void MultiBlockLattice3D<T,Descriptor>::step2collideAndStream() {
     step2collideAndStreamImplementation();
 
     // this->executeInternalProcessors();
-    // this->evaluateStatistics();
+    this->evaluateStatistics();
 
     // 2steps: iT += 2
     this->incrementTime();
@@ -449,8 +449,8 @@ void MultiBlockLattice3D<T,Descriptor>::step2collideAndStreamImplementation() {
         }
     }
     else  {
-        printf("collideAndStream else part\n");
-        fflush(stdout);
+        // printf("collideAndStream else part\n");
+        // fflush(stdout);
         for ( typename BlockMap::iterator it = blockLattices.begin();
               it != blockLattices.end(); ++it)
         {
