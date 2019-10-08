@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     // plint numIter = std::max( (plint)3,
     //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
 
-    plint numIter = 200;
+    plint numIter = 100;
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
@@ -143,6 +143,7 @@ int main(int argc, char* argv[]) {
           << (T) (numCells*numIter) /
              global::timer("benchmark").getTime() / 1.e6
           << " Mega site updates per second." << std::endl << std::endl;
+    pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << std::endl;
 
     global::profiler().writeReport();
 
