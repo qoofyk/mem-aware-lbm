@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     // plint numIter = std::max( (plint)3,
     //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
 
-    plint numIter = 1;
+    plint numIter = 40;
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
@@ -113,11 +113,11 @@ int main(int argc, char* argv[]) {
     cavitySetup(lattice, parameters, *boundaryCondition);
 
     pcout << "Init: Velocity norm of the box: " << endl;
-    // Box3D mybox(0, 4, 0, 4, 0, 4);
+    // Box3D mybox(0, N, 0, N, 0, N);
     // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
-    for (plint iX=0; iX<=4; ++iX){
-        for (plint iY=0; iY<=4; ++iY){
-            Box3D line(iX, iX, iY, iY, 0, 4);
+    for (plint iX=0; iX<=N; ++iX){
+        for (plint iY=0; iY<=N; ++iY){
+            Box3D line(iX, iX, iY, iY, 0, N);
             pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, line)) << endl;
         }
     }
@@ -139,9 +139,9 @@ int main(int argc, char* argv[]) {
 
     pcout << "After: Velocity norm of the box: " << endl;
     // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
-    for (plint iX=0; iX<=4; ++iX){
-        for (plint iY=0; iY<=4; ++iY){
-            Box3D line(iX, iX, iY, iY, 0, 4);
+    for (plint iX=0; iX<=N; ++iX){
+        for (plint iY=0; iY<=N; ++iY){
+            Box3D line(iX, iX, iY, iY, 0, N);
             pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, line)) << endl;
         }
     }
