@@ -412,7 +412,7 @@ void MultiBlockLattice3D<T,Descriptor>::step2collideAndStream() {
     step2collideAndStreamImplementation();
 
     // this->executeInternalProcessors();
-    this->evaluateStatistics();
+    // this->evaluateStatistics();
 
     // 2steps: iT += 2
     this->incrementTime();
