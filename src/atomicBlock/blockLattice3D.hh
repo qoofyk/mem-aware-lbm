@@ -730,18 +730,18 @@ void BlockLattice3D<T,Descriptor>::bulkCollideAndStream(Box3D domain) {
     // Make sure domain is contained within current lattice
     PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
-    // if (Descriptor<T>::q==15 || Descriptor<T>::q==19) {
-    // if (Descriptor<T>::q==19) {
-    //     // On nearest-neighbor lattice, use the cache-efficient
-    //     //   version of collidAndStream.
-    //     blockwiseBulkCollideAndStream(domain);
-    // }
-    // else {
+     //if (Descriptor<T>::q==15 || Descriptor<T>::q==19) {
+     //if (Descriptor<T>::q==19) {
+         // On nearest-neighbor lattice, use the cache-efficient
+         //   version of collidAndStream.
+         //blockwiseBulkCollideAndStream(domain);
+     //}
+     //else {
         // Otherwise, use the straightforward implementation.
         //   Note that at some point, we should implement the cache-efficient
         //   version for extended lattices as well.
         linearBulkCollideAndStream(domain);
-    // }
+     //}
 }
 
 
@@ -1258,7 +1258,7 @@ void BlockLatticeDataTransfer3D<T,Descriptor>::attribute_regenerate (
 
 template<typename T, template<typename U> class Descriptor>
 CachePolicy3D& BlockLattice3D<T,Descriptor>::cachePolicy() {
-    static CachePolicy3D cachePolicySingleton(30);
+    static CachePolicy3D cachePolicySingleton(256);
     return cachePolicySingleton;
 }
 

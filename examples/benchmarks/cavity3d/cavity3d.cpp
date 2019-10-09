@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     // plint numIter = std::max( (plint)3,
     //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
 
-    plint numIter = 100;
+    plint numIter = 104;
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Run the benchmark once "to warm up the machine".
-    for (plint iT=0; iT<numIter; iT += 1) {
+    for (plint iT=0; iT<(numIter/4); iT += 1) {
         // pcout << "iT=" << iT << std::endl;
         lattice.collideAndStream();
     }

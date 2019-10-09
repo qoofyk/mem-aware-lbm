@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     // plint numIter = std::max( (plint)3,
     //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
 
-    plint numIter = 100;
+    plint numIter = 104;
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
@@ -125,9 +125,9 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Run the benchmark once "to warm up the machine".
-    for (plint iT=0; iT<numIter; iT += 2) {
+    for (plint iT=0; iT<(numIter/4); iT += 2) {
         // pcout << "iT=" << iT << std::endl;
-        lattice.collideAndStream();
+        lattice.step2collideAndStream();
     }
 
     // pcout << "Start bench!" << std::endl;
@@ -142,8 +142,8 @@ int main(int argc, char* argv[]) {
     pcout << "After " << numIter << " iterations: "
           << (T) (numCells*numIter) /
              global::timer("benchmark").getTime() / 1.e6
-          << " Mega site updates per second." << std::endl << std::endl;
-    pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << std::endl;
+          << " Mega site updates per second." << std::endl;
+    pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << std::endl << std::endl;
     global::profiler().writeReport();
 
 #if 0
