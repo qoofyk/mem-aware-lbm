@@ -183,6 +183,7 @@ public:
     void step2CollideAndStream(Box3D domain);
     void step2CollideAndStream_init(Box3D domain);
     void step2CollideAndStream_bulk(Box3D domain);
+    void step2CollideAndStream_bulk_blockwise(Box3D domain);
     void step2CollideAndStream_end(Box3D domain);
 private:
     /// Generic implementation of bulkCollideAndStream(domain).

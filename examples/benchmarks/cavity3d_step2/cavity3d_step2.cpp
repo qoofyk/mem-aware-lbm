@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
 
 
-    plint numIter = 104;
+    plint numIter = 2;
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
@@ -126,10 +126,10 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Run the benchmark once "to warm up the machine".
-    for (plint iT=0; iT<(numIter/4); iT += 2) {
-        // pcout << "iT=" << iT << std::endl;
-        lattice.step2collideAndStream();
-    }
+    // for (plint iT=0; iT<(numIter/4); iT += 2) {
+    //     // pcout << "iT=" << iT << std::endl;
+    //     lattice.step2collideAndStream();
+    // }
 
     // pcout << "Start bench!" << std::endl;
     // Run the benchmark for good.
@@ -140,14 +140,15 @@ int main(int argc, char* argv[]) {
         lattice.step2collideAndStream();
     }
 
-#if 0
-    pcout << "After " << numIter << " iterations: "
-          << (T) (numCells*numIter) /
-             global::timer("benchmark").getTime() / 1.e6
-          << " Mega site updates per second." << std::endl;
-    pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << std::endl << std::endl;
-    global::profiler().writeReport();
-
+#if 1
+    pcout << "After: Velocity norm of the box: " << endl;
+    // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
+    for (plint iX=0; iX<=N; ++iX){
+        for (plint iY=0; iY<=N; ++iY){
+            Box3D line(iX, iX, iY, iY, 0, N);
+            pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, line)) << endl;
+        }
+    }
 #endif
 
     pcout << "After " << numIter << " iterations: "

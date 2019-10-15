@@ -52,8 +52,10 @@ SparseBlockStructure3D createRegularDistribution3D (
             for (plint iBlockZ=0; iBlockZ<numBlocksZ; ++iBlockZ) {
                 plint lz = domain.getNz() / numBlocksZ;
                 if (iBlockZ < domain.getNz()%numBlocksZ) ++lz;
-                printf("createRegularDistribution3D: Nz=%ld, iBlockZ=%ld, [posZ, posZ+lz-1]=[%ld, %ld], lz=%ld\n", 
+#if 1
+                printf("createRegularDistribution3D addBlock: Nz=%ld, iBlockZ=%ld, [posZ, posZ+lz-1]=[%ld, %ld], lz=%ld\n", 
                     domain.getNz(), iBlockZ, posZ, posZ+lz-1, lz);
+#endif
                 dataGeometry.addBlock (
                         Box3D(posX, posX+lx-1, posY, posY+ly-1, posZ, posZ+lz-1),
                         dataGeometry.nextIncrementalId() );

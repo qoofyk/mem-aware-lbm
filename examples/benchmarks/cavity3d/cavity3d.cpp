@@ -125,10 +125,10 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Run the benchmark once "to warm up the machine".
-    for (plint iT=0; iT<(numIter/4); iT += 1) {
-        // pcout << "iT=" << iT << std::endl;
-        lattice.collideAndStream();
-    }
+    // for (plint iT=0; iT<(numIter/4); iT += 1) {
+    //     // pcout << "iT=" << iT << std::endl;
+    //     lattice.collideAndStream();
+    // }
 
     // pcout << "Start bench!" << std::endl;
     // Run the benchmark for good.
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
         lattice.collideAndStream();
     }
 
-#if 0
+#if 1
     pcout << "After: Velocity norm of the box: " << endl;
     // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
     for (plint iX=0; iX<=N; ++iX){
