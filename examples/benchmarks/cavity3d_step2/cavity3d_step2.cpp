@@ -63,8 +63,11 @@ int main(int argc, char* argv[]) {
     //defaultMultiBlockPolicy3D().toggleBlockingCommunication(true);
 
     plint N;
+    plint numIter;
     try {
         global::argv(1).read(N);
+        global::argv(2).read(numIter);
+        global::argv(3).read(ykBlockSize);
     }
     catch(...)
     {
@@ -104,9 +107,6 @@ int main(int argc, char* argv[]) {
     // Run at least three iterations.
     // plint numIter = std::max( (plint)3,
     //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
-
-
-    plint numIter = 104;
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();

@@ -793,8 +793,12 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
     step2CollideAndStream_init(domain);
 
     // Then bulk [x0+2, x0-1]
-    // step2CollideAndStream_bulk(domain);
-    step2CollideAndStream_bulk_blockwise(domain);
+    if(domain.x1-domain.x0 <= 250){
+      step2CollideAndStream_bulk(domain);
+    }
+    else{
+      step2CollideAndStream_bulk_blockwise(domain);
+    }
 
     // step2CollideAndStream_bulk
     step2CollideAndStream_end(domain);
@@ -1492,9 +1496,12 @@ void BlockLatticeDataTransfer3D<T,Descriptor>::attribute_regenerate (
     }
 }
 
+// add by Yuankun
+plint ykBlockSize;
+
 template<typename T, template<typename U> class Descriptor>
 CachePolicy3D& BlockLattice3D<T,Descriptor>::cachePolicy() {
-    static CachePolicy3D cachePolicySingleton(200);
+    static CachePolicy3D cachePolicySingleton(ykBlockSize);
     return cachePolicySingleton;
 }
 
