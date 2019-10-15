@@ -59,3 +59,5 @@ Number of MPI threads: 3
 After 874 iterations: 23.436 Mega site updates per second.
 ```
 
+### Post-operationi on script
+`less 1node.6473699.out | grep 'Mega' | cut -d ":" -f 2 | cut -d " " -f 2`
