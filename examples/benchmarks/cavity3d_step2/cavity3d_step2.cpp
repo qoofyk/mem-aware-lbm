@@ -126,8 +126,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Run the benchmark once "to warm up the machine".
-    for (plint iT=0; iT<(numIter/4); iT += 2) {
-    // for (plint iT=0; iT<2; iT += 2) {
+    for (plint iT=0; iT<numIter; iT += 2) {
         // pcout << "iT=" << iT << std::endl;
         lattice.step2collideAndStream();
     }
