@@ -50,7 +50,9 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
     boundaryCondition.setVelocityConditionOnBlockBoundaries(lattice);
 
     T u = std::sqrt((T)2)/(T)2 * parameters.getLatticeU();
-    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
+    // initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
+    // Modify by Yuankun, set init value to 0.01 to avoid 0 computation
+    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01,(T)0.01,(T)0.01) );
     initializeAtEquilibrium(lattice, topLid, (T) 1., Array<T,3>(u,(T)0.,u) );
     setBoundaryVelocity(lattice, topLid, Array<T,3>(u,0.,u) );
 
@@ -126,7 +128,8 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Run the benchmark once "to warm up the machine".
-    for (plint iT=0; iT<numIter; iT += 1) {
+    // for (plint iT=0; iT<numIter; iT += 2) {
+    for (plint iT=0; iT<2; iT += 1) {
         // pcout << "iT=" << iT << std::endl;
         lattice.collideAndStream();
     }
@@ -140,7 +143,7 @@ int main(int argc, char* argv[]) {
         lattice.collideAndStream();
     }
 
-#if 0 
+#if 0
     pcout << "After: Velocity norm of the box: " << endl;
     // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
     for (plint iX=0; iX<=N; ++iX){
