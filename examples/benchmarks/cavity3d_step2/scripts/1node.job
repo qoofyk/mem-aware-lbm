@@ -1,0 +1,38 @@
+#!/bin/bash
+#SBATCH --job-name="s2_cav3d"
+#SBATCH --output="results/1node.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 02:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+mkdir results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 31 104 200
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 63 104 200
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 99 104 200
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 127 104 200
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 149 104 200
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 199 104 200
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 249 104 200
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 255 104 200
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 299 104 200
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 349 104 200
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 399 104 200
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 449 104 200
+mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 511 104 200
+#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 767
+
