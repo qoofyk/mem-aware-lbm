@@ -66,10 +66,12 @@ int main(int argc, char* argv[]) {
 
     plint N;
     plint numIter;
+    plint warmUpIter;
     try {
         global::argv(1).read(N);
         global::argv(2).read(numIter);
         global::argv(3).read(ykBlockSize);
+        global::argv(4).read(warmUpIter);
     }
     catch(...)
     {
@@ -128,8 +130,8 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Run the benchmark once "to warm up the machine".
-    // for (plint iT=0; iT<numIter; iT += 2) {
-    for (plint iT=0; iT<2; iT += 2) {
+    for (plint iT=0; iT<warmUpIter; iT += 2) {
+    //for (plint iT=0; iT<2; iT += 2) { // use fixed value could have higher performance
         // pcout << "iT=" << iT << std::endl;
         lattice.step2collideAndStream();
     }

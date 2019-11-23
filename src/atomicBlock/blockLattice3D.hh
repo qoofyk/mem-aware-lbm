@@ -793,12 +793,12 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
     step2CollideAndStream_init(domain);
 
     // Then bulk [x0+2, x0-1]
-    if(domain.x1-domain.x0 <= 250){
+    //if(domain.x1-domain.x0 <= 250){
       step2CollideAndStream_bulk(domain);
-    }
-    else{
-      step2CollideAndStream_bulk_blockwise(domain);
-    }
+    //}
+    //else{
+      //step2CollideAndStream_bulk_blockwise(domain);
+    //}
 
     // step2CollideAndStream_bulk
     step2CollideAndStream_end(domain);
@@ -971,17 +971,17 @@ void BlockLattice3D<T,Descriptor>::bulkCollideAndStream(Box3D domain) {
     PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
      //if (Descriptor<T>::q==15 || Descriptor<T>::q==19) {
-     if (Descriptor<T>::q==19) {
+     //if (Descriptor<T>::q==19) {
          // On nearest-neighbor lattice, use the cache-efficient
          //   version of collidAndStream.
-         blockwiseBulkCollideAndStream(domain);
-     }
-     else {
+         //blockwiseBulkCollideAndStream(domain);
+     //}
+     //else {
         // Otherwise, use the straightforward implementation.
         //   Note that at some point, we should implement the cache-efficient
         //   version for extended lattices as well.
         linearBulkCollideAndStream(domain);
-     }
+     //}
 }
 
 

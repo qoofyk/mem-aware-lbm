@@ -50,7 +50,7 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
     boundaryCondition.setVelocityConditionOnBlockBoundaries(lattice);
 
     T u = std::sqrt((T)2)/(T)2 * parameters.getLatticeU();
-    // initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
+    //initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
     // Modify by Yuankun, set init value to 0.01 to avoid 0 computation
     initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01,(T)0.01,(T)0.01) );
     initializeAtEquilibrium(lattice, topLid, (T) 1., Array<T,3>(u,(T)0.,u) );
@@ -66,10 +66,12 @@ int main(int argc, char* argv[]) {
 
     plint N;
     plint numIter;
+    plint warmUpIter;
     try {
         global::argv(1).read(N);
         global::argv(2).read(numIter);
         global::argv(3).read(ykBlockSize);
+        global::argv(4).read(warmUpIter);
     }
     catch(...)
     {
@@ -128,8 +130,8 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Run the benchmark once "to warm up the machine".
-    // for (plint iT=0; iT<numIter; iT += 2) {
-    for (plint iT=0; iT<2; iT += 1) {
+    for (plint iT=0; iT<warmUpIter; iT += 1) {
+    //for (plint iT=0; iT<2; iT += 1) {
         // pcout << "iT=" << iT << std::endl;
         lattice.collideAndStream();
     }
