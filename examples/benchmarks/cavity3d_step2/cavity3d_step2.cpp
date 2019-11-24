@@ -29,6 +29,9 @@
 #include "palabos3D.h"
 #include "palabos3D.hh"   // include full template code
 #include <iostream>
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 using namespace plb;
 using namespace std;
@@ -59,6 +62,20 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
     lattice.initialize();
 }
 
+//OpenMP test hello
+void Hello(void){
+
+#ifdef _OPENMP
+    plint my_rank = omp_get_thread_num();
+    plint thread_count = omp_get_num_threads();
+#else
+    plint my_rank = 0;
+    plint thread_count = 1;
+#endif
+
+    printf("Hello from thread %ld of %ld\n", my_rank, thread_count);
+}
+
 int main(int argc, char* argv[]) {
 
     plbInit(&argc, &argv);
@@ -67,11 +84,16 @@ int main(int argc, char* argv[]) {
     plint N;
     plint numIter;
     plint warmUpIter;
+    plint NUM_THREADS;
+    plint thread_block;
+
     try {
         global::argv(1).read(N);
         global::argv(2).read(numIter);
         global::argv(3).read(ykBlockSize);
         global::argv(4).read(warmUpIter);
+        global::argv(5).read(thread_block);
+
     }
     catch(...)
     {
@@ -128,6 +150,18 @@ int main(int argc, char* argv[]) {
         }
     }
 #endif
+
+#ifdef _OPENMP
+    NUM_THREADS = atoi(getenv("OMP_NUM_THREADS"));
+    thread_block = atoi(argv[4]);
+    printf("thread_block=%ld\n", thread_block);
+    omp_set_num_threads(NUM_THREADS);
+#endif
+
+#ifdef _OPENMP
+    #pragma omp parallel
+#endif
+    Hello();
 
     // Run the benchmark once "to warm up the machine".
     for (plint iT=0; iT<warmUpIter; iT += 2) {
