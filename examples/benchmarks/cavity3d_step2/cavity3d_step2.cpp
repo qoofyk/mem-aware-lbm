@@ -85,7 +85,6 @@ int main(int argc, char* argv[]) {
     plint numIter;
     plint warmUpIter;
     plint NUM_THREADS;
-    plint thread_block;
 
     try {
         global::argv(1).read(N);
@@ -179,7 +178,7 @@ int main(int argc, char* argv[]) {
         lattice.step2collideAndStream();
     }
 
-#if 0
+#if 1
     pcout << "After: Velocity norm of the box: " << endl;
     // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
     for (plint iX=0; iX<=N; ++iX){
