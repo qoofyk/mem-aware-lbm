@@ -92,7 +92,6 @@ int main(int argc, char* argv[]) {
         global::argv(3).read(ykBlockSize);
         global::argv(4).read(warmUpIter);
         global::argv(5).read(thread_block);
-
     }
     catch(...)
     {
@@ -121,7 +120,9 @@ int main(int argc, char* argv[]) {
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
 
     plint numCores = global::mpi().getSize();
-    pcout << "Number of MPI threads: " << numCores << std::endl;
+    pcout << "Number of MPI threads: " << numCores << "Num of OpenMP threads: " 
+          << atoi(getenv("OMP_NUM_THREADS")) << "thread_block: " 
+          << thread_block << "ykBlockSize: " << ykBlockSize << std::endl;
     // Current cores run approximately at 5 Mega Sus.
     T estimateSus= 5.e6*numCores;
     // The benchmark should run for approximately two minutes
@@ -152,8 +153,6 @@ int main(int argc, char* argv[]) {
 
 #ifdef _OPENMP
     NUM_THREADS = atoi(getenv("OMP_NUM_THREADS"));
-    thread_block = atoi(argv[4]);
-    printf("thread_block=%ld\n", thread_block);
     omp_set_num_threads(NUM_THREADS);
 #endif
 

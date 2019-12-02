@@ -619,17 +619,22 @@ plint thread_block;
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
 
+  printf("domain-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n", 
+    domain.x0, domain.x0, domain.y0, domain.y1, domain.z0, domain.z1);
+
 #ifdef _OPENMP
 #pragma omp parallel default(shared)
 {
   plint iX, iY, iZ, tid;
 
   tid = omp_get_thread_num();
+  // printf("tid: %ld, thread_block=%ld\n", tid, thread_block);
 
   // ---------------1. compute thread boundaries surface ---------------------
   // 1st Collide_Revert
   #pragma omp for private(iX, iY, iZ) schedule(static)
   for (iX = domain.x0+thread_block+1; iX < domain.x1; iX += thread_block){
+    // printf("tid: %ld, thread_block=%ld, iX=%ld\n", tid, thread_block, iX);
     for (iY = domain.y0; iY <= domain.y1; ++iY)
       for (iZ = domain.z0; iZ <= domain.z1; ++iZ ){
         grid[iX][iY][iZ].collide(this->getInternalStatistics());
@@ -637,12 +642,13 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       }
   }
 
+#if 1
   // ---------------2. compute bulk ---------------------
   #pragma omp for private(iX, iY, iZ) schedule(static, thread_block)
   for (iX = domain.x0+2; iX < domain.x1; ++iX) {
 
-    // 2.1 -- x0+2 surface
-    if ( (iX-2)%thread_block == 0){
+    // 2.1 -- x0+2, 1st surface
+    if ( (iX-2)%thread_block == 1){
       /* 2.1.1 line y0 */
       iY = domain.y0;
       collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
@@ -678,8 +684,8 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       continue;
     }
 
-    // 2.2 -- x0+3
-    if ((iX-2)%thread_block == 1){
+    // 2.2 -- x0+3, 2nd surface
+    if ((iX-2)%thread_block == 2){
       /* 2.2.1 line y0 */
       iY = domain.y0;
       collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
@@ -726,7 +732,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
     }
 
     // 2.3 last surface
-    if ((iX-2)%thread_block == (thread_block-1)){
+    if ((iX-2)%thread_block == 0){
       /* 2.3.1 line y0 */
       iY = domain.y0;
       boundaryStream(domain, Box3D(iX, iX, iY, iY, domain.z0, domain.z1));
@@ -786,7 +792,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
 
       /* 2.3.4 line y1 */
       // iY = domain.y1;
-      boundaryStream(domain, Box3D(iX, iX, iY, iY, domain.z0,domain.z1) );
+      boundaryStream(domain, Box3D(iX, iX, iY, iY, domain.z0, domain.z1) );
 
       // second collision and boundaryStream on last two lines of iX-1 surface
       // can optimize on iY-1 without boundary check
@@ -870,19 +876,24 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
                 iY-1, iY, domain.z0, domain.z1) );
 
   }
+#endif
 
+#if 1
   // ---------------3. compute rest 2nd ---------------------
   // 2nd comp on surface x0+1
   iX = domain.x0+1;
   iY = domain.y0;
-  #pragma omp single
+  #pragma omp master
   {
     collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                   iY, iY, domain.z0, domain.z1) );
+    printf("master: tid: %ld, thread_block=%ld, iX=%ld, iY=%ld\n", tid, thread_block, iX, iY);
   }
 
-  #pragma omp for private(iX, iY, iZ) schedule(static, thread_block)
+#if 1
+  #pragma omp for private(iY, iZ) schedule(static, thread_block)
   for (iY = domain.y0+1; iY < domain.y1; ++iY){
+    printf("tid: %ld, thread_block=%ld, iX=%ld, iY=%ld\n", tid, thread_block, iX, iY);
     iZ = domain.z0;
     collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
 
@@ -894,18 +905,26 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
     // iZ = domain.z1
     collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
   }
+#endif
 
-  // iY = y1
-  #pragma omp single
+  // iX= domain.x0+1; 
+  iY = domain.y1;
+  #pragma omp master
   {
     collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                 iY, iY, domain.z0, domain.z1) );
+    printf("master: tid: %ld, thread_block=%ld, iX=%ld, iY=%ld\n", tid, thread_block, iX, iY);
   }
 
+#if 1
   // 2nd swap Stream on x0+2
   #pragma omp for private(iX, iY, iZ) schedule(static)
   for (iX = domain.x0+2; iX < domain.x1; iX += thread_block){
-    for (iY = domain.y0; iY <= domain.y1; ++iY){
+    printf("tid: %ld, thread_block=%ld, iX=%ld\n", tid, thread_block, iX);
+    iY = domain.y0;
+    boundaryStream(domain, Box3D(iX, iX, iY, iY, domain.z0, domain.z1) );
+
+    for (iY = domain.y0+1; iY < domain.y1; ++iY){
       iZ = domain.z0;
       boundSwapStream(domain, iX, iY, iZ);
 
@@ -915,7 +934,14 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       // iZ = domain.z1
       boundSwapStream(domain, iX, iY, iZ);
     }
+
+    // iY = domain.y1;
+    boundaryStream(domain, Box3D(iX, iX, iY, iY, domain.z0, domain.z1) );
   }
+#endif
+
+#endif
+
 }
 #endif
 }
