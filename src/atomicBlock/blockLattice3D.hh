@@ -634,7 +634,8 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
   // 1st Collide_Revert
   #pragma omp for private(iX, iY, iZ) schedule(static)
   for (iX = domain.x0+thread_block+1; iX < domain.x1; iX += thread_block){
-    // printf("tid: %ld, thread_block=%ld, iX=%ld\n", tid, thread_block, iX);
+    printf("tid: %ld, thread_block=%ld, iX=%ld, (%ld, %ld), (%ld, %ld)\n", 
+      tid, thread_block, iX, domain.y0, domain.y1, domain.z0, domain.z1);
     for (iY = domain.y0; iY <= domain.y1; ++iY)
       for (iZ = domain.z0; iZ <= domain.z1; ++iZ ){
         grid[iX][iY][iZ].collide(this->getInternalStatistics());
@@ -653,8 +654,8 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       iY = domain.y0;
       collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                   iY, iY, domain.z0, domain.z1) );
-      // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
-      //   iX, iX, iY, iY, domain.z0, domain.z1);
+      printf("case-1 tid%ld: 1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX, iX, iY, iY, domain.z0, domain.z1);
 
       /* 2.1.2 line [y0+1，y1-1]  */
       for (iY = domain.y0+1; iY < domain.y1; ++iY) {
@@ -662,24 +663,27 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
         // starting point on each iY line
         iZ = domain.z0;
         collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
-        // printf("1st-(%ld, %ld, %ld)\n", iX, iY, iZ);
+        printf("case-1 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
         for (iZ = domain.z0+1; iZ < domain.z1; ++iZ ){
           // first collision on (iX, iY, iZ)
           grid[iX][iY][iZ].collide(this->getInternalStatistics());
           latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+          printf("case-1 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
         }
 
         // ending point on each line z
         // iZ = domain.z1;
         collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
-        // printf("1st-(%ld, %ld, %ld)\n", iX, iY, iZ);
+        printf("case-1 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
       }
 
       /*2.1.3 line y1*/
       // iY = domain.y1
       collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                   iY, iY, domain.z0, domain.z1) );
+      printf("case-1 tid%ld: 1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX, iX, iY, iY, domain.z0, domain.z1);
 
       continue;
     }
@@ -690,43 +694,53 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       iY = domain.y0;
       collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                   iY, iY, domain.z0, domain.z1) );
-      // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
-      //   iX, iX, iY, iY, domain.z0, domain.z1);
+      printf("case-2 tid%ld: 1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX, iX, iY, iY, domain.z0, domain.z1);
 
       /* 2.2.2 line [y0+1，y1-1]  */
       for (iY = domain.y0+1; iY < domain.y1; ++iY) {
         // starting point z0 on each iY line
         iZ = domain.z0;
         collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
-        // printf("1st-(%ld, %ld, %ld)\n", iX, iY, iZ);
+        printf("case-2 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
         for (iZ = domain.z0+1; iZ < domain.z1; ++iZ ){
           // first collision on (iX, iY, iZ)
           grid[iX][iY][iZ].collide(this->getInternalStatistics());
           latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+          printf("case-2 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
           // second collide_Revert
           grid[iX-1][iY-1][iZ-1].collide(this->getInternalStatistics());
           grid[iX-1][iY-1][iZ-1].revert();
+          printf("case-2 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ-1);
         }
 
         // ending point on each line z
         // iZ = domain.z1;
         collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
+        printf("case-2 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
+
         // second collide_Revert
         grid[iX-1][iY-1][iZ-1].collide(this->getInternalStatistics());
         grid[iX-1][iY-1][iZ-1].revert();
+        printf("case-2 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ-1);
         // second collide_Revert
         grid[iX-1][iY-1][iZ].collide(this->getInternalStatistics());
         grid[iX-1][iY-1][iZ].revert();
+        printf("case-2 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ);
       }
 
       /*2.2.3 line y1*/
       // iY = domain.y1
       collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                   iY, iY, domain.z0, domain.z1) );
+      printf("case-2 tid%ld: 1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX, iX, iY, iY, domain.z0, domain.z1);
       // second collision and revert on last two lines of iX-1 surface
       collide(Box3D(iX-1, iX-1, iY-1, iY, domain.z0, domain.z1) );
+      printf("case-2 tid%ld: 2nd-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX-1, iX-1, iY-1, iY, domain.z0, domain.z1);
 
       continue;
     }
@@ -736,68 +750,87 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       /* 2.3.1 line y0 */
       iY = domain.y0;
       boundaryStream(domain, Box3D(iX, iX, iY, iY, domain.z0, domain.z1));
+      printf("case-3 tid%ld: 1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX, iX, iY, iY, domain.z0, domain.z1);
 
       /* 2.3.2 line y0+1 */
       ++iY;
       iZ = domain.z0;
       boundSwapStream(domain, iX, iY, iZ);
+      printf("case-3 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
       for (iZ = domain.z0+1; iZ < domain.z1; ++iZ ){
         // first collision on (iX, iY, iZ)
         swapStream(iX, iY, iZ);
+        printf("case-3 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
         // second collision on (iX-1, iY-1, iZ-1)
         collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ-1);
+        printf("case-3 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ-1);
       }
       // iZ = domain.z1;
       boundSwapStream(domain, iX, iY, iZ);
+      printf("case-3 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
       // second collision on last two points
       collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ-1); //iY-1=y0
+      printf("case-3 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ-1);
       collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ);
+      printf("case-3 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ);
 
       /* 2.3.3 line [y0+2，y1-1] of each y-z surface */
       for (iY = domain.y0+1; iY < domain.y1; ++iY){
         // starting point z0 on each iY line
         iZ = domain.z0;
         boundSwapStream(domain, iX, iY, iZ);
+        printf("case-3 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
         //iZ = domain.z0+1;
         ++iZ;
         // first swap stream on (iX, iY, iZ)
         swapStream(iX, iY, iZ);
+        printf("case-3 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
         // second collision on (iX-1, iY-1, iZ-1)
         collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ-1);
+        printf("case-3 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ-1);
 
         for (iZ = domain.z0+2; iZ < domain.z1; ++iZ ){
           // first swap & stream on (iX, iY, iZ)
           swapStream(iX, iY, iZ);
+          printf("case-3 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
           // second collide, swap, Stream3D on iX-1, iY-1, iZ-1
           grid[iX-1][iY-1][iZ-1].collide(this->getInternalStatistics());
           latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX-1, iY-1, iZ-1);
+          printf("case-3 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ-1);
         }
 
         // ending point on each line z
         // iZ = domain.z1;
         boundSwapStream(domain, iX, iY, iZ);
-        // printf("1st-(%ld, %ld, %ld)\n", iX, iY, iZ);
+        printf("case-3 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
         // second collision on (iX-1, iY-1, iZ-1)
         grid[iX-1][iY-1][iZ-1].collide(this->getInternalStatistics());
         latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX-1, iY-1, iZ-1);
+        printf("case-3 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ-1);
         // second collision on (iX-1, iY-1, iZ)
         collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ);
+        printf("case-3 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ);
 
       }
 
       /* 2.3.4 line y1 */
       // iY = domain.y1;
       boundaryStream(domain, Box3D(iX, iX, iY, iY, domain.z0, domain.z1) );
+      printf("case-3 tid%ld: 1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX, iX, iY, iY, domain.z0, domain.z1);
 
       // second collision and boundaryStream on last two lines of iX-1 surface
       // can optimize on iY-1 without boundary check
       collideRevertAndBoundSwapStream(domain, Box3D(iX-1, iX-1,
                   iY-1, iY, domain.z0, domain.z1) );
+      printf("case-3 tid%ld: 2nd-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX-1, iX-1, iY-1, iY, domain.z0, domain.z1);
 
       continue;
     }
@@ -807,26 +840,34 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
     iY = domain.y0;
     collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                 iY, iY, domain.z0, domain.z1) );
-    // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n", 
-    //   iX, iX, iY, iY, domain.z0, domain.z1);
+    printf("case-4 tid%ld: 1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX, iX, iY, iY, domain.z0, domain.z1);
 
     // iY = domain.y0+1;
     ++iY;
     iZ = domain.z0;
     collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
+    printf("case-4 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
+
     for (iZ = domain.z0+1; iZ < domain.z1; ++iZ ){
       // first collision on (iX, iY, iZ)
       grid[iX][iY][iZ].collide(this->getInternalStatistics());
       latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+      printf("case-4 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
       // second collision on (iX-1, iY-1, iZ-1)
       collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ-1);
+      printf("case-4 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ-1);
     }
     // iZ = domain.z1;
     collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
+    printf("case-4 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
+
     // second collision on last two points
     collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ-1); //iY-1=y0
+    printf("case-4 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ-1);
     collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ);
+    printf("case-4 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ);
 
     /* 2. line [y0+2，y1-1] of each y-z surface */
     for (iY = domain.y0+2; iY < domain.y1; ++iY) {
@@ -834,46 +875,58 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       // starting point on each line z
       iZ = domain.z0;
       collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
-      // printf("1st-(%ld, %ld, %ld)\n", iX, iY, iZ);
+      printf("case-4 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
       //iZ = domain.z0+1;
       ++iZ;
       // first collision on (iX, iY, iZ)
       grid[iX][iY][iZ].collide(this->getInternalStatistics());
       latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+      printf("case-4 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
+
       // second collision on (iX-1, iY-1, iZ-1)
       collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ-1);
+      printf("case-4 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ-1);
 
       for (iZ = domain.z0+2; iZ < domain.z1; ++iZ ){
         // first collision on (iX, iY, iZ)
         grid[iX][iY][iZ].collide(this->getInternalStatistics());
         latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+        printf("case-4 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
         // second collision on (iX-1, iY-1, iZ-1)
         grid[iX-1][iY-1][iZ-1].collide(this->getInternalStatistics());
         latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX-1, iY-1, iZ-1);
+        printf("case-4 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ-1);
       }
 
       // ending point on each line z
       // iZ = domain.z1;
       collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
-      // printf("1st-(%ld, %ld, %ld)\n", iX, iY, iZ);
+      printf("case-4 tid%ld: 1st-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
       // second collision on (iX-1, iY-1, iZ-1)
       grid[iX-1][iY-1][iZ-1].collide(this->getInternalStatistics());
       latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX-1, iY-1, iZ-1);
+      printf("case-4 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ-1);
+
       // second collision on (iX-1, iY-1, iZ)
       collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ);
+      printf("case-4 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ);
     }
 
     // iY = domain.y1
     collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                 iY, iY, domain.z0, domain.z1) );
+    printf("case-4 tid%ld: 1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX, iX, iY, iY, domain.z0, domain.z1);
 
     /* 3. last line of each y-z surface */
     // second collision and boundaryStream on last two lines of iX-1 surface
     collideRevertAndBoundSwapStream(domain, Box3D(iX-1, iX-1,
                 iY-1, iY, domain.z0, domain.z1) );
+    printf("case-4 tid%ld: 2nd-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX-1, iX-1, iY-1, iY, domain.z0, domain.z1);
 
   }
 #endif
@@ -887,23 +940,26 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
   {
     collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                   iY, iY, domain.z0, domain.z1) );
-    printf("master: tid: %ld, thread_block=%ld, iX=%ld, iY=%ld\n", tid, thread_block, iX, iY);
+    printf("step3.1 tid%ld: 2nd-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX, iX, iY, iY, domain.z0, domain.z1);
   }
 
 #if 1
   #pragma omp for private(iY, iZ) schedule(static, thread_block)
   for (iY = domain.y0+1; iY < domain.y1; ++iY){
-    printf("tid: %ld, thread_block=%ld, iX=%ld, iY=%ld\n", tid, thread_block, iX, iY);
     iZ = domain.z0;
     collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
+    printf("step3.2 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
     for(iZ = domain.z0+1; iZ < domain.z1; ++iZ){
       grid[iX][iY][iZ].collide(this->getInternalStatistics());
       latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+      printf("step3.2 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
     }
 
     // iZ = domain.z1
     collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
+    printf("step3.2 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
   }
 #endif
 
@@ -913,30 +969,38 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
   {
     collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                 iY, iY, domain.z0, domain.z1) );
-    printf("master: tid: %ld, thread_block=%ld, iX=%ld, iY=%ld\n", tid, thread_block, iX, iY);
+    printf("step3.3 tid%ld: 2nd-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX, iX, iY, iY, domain.z0, domain.z1);
   }
 
 #if 1
   // 2nd swap Stream on x0+2
   #pragma omp for private(iX, iY, iZ) schedule(static)
   for (iX = domain.x0+2; iX < domain.x1; iX += thread_block){
-    printf("tid: %ld, thread_block=%ld, iX=%ld\n", tid, thread_block, iX);
     iY = domain.y0;
     boundaryStream(domain, Box3D(iX, iX, iY, iY, domain.z0, domain.z1) );
+    printf("step3.4 tid%ld: 2nd-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX, iX, iY, iY, domain.z0, domain.z1);
 
     for (iY = domain.y0+1; iY < domain.y1; ++iY){
       iZ = domain.z0;
       boundSwapStream(domain, iX, iY, iZ);
+      printf("step3.4 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
 
-      for (iZ = domain.z0+1; iZ < domain.z1; ++iZ)
+      for (iZ = domain.z0+1; iZ < domain.z1; ++iZ){
         swapStream(iX, iY, iZ);
+        printf("step3.4 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
+      }
 
       // iZ = domain.z1
       boundSwapStream(domain, iX, iY, iZ);
+      printf("step3.4 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX, iY, iZ);
     }
 
     // iY = domain.y1;
     boundaryStream(domain, Box3D(iX, iX, iY, iY, domain.z0, domain.z1) );
+    printf("step3 tid%ld: 2nd-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+        tid, iX, iX, iY, iY, domain.z0, domain.z1);
   }
 #endif
 
