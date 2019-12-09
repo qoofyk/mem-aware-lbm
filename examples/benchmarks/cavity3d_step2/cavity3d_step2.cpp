@@ -86,6 +86,18 @@ int main(int argc, char* argv[]) {
     plint warmUpIter;
     plint NUM_THREADS;
 
+#ifdef _OPENMP
+    NUM_THREADS = atoi(getenv("OMP_NUM_THREADS"));
+    omp_set_num_threads(NUM_THREADS);
+#endif
+
+#ifdef _OPENMP
+    #pragma omp parallel
+    {
+        Hello();
+    }
+#endif
+
     try {
         global::argv(1).read(N);
         global::argv(2).read(numIter);
@@ -120,9 +132,9 @@ int main(int argc, char* argv[]) {
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
 
     plint numCores = global::mpi().getSize();
-    pcout << "Number of MPI threads: " << numCores << "Num of OpenMP threads: " 
-          << atoi(getenv("OMP_NUM_THREADS")) << "thread_block: " 
-          << thread_block << "ykBlockSize: " << ykBlockSize << std::endl;
+    pcout << "Number of MPI threads: " << numCores << " Num of OpenMP threads: " 
+          << atoi(getenv("OMP_NUM_THREADS")) << " thread_block: " 
+          << thread_block << " ykBlockSize: " << ykBlockSize << std::endl;
     // Current cores run approximately at 5 Mega Sus.
     T estimateSus= 5.e6*numCores;
     // The benchmark should run for approximately two minutes
@@ -150,16 +162,6 @@ int main(int argc, char* argv[]) {
         }
     }
 #endif
-
-#ifdef _OPENMP
-    NUM_THREADS = atoi(getenv("OMP_NUM_THREADS"));
-    omp_set_num_threads(NUM_THREADS);
-#endif
-
-#ifdef _OPENMP
-    #pragma omp parallel
-#endif
-    Hello();
 
     // Run the benchmark once "to warm up the machine".
     for (plint iT=0; iT<warmUpIter; iT += 2) {
