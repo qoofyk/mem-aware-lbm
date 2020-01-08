@@ -7,6 +7,8 @@ tar xf scons-3.1.1.tar.gz
 cd scons-3.1.1
 mkdir build
 python3 setup.py install --prefix=./build/
+
+source ~/intel/compilers_and_libraries/linux/bin/compilervars.sh -arch intel64 -platform linux
 ```
 
 
@@ -62,6 +64,7 @@ After 874 iterations: 23.436 Mega site updates per second.
 ### 3D MPI openMP
 domain-(1, 1) (1, 11) (1, 11), Test
 ```
+#dimension, iteration, block_size, warmup_iteratin, thread_block
 mpirun -n 1 ./cavity3d_step2 10 0 0 2 4
 ```
 

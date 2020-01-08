@@ -690,7 +690,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
 
     // 2.2 -- x0+3, 2nd surface
     if ((iX-2)%thread_block == 2){
-      /* 2.2.1 line y0 */
+      /* 2.2.1 line y0 */  // somewhere wrong.
       iY = domain.y0;
       collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                   iY, iY, domain.z0, domain.z1) );
@@ -778,7 +778,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       printf("case-3 tid%ld: 2nd-(%ld, %ld, %ld)\n", tid, iX-1, iY-1, iZ);
 
       /* 2.3.3 line [y0+2，y1-1] of each y-z surface */
-      for (iY = domain.y0+1; iY < domain.y1; ++iY){
+      for (iY = domain.y0+2; iY < domain.y1; ++iY){
         // starting point z0 on each iY line
         iZ = domain.z0;
         boundSwapStream(domain, iX, iY, iZ);
