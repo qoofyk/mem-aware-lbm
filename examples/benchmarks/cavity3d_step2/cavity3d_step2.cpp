@@ -36,6 +36,8 @@
 using namespace plb;
 using namespace std;
 
+#define K 2 // current merge K = 2 steps
+
 typedef double T;
 #define DESCRIPTOR descriptors::D3Q19Descriptor
 
@@ -63,17 +65,20 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
 }
 
 //OpenMP test hello
-void Hello(void){
-
-#ifdef _OPENMP
-    plint my_rank = omp_get_thread_num();
-    plint thread_count = omp_get_num_threads();
-#else
+void test_omp_hello(){
     plint my_rank = 0;
     plint thread_count = 1;
-#endif
 
+#ifdef _OPENMP
+    #pragma omp parallel
+    {
+        my_rank = omp_get_thread_num();
+        thread_count = omp_get_num_threads();
+        printf("Hello from thread %ld of %ld\n", my_rank, thread_count);
+    }
+#else
     printf("Hello from thread %ld of %ld\n", my_rank, thread_count);
+#endif
 }
 
 int main(int argc, char* argv[]) {
@@ -84,29 +89,30 @@ int main(int argc, char* argv[]) {
     plint N;
     plint numIter;
     plint warmUpIter;
-    plint NUM_THREADS;
+    plint NUM_THREADS = 1;
 
 #ifdef _OPENMP
     NUM_THREADS = atoi(getenv("OMP_NUM_THREADS"));
     omp_set_num_threads(NUM_THREADS);
 #endif
 
-#ifdef _OPENMP
-    #pragma omp parallel
-    {
-        Hello();
-    }
-#endif
+    test_omp_hello();
 
     try {
         global::argv(1).read(N);
         global::argv(2).read(numIter);
         global::argv(3).read(ykBlockSize);
         global::argv(4).read(warmUpIter);
-        global::argv(5).read(thread_block);
+
+        // check (N + 1 - 3) % NUM_THREADS == 0
+        if ((N - 2) % NUM_THREADS != 0) throw 'N';
+        thread_block = (N - 2) / NUM_THREADS; 
     }
-    catch(...)
-    {
+    catch(char param) {
+        cout << "(N - 2) % OMP_NUM_THREADS != 0, Not Divisible\n";
+        exit(1);
+    }
+    catch(...) {
         pcout << "Wrong parameters. The syntax is " << std::endl;
         pcout << argv[0] << " N" << std::endl;
         pcout << "where N is the resolution. The benchmark cases published " << std::endl;
@@ -131,12 +137,11 @@ int main(int argc, char* argv[]) {
             parameters.getNx(), parameters.getNy(), parameters.getNz(),
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
 
-    plint numCores = global::mpi().getSize();
-    pcout << "Number of MPI threads: " << numCores << " Num of OpenMP threads: " 
-          << atoi(getenv("OMP_NUM_THREADS")) << " thread_block: " 
-          << thread_block << " ykBlockSize: " << ykBlockSize << std::endl;
+    plint numProcs = global::mpi().getSize();
+    pcout << "Number of MPI threads: " << numProcs << " Num of OpenMP threads: " << NUM_THREADS 
+            << " thread_block: " << thread_block << " ykBlockSize: " << ykBlockSize << std::endl;
     // Current cores run approximately at 5 Mega Sus.
-    T estimateSus= 5.e6*numCores;
+    T estimateSus= 5.e6 * numProcs;
     // The benchmark should run for approximately two minutes
     // (2*60 seconds).
     T wishNumSeconds = 60.;
@@ -164,7 +169,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Run the benchmark once "to warm up the machine".
-    for (plint iT=0; iT<warmUpIter; iT += 2) {
+    for (plint iT=0; iT < warmUpIter; iT += K) {
     //for (plint iT=0; iT<2; iT += 2) { // use fixed value could have higher performance
         // pcout << "iT=" << iT << std::endl;
         lattice.step2collideAndStream();
@@ -174,7 +179,7 @@ int main(int argc, char* argv[]) {
     // Run the benchmark for good.
     global::timer("benchmark").start();
     global::profiler().turnOn();
-    for (plint iT=0; iT<numIter; iT += 2) {
+    for (plint iT=0; iT < numIter; iT += K) {
         // pcout << "iT=" << iT << std::endl;
         lattice.step2collideAndStream();
     }
@@ -182,7 +187,7 @@ int main(int argc, char* argv[]) {
 #if 1
     pcout << "After: Velocity norm of the box: " << endl;
     // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
-    for (plint iX=0; iX<=N; ++iX){
+    for (plint iX=0; iX <= N; ++iX){
         for (plint iY=0; iY<=N; ++iY){
             Box3D line(iX, iX, iY, iY, 0, N);
             pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, line)) << endl;
