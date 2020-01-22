@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
         lattice.step2collideAndStream();
     }
 
-#if 1
+#if 0
     pcout << "After: Velocity norm of the box: " << endl;
     // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
     for (plint iX=0; iX <= N; ++iX){
