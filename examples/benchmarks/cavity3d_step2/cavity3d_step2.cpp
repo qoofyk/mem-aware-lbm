@@ -121,7 +121,8 @@ int main(int argc, char* argv[]) {
     }
 
     pcout << "Starting benchmark with " << N+1 << "x" << N+1 << "x" << N+1 << " grid points "
-          << "(approx. 2 minutes on modern processors)." << std::endl;
+          << " Estimated memory occupied " << (N+1) * (N+1) * (N+1) * 168 / (1024*1024) << " MB "
+          << " (approx. 2 minutes on modern processors).\n";
 
 
     IncomprFlowParam<T> parameters(
@@ -198,7 +199,7 @@ int main(int argc, char* argv[]) {
     pcout << "After " << numIter << " iterations: "
           << (T) (numCells*numIter) /
              global::timer("benchmark").getTime() / 1.e6
-          << " Mega site updates per second." << std::endl << std::endl;
+          << " Mega site updates per second.\n\n";
     pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << std::endl;
     global::profiler().writeReport();  
 

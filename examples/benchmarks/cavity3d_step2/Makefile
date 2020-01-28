@@ -22,9 +22,9 @@ projectFiles = cavity3d_step2.cpp
 # Set optimization flags on/off
 optimize     = true
 # Set debug mode and debug flags on/off
-debug        = false
+debug        = true
 # Set profiling flags on/off
-profile      = false
+profile      = true
 # Set MPI-parallel mode on/off (parallelism in cluster-like environment)
 MPIparallel  = true
 # Set SMP-parallel mode on/off (shared-memory parallelism)
