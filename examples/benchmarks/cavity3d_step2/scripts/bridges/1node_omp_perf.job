@@ -34,7 +34,7 @@ echo
 mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hotspot1 -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
 echo "============================================"
 echo
-mpirun -np 1 aps -result-dir ${SCRATCH_DIR}/snapshot1 -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
+mpirun -np 1 aps -result-dir ${SCRATCH_DIR}/snapshot1 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
 echo "============================================"
 echo
 
@@ -52,7 +52,7 @@ mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hotspot2 -quiet -collect hotsp
 echo "============================================"
 echo
 
-mpirun -np 1 aps -result-dir ${SCRATCH_DIR}/snapshot2 -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
+mpirun -np 1 aps -result-dir ${SCRATCH_DIR}/snapshot2 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
 echo "============================================"
 echo
 
