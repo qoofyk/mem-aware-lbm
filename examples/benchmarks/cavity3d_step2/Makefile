@@ -24,7 +24,7 @@ optimize     = true
 # Set debug mode and debug flags on/off
 debug        = true
 # Set profiling flags on/off
-profile      = true
+profile      = false
 # Set MPI-parallel mode on/off (parallelism in cluster-like environment)
 MPIparallel  = true
 # Set SMP-parallel mode on/off (shared-memory parallelism)
@@ -48,14 +48,14 @@ serialCXX    = icpc
 # Compiler to use with MPI parallelism
 parallelCXX  = mpiicpc
 # General compiler flags (e.g. -Wall to turn on all warnings on g++)
-compileFlags = -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X -D_OPENMP -qopenmp
+compileFlags = -Wall -Wextra -xCORE-AVX2 -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X -D_OPENMP -qopenmp -std=c++11
 # General linker flags (don't put library includes into this flag)
 linkFlags    = -qopenmp
 # Compiler flags to use when optimization mode is on
 optimFlags   = -O3
 #optimFlags   = -xHOST -O3 -ip -no-prec-div -static
 # Compiler flags to use when debug mode is on
-debugFlags   = -g
+debugFlags   = -g -gdwarf-2 -parallel-source-info=2 
 # Compiler flags to use when profile mode is on
 profileFlags = -pg
 

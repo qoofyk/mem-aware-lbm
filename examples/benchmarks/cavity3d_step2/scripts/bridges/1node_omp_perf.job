@@ -1,0 +1,63 @@
+#!/bin/bash
+#SBATCH --job-name="perf"
+#SBATCH --output="results/1node.perf.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 0:20:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module load intel/19.5
+
+which mpirun
+mkdir -p results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+mkdir -p ${SCRACTH_DIR}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+export KMP_AFFINITY=granularity=core,compact
+export OMP_NUM_THREADS=1
+mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hpc1 -quiet -collect hpc-performance -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
+echo "============================================"
+echo
+
+mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hotspot1 -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
+echo "============================================"
+echo
+mpirun -np 1 aps -result-dir ${SCRATCH_DIR}/snapshot1 -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
+echo "============================================"
+echo
+
+mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem1 -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
+#mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem1 -quiet -collect memory-access -knob analyze-openmp=true ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
+echo "============================================"
+echo
+
+export OMP_NUM_THREADS=2
+mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hpc2 -quiet -collect hpc-performance -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
+echo "============================================"
+echo
+
+mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hotspot2 -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
+echo "============================================"
+echo
+
+mpirun -np 1 aps -result-dir ${SCRATCH_DIR}/snapshot2 -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
+echo "============================================"
+echo
+
+mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem2 -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
+#mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem2 -quiet -collect memory-access -knob analyze-openmp=true ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
+echo "============================================"
+echo
+
