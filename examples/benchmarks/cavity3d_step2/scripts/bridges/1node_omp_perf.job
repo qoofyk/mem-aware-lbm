@@ -4,7 +4,7 @@
 #SBATCH --partition=RM
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
-#SBATCH -t 0:40:00
+#SBATCH -t 2:0:00
 #SBATCH --export=ALL
 
 # mail alert at start, end and abortion of execution
@@ -42,30 +42,51 @@ threads=(1 2 4 8 14 16 28)
 
 for ((k=0; k<${#threads[@]}; k++)); do
     export OMP_NUM_THREADS=${threads[k]}
+
+    echo "1. collect hpc"
     mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hpc${OMP_NUM_THREADS} -quiet -collect hpc-performance -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
     echo "============================================"
     echo
 
+    echo "2. collect hotspot"
     mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hotspot${OMP_NUM_THREADS} -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
     echo "============================================"
     echo
+
+    echo "3. collect snapshot"
     mpirun -np 1 aps -result-dir ${SCRATCH_DIR}/snapshot${OMP_NUM_THREADS} ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
     echo "============================================"
     echo
 
+    echo "4. collect memory-access with openmp=true"
     mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
     echo "============================================"
     echo
     
+    echo "5. collect memory-access with analysze-dynamic-mem-obj=true"
     mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem-dynamic-alloc-${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-mem-objects=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
     echo "============================================"
     echo
 
-
+    echo "6. collect uarch-exploration with collect-memory-bandwidth=true"
     mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/uarch${OMP_NUM_THREADS} -quiet -collect uarch-exploration -knob collect-memory-bandwidth=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
     echo "============================================"
     echo
 
+    echo "7. collect hw-events"
+    mpirun -np 1 amplxe-cl -report hw-events -quiet -result-dir ${SCRATCH_DIR}/hw-events${OMP_NUM_THREADS} -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+
+    echo "8. collect top-down"
+    mpirun -np 1 amplxe-cl -report top-down -quiet -result-dir ${SCRATCH_DIR}/top-down${OMP_NUM_THREADS} -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+
+    echo "9. collect summary"
+    mpirun -np 1 amplxe-cl -report summary -quiet -result-dir ${SCRATCH_DIR}/summary${OMP_NUM_THREADS} -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
 done
 
 cd ${SCRATCH_DIR}

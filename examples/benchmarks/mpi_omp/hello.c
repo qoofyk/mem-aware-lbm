@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "mpi.h"
+#include <mpi.h>
 #include <omp.h>
 
 int main(int argc, char *argv[]) {

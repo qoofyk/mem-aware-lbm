@@ -4,14 +4,14 @@
 static long num_steps= 1000000000;
 double step;
 // #define    PAD      8  // assume 64 byte L1 cache line size
-#define NUM_THREADS 4
+#define NUM_THREADS 8
 
+#pragma optimize ("", off)
 void main () {
 	int nthreads;
 	double pi, sum[NUM_THREADS];
 	step = 1.0/(double) num_steps;
 	omp_set_num_threads(NUM_THREADS);
-
 #pragma omp parallel 
 {
 	int i, id, nthrds;
