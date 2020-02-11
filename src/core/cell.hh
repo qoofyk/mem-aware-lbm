@@ -44,7 +44,7 @@ namespace plb {
  */
 template<typename T, template<typename U> class Descriptor>
 Cell<T,Descriptor>::Cell()
-    : takesStat(true), dynamics(0)
+    : takesStat(false), dynamics(0)
 {
     iniPop();
     iniExternal();

@@ -50,12 +50,12 @@ parallelCXX  = mpiicpc
 # General compiler flags (e.g. -Wall to turn on all warnings on g++)
 compileFlags = -Wall -Wextra -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X -D_OPENMP -qopenmp -std=c++11  -xCORE-AVX2 -axCORE-AVX512,MIC-AVX512
 # General linker flags (don't put library includes into this flag)
-linkFlags    = -qopenmp
+linkFlags    = -qopenmp -lpthread -lm
 # Compiler flags to use when optimization mode is on
 optimFlags   = -O3
 #optimFlags   = -xHOST -O3 -ip -no-prec-div -static
 # Compiler flags to use when debug mode is on
-debugFlags   = -g -gdwarf-2 -parallel-source-info=2 
+debugFlags   = -g -gdwarf-2 -parallel-source-info=2 -debug inline-debug-info #-vec-report3 -qopt-report -qopt-report-phase=vec
 # Compiler flags to use when profile mode is on
 profileFlags = -pg
 

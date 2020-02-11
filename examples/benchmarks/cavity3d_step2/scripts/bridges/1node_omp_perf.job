@@ -4,7 +4,7 @@
 #SBATCH --partition=RM
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
-#SBATCH -t 0:20:00
+#SBATCH -t 0:40:00
 #SBATCH --export=ALL
 
 # mail alert at start, end and abortion of execution
@@ -15,49 +15,61 @@
 module load intel/19.5
 
 which mpirun
-mkdir -p results
+mkdir -pv results
 PBS_O_HOME=$HOME
 PBS_O_WORKDIR=$(pwd)
 export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
-mkdir -p ${SCRACTH_DIR}
+mkdir -pv ${SCRATCH_DIR}
 
 # bridges
 groupname=$(id -Gn)
 EMPTY_DIR=${SCRATCH}/empty/
 
-export KMP_AFFINITY=granularity=core,compact
-export OMP_NUM_THREADS=1
-mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hpc1 -quiet -collect hpc-performance -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
-echo "============================================"
-echo
+dim=$((112 + 2))
+steps=150
+block_size=0
+warmup_steps=40
 
-mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hotspot1 -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
-echo "============================================"
-echo
-mpirun -np 1 aps -result-dir ${SCRATCH_DIR}/snapshot1 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
-echo "============================================"
-echo
+#dim=$((336 + 2))
+#steps=50
+#block_size=0
+#warmup_steps=20
 
-mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem1 -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
-#mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem1 -quiet -collect memory-access -knob analyze-openmp=true ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
-echo "============================================"
-echo
+#export KMP_AFFINITY=granularity=core,scatter
+echo "KMP_AFFINITY = $KMP_AFFINITY"
 
-export OMP_NUM_THREADS=2
-mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hpc2 -quiet -collect hpc-performance -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
-echo "============================================"
-echo
+threads=(1 2 4 8 14 16 28)
 
-mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hotspot2 -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
-echo "============================================"
-echo
+for ((k=0; k<${#threads[@]}; k++)); do
+    export OMP_NUM_THREADS=${threads[k]}
+    mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hpc${OMP_NUM_THREADS} -quiet -collect hpc-performance -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
 
-mpirun -np 1 aps -result-dir ${SCRATCH_DIR}/snapshot2 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
-echo "============================================"
-echo
+    mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hotspot${OMP_NUM_THREADS} -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+    mpirun -np 1 aps -result-dir ${SCRATCH_DIR}/snapshot${OMP_NUM_THREADS} ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
 
-mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem2 -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
-#mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem2 -quiet -collect memory-access -knob analyze-openmp=true ${PBS_O_WORKDIR}/cavity3d_step2 114 150 0 40
-echo "============================================"
-echo
+    mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+    
+    mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem-dynamic-alloc-${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-mem-objects=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
 
+
+    mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/uarch${OMP_NUM_THREADS} -quiet -collect uarch-exploration -knob collect-memory-bandwidth=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+
+done
+
+cd ${SCRATCH_DIR}
+for i in "${threads[@]}"
+do
+    aps-report snapshot${i} -O snapshot${i}.html
+done

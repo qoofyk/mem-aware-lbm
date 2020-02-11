@@ -1239,7 +1239,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
 
     // Then bulk [x0+2, x0-1]
     //if(domain.x1-domain.x0 <= 250){
-      // step2CollideAndStream_bulk(domain);
+       //step2CollideAndStream_bulk(domain);
       step2CollideAndStream_bulk_omp(domain);
     //}
     //else{
