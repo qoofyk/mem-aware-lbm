@@ -76,7 +76,9 @@ void BlockStatistics::swap(BlockStatistics& rhs)
  */
 void BlockStatistics::evaluate() {
     // First step: copy running statistics to public statistics
-
+    // std::cout << "tmpNumCells= " << tmpNumCells << 
+    //             " tmpAv.size= " << tmpAv.size() << 
+    //             " tmpMax.size= " << tmpMax.size() << std::endl;
     // Avoid division by zero while evaluating average: if no cell has
     //   been accounted for so far, simply reset to zero.
     if (tmpNumCells == 0) {   
