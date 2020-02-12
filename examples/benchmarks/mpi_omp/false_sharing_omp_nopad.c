@@ -4,7 +4,7 @@
 static long num_steps= 1000000000;
 double step;
 // #define    PAD      8  // assume 64 byte L1 cache line size
-#define NUM_THREADS 8
+#define NUM_THREADS 2
 
 #pragma optimize ("", off)
 void main () {
