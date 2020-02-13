@@ -52,7 +52,7 @@ SparseBlockStructure3D createRegularDistribution3D (
             for (plint iBlockZ=0; iBlockZ<numBlocksZ; ++iBlockZ) {
                 plint lz = domain.getNz() / numBlocksZ;
                 if (iBlockZ < domain.getNz()%numBlocksZ) ++lz;
-#if 1
+#if 0
                 printf("createRegularDistribution3D addBlock: Nz=%ld, iBlockZ=%ld, [posZ, posZ+lz-1]=[%ld, %ld], lz=%ld\n", 
                     domain.getNz(), iBlockZ, posZ, posZ+lz-1, lz);
 #endif

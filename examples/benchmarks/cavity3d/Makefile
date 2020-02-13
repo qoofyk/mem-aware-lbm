@@ -1,7 +1,7 @@
 ##########################################################################
 ## Makefile.
 ##
-## The present Makefile is a pure configuration file, in which 
+## The present Makefile is a pure configuration file, in which
 ## you can select compilation options. Compilation dependencies
 ## are managed automatically through the Python library SConstruct.
 ##
@@ -48,9 +48,13 @@ serialCXX    = icpc
 # Compiler to use with MPI parallelism
 parallelCXX  = mpiicpc
 # General compiler flags (e.g. -Wall to turn on all warnings on g++)
-compileFlags = -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X -D_OPENMP -qopenmp
+compileFlags = -Wall -Wextra -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X
+# Step2_OMP flags
+step2_omp_Flags = false
+# Step2_SEQ flags
+step2_seq_Flags = false
 # General linker flags (don't put library includes into this flag)
-linkFlags    = -qopenmp
+linkFlags    =
 # Compiler flags to use when optimization mode is on
 optimFlags   = -O3
 #optimFlags   = -xHOST -O3 -ip -no-prec-div -static
@@ -78,6 +82,8 @@ SConsArgs = palabosRoot=$(palabosRoot) \
             serialCXX=$(serialCXX) \
             parallelCXX=$(parallelCXX) \
             compileFlags="$(compileFlags)" \
+            step2_omp_Flags="$(step2_omp_Flags)" \
+            step2_seq_Flags="$(step2_seq_Flags)" \
             linkFlags="$(linkFlags)" \
             optimFlags="$(optimFlags)" \
             debugFlags="$(debugFlags)" \

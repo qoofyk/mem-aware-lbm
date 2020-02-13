@@ -1,0 +1,134 @@
+#!/bin/bash
+#SBATCH --job-name="perf"
+#SBATCH --output="results/1node.perf.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 0:50:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module load intel/19.5
+module load vtune
+
+mkdir -pv results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/fs/${SLURM_JOBID}
+mkdir -pv ${SCRATCH_DIR}/fs_nopad_arr
+mkdir -pv ${SCRATCH_DIR}/fs_pad_arr
+mkdir -pv ${SCRATCH_DIR}/fs_nopad_vector
+mkdir -pv ${SCRATCH_DIR}/fs_pad_vector
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+fs_nopad_arr_path=${SCRATCH_DIR}/fs_nopad_arr
+fs_pad_arr_path=${SCRATCH_DIR}/
+fs_nopad_vec_path=${SCRATCH_DIR}/fs_nopad_vector
+fs_pad_vec_path=${SCRATCH_DIR}/fs_pad_vector
+
+# threads=(1 2 4 8 14 16 28)
+threads=(2 4 8)
+
+export KMP_AFFINITY=none
+echo "KMP_AFFINITY = $KMP_AFFINITY"
+
+for ((k=0; k<${#threads[@]}; k++)); do
+    export OMP_NUM_THREADS=${threads[k]}
+
+    echo "1. collect hpc"
+    amplxe-cl -result-dir ${fs_nopad_arr_path}/hpc${OMP_NUM_THREADS} -quiet -collect hpc-performance -data-limit=0 ${PBS_O_WORKDIR}/fs_nopad_arr
+    amplxe-cl -result-dir ${fs_pad_arr_path}/hpc${OMP_NUM_THREADS} -quiet -collect hpc-performance -data-limit=0 ${PBS_O_WORKDIR}/fs_pad_arr
+    amplxe-cl -result-dir ${fs_nopad_vector_path}/hpc${OMP_NUM_THREADS} -quiet -collect hpc-performance -data-limit=0 ${PBS_O_WORKDIR}/fs_nopad_vec
+    amplxe-cl -result-dir ${fs_pad_vector_path}/hpc${OMP_NUM_THREADS} -quiet -collect hpc-performance -data-limit=0 ${PBS_O_WORKDIR}/fs_pad_vec
+    echo "============================================"
+    echo
+
+    echo "2. collect hotspot"
+    amplxe-cl -result-dir ${fs_nopad_arr_path}/hotspot${OMP_NUM_THREADS} -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/fs_nopad_arr
+    amplxe-cl -result-dir ${fs_pad_arr_path}/hotspot${OMP_NUM_THREADS} -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/fs_pad_arr
+    amplxe-cl -result-dir ${fs_nopad_vector_path}/hotspot${OMP_NUM_THREADS} -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/fs_nopad_vec
+    amplxe-cl -result-dir ${fs_pad_vector_path}/hotspot${OMP_NUM_THREADS} -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/fs_pad_vec
+    echo "============================================"
+    echo
+
+    echo "3. collect snapshot"
+    aps -result-dir ${fs_nopad_arr_path}/snapshot${OMP_NUM_THREADS} ${PBS_O_WORKDIR}/fs_nopad_arr
+    aps -result-dir ${fs_pad_arr_path}/snapshot${OMP_NUM_THREADS} ${PBS_O_WORKDIR}/fs_pad_arr
+    aps -result-dir ${fs_nopad_vec_path}/snapshot${OMP_NUM_THREADS} ${PBS_O_WORKDIR}/fs_nopad_vec
+    aps -result-dir ${fs_pad_vec_path}/snapshot${OMP_NUM_THREADS} ${PBS_O_WORKDIR}/fs_pad_vec
+    echo "============================================"
+    echo
+
+    echo "4. collect memory-access with openmp=true"
+    amplxe-cl -result-dir ${fs_nopad_arr_path}/mem${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 ${PBS_O_WORKDIR}/fs_nopad_arr
+    amplxe-cl -result-dir ${fs_pad_arr_path}/mem${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 ${PBS_O_WORKDIR}/fs_pad_arr
+    amplxe-cl -result-dir ${fs_nopad_vec_path}/mem${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 ${PBS_O_WORKDIR}/fs_nopad_vec
+    amplxe-cl -result-dir ${fs_pad_vec_path}/mem${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 ${PBS_O_WORKDIR}/fs_pad_vec
+    echo "============================================"
+    echo
+
+    echo "5. collect memory-access with analysze-dynamic-mem-obj=true"
+    amplxe-cl -result-dir ${fs_nopad_arr_path}/mem-dynamic-alloc-${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-mem-objects=true -data-limit=0 ${PBS_O_WORKDIR}/fs_nopad_arr
+    amplxe-cl -result-dir ${fs_pad_arr_path}/mem-dynamic-alloc-${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-mem-objects=true -data-limit=0 ${PBS_O_WORKDIR}/fs_pad_arr
+    amplxe-cl -result-dir ${fs_nopad_vec_path}/mem-dynamic-alloc-${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-mem-objects=true -data-limit=0 ${PBS_O_WORKDIR}/fs_nopad_vec
+    amplxe-cl -result-dir ${fs_pad_vec_path}/mem-dynamic-alloc-${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-mem-objects=true -data-limit=0 ${PBS_O_WORKDIR}/fs_pad_vec
+    echo "============================================"
+    echo
+
+    echo "6. collect uarch-exploration with collect-memory-bandwidth=true"
+    amplxe-cl -result-dir ${fs_nopad_arr_path}/uarch${OMP_NUM_THREADS} -quiet -collect uarch-exploration -knob collect-memory-bandwidth=true -data-limit=0 ${PBS_O_WORKDIR}/fs_nopad_arr
+    amplxe-cl -result-dir ${fs_pad_arr_path}/uarch${OMP_NUM_THREADS} -quiet -collect uarch-exploration -knob collect-memory-bandwidth=true -data-limit=0 ${PBS_O_WORKDIR}/fs_pad_arr
+    amplxe-cl -result-dir ${fs_nopad_vec_path}/uarch${OMP_NUM_THREADS} -quiet -collect uarch-exploration -knob collect-memory-bandwidth=true -data-limit=0 ${PBS_O_WORKDIR}/fs_nopad_vec
+    amplxe-cl -result-dir ${fs_pad_vec_path}/uarch${OMP_NUM_THREADS} -quiet -collect uarch-exploration -knob collect-memory-bandwidth=true -data-limit=0 ${PBS_O_WORKDIR}/fs_pad_vec
+    echo "============================================"
+    echo
+
+    echo "7. report hw-events from uarch"
+    amplxe-cl -report hw-events -quiet -result-dir ${fs_nopad_arr_path}/uarch${OMP_NUM_THREADS} -report-output ${fs_nopad_arr_path}/hw-events${OMP_NUM_THREADS}.csv -format csv -csv-delimiter comma
+    amplxe-cl -report hw-events -quiet -result-dir ${fs_pad_arr_path}/uarch${OMP_NUM_THREADS} -report-output ${fs_pad_arr_path}/hw-events${OMP_NUM_THREADS}.csv -format csv -csv-delimiter comma
+    amplxe-cl -report hw-events -quiet -result-dir ${fs_nopad_vec_path}/uarch${OMP_NUM_THREADS} -report-output ${fs_nopad_vec_path}/hw-events${OMP_NUM_THREADS}.csv -format csv -csv-delimiter comma
+    amplxe-cl -report hw-events -quiet -result-dir ${fs_pad_vec_path}/uarch${OMP_NUM_THREADS} -report-output ${fs_pad_vec_path}/hw-events${OMP_NUM_THREADS}.csv -format csv -csv-delimiter comma
+    echo "============================================"
+    echo
+
+    echo "8. report top-down from uarch"
+    amplxe-cl -report top-down -quiet -result-dir ${fs_nopad_arr_path}/uarch${OMP_NUM_THREADS} -report-output ${fs_nopad_arr_path}/top-down${OMP_NUM_THREADS}.csv -format csv -csv-delimiter comma
+    amplxe-cl -report top-down -quiet -result-dir ${fs_pad_arr_path}/uarch${OMP_NUM_THREADS} -report-output ${fs_pad_arr_path}/top-down${OMP_NUM_THREADS}.csv -format csv -csv-delimiter comma
+    amplxe-cl -report top-down -quiet -result-dir ${fs_nopad_vec_path}/uarch${OMP_NUM_THREADS} -report-output ${fs_nopad_vec_path}/top-down${OMP_NUM_THREADS}.csv -format csv -csv-delimiter comma
+    amplxe-cl -report top-down -quiet -result-dir ${fs_pad_vec_path}/uarch${OMP_NUM_THREADS} -report-output ${fs_pad_vec_path}/top-down${OMP_NUM_THREADS}.csv -format csv -csv-delimiter comma
+    echo "============================================"
+    echo
+
+    echo "9. report summary from uarch"
+    amplxe-cl -report summary -quiet -result-dir ${fs_nopad_arr_path}/uarch${OMP_NUM_THREADS} -report-output ${fs_nopad_arr_path}/summary${OMP_NUM_THREADS}.csv -format csv -csv-delimiter comma
+    amplxe-cl -report summary -quiet -result-dir ${fs_pad_arr_path}/uarch${OMP_NUM_THREADS} -report-output ${fs_pad_arr_path}/summary${OMP_NUM_THREADS}.csv -format csv -csv-delimiter comma
+    amplxe-cl -report summary -quiet -result-dir ${fs_nopad_vec_path}/uarch${OMP_NUM_THREADS} -report-output ${fs_nopad_vec_path}/summary${OMP_NUM_THREADS}.csv -format csv -csv-delimiter comma
+    amplxe-cl -report summary -quiet -result-dir ${fs_pad_vec_path}/uarch${OMP_NUM_THREADS} -report-output ${fs_pad_vec_path}/summary${OMP_NUM_THREADS}.csv -format csv -csv-delimiter comma
+    echo "============================================"
+    echo
+
+    # echo "10. collect page fault"
+    # amplxe-cl -collect system-overview -quiet -result-dir ${fs_nopad_arr_path}/sys-overview${OMP_NUM_THREADS} -data-limit=0 ${PBS_O_WORKDIR}/fs_nopad_arr
+    # echo "============================================"
+    # echo
+
+done
+
+for i in "${threads[@]}"
+do
+    cd ${fs_nopad_arr_path}
+    aps-report snapshot${i} -O snapshot${i}.html
+    cd ${fs_pad_arr_path}
+    aps-report snapshot${i} -O snapshot${i}.html
+    cd ${fs_nopad_vec_path}
+    aps-report snapshot${i} -O snapshot${i}.html
+    cd ${fs_pad_vec_path}
+    aps-report snapshot${i} -O snapshot${i}.html
+done
+

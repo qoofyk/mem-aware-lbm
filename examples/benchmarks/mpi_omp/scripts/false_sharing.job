@@ -1,0 +1,121 @@
+#!/bin/bash
+#SBATCH --job-name="fs"
+#SBATCH --output="results/1node.fs.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 0:10:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+mkdir -pv results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+export KMP_AFFINITY=none
+echo "KMP_AFFINITY = $KMP_AFFINITY"
+
+echo "-------------------------------------------------------------"
+echo "test false sharing array with no pad"
+for i in `seq 5`
+do
+    # export OMP_NUM_THREADS=1
+    # time ${PBS_O_WORKDIR}/fs_nopad_arr
+    export OMP_NUM_THREADS=2
+    time ${PBS_O_WORKDIR}/fs_nopad_arr
+    export OMP_NUM_THREADS=3
+    time ${PBS_O_WORKDIR}/fs_nopad_arr
+    export OMP_NUM_THREADS=4
+    time ${PBS_O_WORKDIR}/fs_nopad_arr
+    export OMP_NUM_THREADS=5
+    time ${PBS_O_WORKDIR}/fs_nopad_arr
+    export OMP_NUM_THREADS=6
+    time ${PBS_O_WORKDIR}/fs_nopad_arr
+    export OMP_NUM_THREADS=7
+    time ${PBS_O_WORKDIR}/fs_nopad_arr
+    export OMP_NUM_THREADS=8
+    time ${PBS_O_WORKDIR}/fs_nopad_arr
+    export OMP_NUM_THREADS=14
+    time ${PBS_O_WORKDIR}/fs_nopad_arr
+    export OMP_NUM_THREADS=16
+    time ${PBS_O_WORKDIR}/fs_nopad_arr
+    export OMP_NUM_THREADS=28
+    time ${PBS_O_WORKDIR}/fs_nopad_arr
+done
+
+echo "-------------------------------------------------------------"
+echo "test false sharing array with pad"
+for i in `seq 5`
+do
+    # export OMP_NUM_THREADS=1
+    # time ${PBS_O_WORKDIR}/fs_pad_arr
+    export OMP_NUM_THREADS=2
+    time ${PBS_O_WORKDIR}/fs_pad_arr
+    export OMP_NUM_THREADS=3
+    time ${PBS_O_WORKDIR}/fs_pad_arr
+    export OMP_NUM_THREADS=4
+    time ${PBS_O_WORKDIR}/fs_pad_arr
+    export OMP_NUM_THREADS=5
+    time ${PBS_O_WORKDIR}/fs_pad_arr
+    export OMP_NUM_THREADS=6
+    time ${PBS_O_WORKDIR}/fs_pad_arr
+    export OMP_NUM_THREADS=7
+    time ${PBS_O_WORKDIR}/fs_pad_arr
+    export OMP_NUM_THREADS=8
+    time ${PBS_O_WORKDIR}/fs_pad_arr
+    export OMP_NUM_THREADS=14
+    time ${PBS_O_WORKDIR}/fs_pad_arr
+    export OMP_NUM_THREADS=16
+    time ${PBS_O_WORKDIR}/fs_pad_arr
+    export OMP_NUM_THREADS=28
+    time ${PBS_O_WORKDIR}/fs_pad_arr
+done
+
+# echo "-------------------------------------------------------------"
+# echo "test false sharing vector with no pad"
+# for i in `seq 3`
+# do
+#     export OMP_NUM_THREADS=1
+#     time ${PBS_O_WORKDIR}/fs_nopad_vector
+#     export OMP_NUM_THREADS=2
+#     time ${PBS_O_WORKDIR}/fs_nopad_vector
+#     export OMP_NUM_THREADS=4
+#     time ${PBS_O_WORKDIR}/fs_nopad_vector
+#     export OMP_NUM_THREADS=8
+#     time ${PBS_O_WORKDIR}/fs_nopad_vector
+#     export OMP_NUM_THREADS=14
+#     time ${PBS_O_WORKDIR}/fs_nopad_vector
+#     export OMP_NUM_THREADS=16
+#     time ${PBS_O_WORKDIR}/fs_nopad_vector
+#     export OMP_NUM_THREADS=28
+#     time ${PBS_O_WORKDIR}/fs_nopad_vector
+# done
+
+# echo "-------------------------------------------------------------"
+# echo "test false sharing vector with pad"
+# for i in `seq 3`
+# do
+#     export OMP_NUM_THREADS=1
+#     time ${PBS_O_WORKDIR}/fs_pad_vector
+#     export OMP_NUM_THREADS=2
+#     time ${PBS_O_WORKDIR}/fs_pad_vector
+#     export OMP_NUM_THREADS=4
+#     time ${PBS_O_WORKDIR}/fs_pad_vector
+#     export OMP_NUM_THREADS=8
+#     time ${PBS_O_WORKDIR}/fs_pad_vector
+#     export OMP_NUM_THREADS=14
+#     time ${PBS_O_WORKDIR}/fs_pad_vector
+#     export OMP_NUM_THREADS=16
+#     time ${PBS_O_WORKDIR}/fs_pad_vector
+#     export OMP_NUM_THREADS=28
+#     time ${PBS_O_WORKDIR}/fs_pad_vector
+# done

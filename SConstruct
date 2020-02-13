@@ -2,7 +2,7 @@
 # Configuration file for the compilation of Palabos code,
 # using the SConstruct library.
 # IT IS NOT RECOMMENDED TO MODIFY THIS FILE.
-# Compilation should be personalized by adjusting the 
+# Compilation should be personalized by adjusting the
 # Makefile in the directory of the main source files.
 # See Palabos examples for sample Makefiles.
 ###########################################################
@@ -32,6 +32,8 @@ profileFlags  = Split(argdict['profileFlags'])
 libraryPaths  = Split(argdict['libraryPaths'])
 includePaths  = Split(argdict['includePaths'])
 libraries     = Split(argdict['libraries'])
+step2_omp_Flags  = argdict['step2_omp_Flags'].lower() == 'true'
+step2_seq_Flags  = argdict['step2_seq_Flags'].lower() == 'true'
 
 # Read the optional input parameters
 try:
@@ -70,6 +72,9 @@ if SMPparallel:
 if usePOSIX:
     flags.append('-DPLB_USE_POSIX')
 
+if step2_omp_Flags:
+    flags.append('-DSTEP2_OMP')
+
 env = Environment ( ENV       = os.environ,
                     CXX       = compiler,
                     CXXFLAGS  = flags,
@@ -93,7 +98,14 @@ for srcDir in srcPaths:
 sourceFiles.extend(glob.glob(palabosRoot+'/externalLibraries/tinyxml/*.cpp'));
 
 if MPIparallel:
-    palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi',
+    if step2_omp_Flags:
+        palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_omp',
+                                  source  = sourceFiles )
+    elif step2_seq_Flags:
+        palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_seq',
+                                  source  = sourceFiles )
+    else:
+        palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi',
                                   source  = sourceFiles )
 else:
     palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb',

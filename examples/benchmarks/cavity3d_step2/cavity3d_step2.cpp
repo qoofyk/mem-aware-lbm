@@ -5,7 +5,7 @@
  * 1010 Lausanne, Switzerland
  * E-mail contact: contact@flowkit.com
  *
- * The most recent release of Palabos can be downloaded at 
+ * The most recent release of Palabos can be downloaded at
  * <http://www.palabos.org/>
  *
  * The library Palabos is free software: you can redistribute it and/or
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
 
         // check (N + 1 - 3) % NUM_THREADS == 0
         if ((N - 2) % NUM_THREADS != 0) throw 'N';
-        thread_block = (N - 2) / NUM_THREADS; 
+        thread_block = (N - 2) / NUM_THREADS;
     }
     catch(char param) {
         cout << "(N - 2) % OMP_NUM_THREADS != 0, Not Divisible\n";
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
 
     plint numProcs = global::mpi().getSize();
-    pcout << "Number of MPI threads: " << numProcs << " Num of OpenMP threads: " << NUM_THREADS 
+    pcout << "Number of MPI threads: " << numProcs << " Num of OpenMP threads: " << NUM_THREADS
             << " thread_block: " << thread_block << " ykBlockSize: " << ykBlockSize << std::endl;
     // Current cores run approximately at 5 Mega Sus.
     T estimateSus= 5.e6 * numProcs;
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     // pcout << "Start bench!" << std::endl;
     // Run the benchmark for good.
     global::timer("benchmark").start();
-    global::profiler().turnOn();
+    // global::profiler().turnOn();
     for (plint iT=0; iT < numIter; iT += K) {
         // pcout << "iT=" << iT << std::endl;
         lattice.step2collideAndStream();
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
              global::timer("benchmark").getTime() / 1.e6
           << " Mega site updates per second.\n\n";
     pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << std::endl;
-    global::profiler().writeReport();  
+    // global::profiler().writeReport();
 
     delete boundaryCondition;
 }

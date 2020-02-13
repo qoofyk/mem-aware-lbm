@@ -5,7 +5,7 @@
  * 1010 Lausanne, Switzerland
  * E-mail contact: contact@flowkit.com
  *
- * The most recent release of Palabos can be downloaded at 
+ * The most recent release of Palabos can be downloaded at
  * <http://www.palabos.org/>
  *
  * The library Palabos is free software: you can redistribute it and/or
@@ -44,8 +44,13 @@ namespace plb {
  */
 template<typename T, template<typename U> class Descriptor>
 Cell<T,Descriptor>::Cell()
-    : takesStat(false), dynamics(0)
+    :dynamics(0)
 {
+#if defined(STEP2_OMP)
+    takesStat = false;
+#else
+    takesStat = true;
+#endif
     iniPop();
     iniExternal();
 }

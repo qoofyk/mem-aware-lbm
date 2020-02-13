@@ -5,7 +5,7 @@
  * 1010 Lausanne, Switzerland
  * E-mail contact: contact@flowkit.com
  *
- * The most recent release of Palabos can be downloaded at 
+ * The most recent release of Palabos can be downloaded at
  * <http://www.palabos.org/>
  *
  * The library Palabos is free software: you can redistribute it and/or
@@ -121,19 +121,23 @@ void LocalMultiBlockInfo3D::computeNormalOverlaps (
         if (intersect( neighborBulk.getBulk(),
                        bulk.computeNonPeriodicEnvelope(), intersection) )
         {
+#if 0
             printf("computeNormalOverlaps-1: neighborId %ld, blockId %ld, \
-inter[%ld,%ld : %ld,%ld : %ld,%ld]\n", 
-                neighborId, blockId, intersection.x0, intersection.x1, 
+inter[%ld,%ld : %ld,%ld : %ld,%ld]\n",
+                neighborId, blockId, intersection.x0, intersection.x1,
                 intersection.y0, intersection.y1, intersection.z0, intersection.z1);
+#endif
             normalOverlaps.push_back(Overlap3D(neighborId, blockId, intersection));
         }
         if (intersect( bulk.getBulk(),
                        neighborBulk.computeNonPeriodicEnvelope(), intersection) )
         {
+#if 0
             printf("computeNormalOverlaps-2: blockId %ld, neighborId %ld, \
-inter[%ld,%ld : %ld,%ld : %ld,%ld]\n", 
-                blockId, neighborId, intersection.x0, intersection.x1, 
+inter[%ld,%ld : %ld,%ld : %ld,%ld]\n",
+                blockId, neighborId, intersection.x0, intersection.x1,
                 intersection.y0, intersection.y1, intersection.z0, intersection.z1);
+#endif
             normalOverlaps.push_back(Overlap3D(blockId, neighborId, intersection));
         }
     }

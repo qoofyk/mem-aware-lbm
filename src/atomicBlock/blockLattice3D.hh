@@ -5,7 +5,7 @@
  * 1010 Lausanne, Switzerland
  * E-mail contact: contact@flowkit.com
  *
- * The most recent release of Palabos can be downloaded at 
+ * The most recent release of Palabos can be downloaded at
  * <http://www.palabos.org/>
  *
  * The library Palabos is free software: you can redistribute it and/or
@@ -136,7 +136,7 @@ BlockLattice3D<T,Descriptor>::BlockLattice3D(BlockLattice3D<T,Descriptor> const&
 
 /** The current lattice is deallocated, then the lattice from the rhs
  * is duplicated. This includes both particle distribution function
- * and external fields. 
+ * and external fields.
  * \warning The dynamics objects and internalProcessors are not copied
  * \param rhs the lattice to be duplicated
  */
@@ -149,7 +149,7 @@ BlockLattice3D<T,Descriptor>& BlockLattice3D<T,Descriptor>::operator= (
     return *this;
 }
 
-/** The swap is efficient, in the sense that only pointers to the 
+/** The swap is efficient, in the sense that only pointers to the
  * lattice are copied, and not the lattice itself.
  */
 template<typename T, template<typename U> class Descriptor>
@@ -199,7 +199,7 @@ void BlockLattice3D<T,Descriptor>::collide() {
 }
 
 /** The distribution function never leave the rectangular domain. On the
- * domain boundaries, the (outgoing) distribution functions that should 
+ * domain boundaries, the (outgoing) distribution functions that should
  * be streamed outside are simply left untouched.
  * The finalization of an iteration step is not automatically executed,
  * as it is in the method stream(). If you want it to be executed, you
@@ -410,7 +410,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_init(Box3D domain){
 
   // First, do the collision on cells on bottom surface
   // (x0, x0, y0, y1, z0, z1) ==> bottom
-  // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n", 
+  // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
   //   domain.x0, domain.x0, domain.y0, domain.y1, domain.z0, domain.z1);
   collideRevertAndBoundSwapStream(domain, Box3D(domain.x0, domain.x0+vicinity-1,
                 domain.y0, domain.y1, domain.z0, domain.z1) );
@@ -421,7 +421,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_init(Box3D domain){
   plint iY = domain.y0;
   collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
               iY, iY, domain.z0, domain.z1) );
-  // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n", 
+  // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
   //   iX, iX, iY, iY, domain.z0, domain.z1);
 
   // line [y0+1，y1-1] of each y-z surface
@@ -457,7 +457,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_init(Box3D domain){
   collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
               iY, iY,
               domain.z0, domain.z1) );
-  // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n", 
+  // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
   //   iX, iX, iY, iY, domain.z0, domain.z1);
 
   // second collision and stream on line y1-1 & y1 on x0
@@ -486,7 +486,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk(Box3D domain){
     plint iY = domain.y0;
     collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                 iY, iY, domain.z0, domain.z1) );
-    // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n", 
+    // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
     //   iX, iX, iY, iY, domain.z0, domain.z1);
 
     /* 2. line [y0+1，y1-1] of each y-z surface */
@@ -535,6 +535,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk(Box3D domain){
 #if 1
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk(Box3D domain){
+  // printf("Here!\n");
 
   for (plint iX = domain.x0+2; iX < domain.x1; ++iX) {
 
@@ -542,7 +543,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk(Box3D domain){
     plint iY = domain.y0;
     collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                 iY, iY, domain.z0, domain.z1) );
-    // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n", 
+    // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
     //   iX, iX, iY, iY, domain.z0, domain.z1);
 
     // iY = domain.y0+1;
@@ -553,7 +554,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk(Box3D domain){
       // first collision on (iX, iY, iZ)
       grid[iX][iY][iZ].collide(this->getInternalStatistics());
       latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
-      
+
       // second collision on (iX-1, iY-1, iZ-1)
       collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ-1);
     }
@@ -583,7 +584,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk(Box3D domain){
         // first collision on (iX, iY, iZ)
         grid[iX][iY][iZ].collide(this->getInternalStatistics());
         latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
-        
+
         // second collision on (iX-1, iY-1, iZ-1)
         grid[iX-1][iY-1][iZ-1].collide(this->getInternalStatistics());
         latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX-1, iY-1, iZ-1);
@@ -619,7 +620,7 @@ plint thread_block;
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
 
-  // printf("domain-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n", 
+  // printf("domain-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
   //   domain.x0, domain.x0, domain.y0, domain.y1, domain.z0, domain.z1);
 
   plint iX, iY, iZ;
@@ -633,7 +634,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
   // 1st Collide_Revert
   #pragma omp for private(iX, iY, iZ) schedule(static)
   for (iX = domain.x0+thread_block+1; iX < domain.x1; iX += thread_block){
-    // printf("tid: %ld, thread_block=%ld, iX=%ld, (%ld, %ld), (%ld, %ld)\n", 
+    // printf("tid: %ld, thread_block=%ld, iX=%ld, (%ld, %ld), (%ld, %ld)\n",
     //   tid, thread_block, iX, domain.y0, domain.y1, domain.z0, domain.z1);
     for (iY = domain.y0; iY <= domain.y1; ++iY)
       for (iZ = domain.z0; iZ <= domain.z1; ++iZ ){
@@ -677,7 +678,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       // iY = domain.y1
       collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
                   iY, iY, domain.z0, domain.z1) );
-      
+
       continue;
     }
 
@@ -745,7 +746,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       }
       // iZ = domain.z1;
       boundSwapStream(domain, iX, iY, iZ);
-      
+
       // second collision on last two points of iX-1, iY-1
       collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ-1); //iY-1=y0
       collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ);
@@ -761,7 +762,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
         ++iZ;
         // first swap stream on (iX, iY, iZ)
         swapStream(iX, iY, iZ);
-        
+
         // second collision on (iX-1, iY-1, iZ-1)
         collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ-1);
 
@@ -794,7 +795,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       // can optimize on iY-1 without boundary check
       collideRevertAndBoundSwapStream(domain, Box3D(iX-1, iX-1,
                   iY-1, iY, domain.z0, domain.z1) );
-      
+
       continue;
     }
 
@@ -802,7 +803,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       this case compute from surface [x0+4 + k * thread_block, x0+thread_block + k * thread_block]
       first thread block = [x0+2, x0+1thread_block]
       second = [x0+1 + thread_block + 1, x0+1 + 2 * thread_block]
-      e.g., 1, 2, [3, 4, 5, 6], [7, 8, 9, 10], 11 
+      e.g., 1, 2, [3, 4, 5, 6], [7, 8, 9, 10], 11
       this case will compute iX = 5 & 9
     */
 
@@ -846,7 +847,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
       // first collision on (iX, iY, iZ)
       grid[iX][iY][iZ].collide(this->getInternalStatistics());
       latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
-      
+
       // second collision on (iX-1, iY-1, iZ-1)
       collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ-1);
 
@@ -854,7 +855,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
         // first collision on (iX, iY, iZ)
         grid[iX][iY][iZ].collide(this->getInternalStatistics());
         latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
-        
+
         // second collision on (iX-1, iY-1, iZ-1)
         grid[iX-1][iY-1][iZ-1].collide(this->getInternalStatistics());
         latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX-1, iY-1, iZ-1);
@@ -882,17 +883,17 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
   }
   /*-------------------------- Finish 2 -------------------------*/
 #endif
-#if 1 
+#if 1
   // ---------------3. compute 2nd on rest surface---------------------
   /* 2nd collide Stream on x0+1 & thread_boundaries, case-3.1
-   except the last boundary in the last thread block. 
+   except the last boundary in the last thread block.
    since we will handle its 2nd computation in the step2CollideAndStream_end()
   */
   #pragma omp for private(iX, iY, iZ) schedule(static)
   for (iX = domain.x0+1; iX < (domain.x1 - thread_block); iX += thread_block){
     iY = domain.y0; // 2nd
     collideRevertAndBoundSwapStream(domain, Box3D(iX, iX, iY, iY, domain.z0, domain.z1) );
-    
+
     for (iY = domain.y0+1; iY < domain.y1; ++iY){
       iZ = domain.z0; // 2nd
       collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
@@ -949,7 +950,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_blockwise(Box3D do
   // For cache efficiency, memory is traversed block-wise. The three outer loops enumerate
   //   the blocks, whereas the three inner loops enumerate the cells inside each block.
   const plint blockSize = cachePolicy().getBlockSize();
-  // printf("blockSize=%ld, domain(%ld, %ld, %ld, %ld, %ld, %ld)\n", 
+  // printf("blockSize=%ld, domain(%ld, %ld, %ld, %ld, %ld, %ld)\n",
   //     blockSize, domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
 
   for (plint outerX=domain.x0+2; outerX<domain.x1; outerX+=blockSize) {
@@ -969,7 +970,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_blockwise(Box3D do
           plint minY = outerY-dx;
           plint maxY = minY+blockSize-1;
           plint dy = 0;
-          // printf("innerX=%ld, dx=%ld, dy=%ld, minY=%ld, maxY=%ld\n", 
+          // printf("innerX=%ld, dx=%ld, dy=%ld, minY=%ld, maxY=%ld\n",
           //   innerX, dx, dy, minY, maxY);
 
           for (plint innerY=std::max(minY,domain.y0);
@@ -981,10 +982,10 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_blockwise(Box3D do
             //    the swap-operation of the streaming.
             plint minZ = outerZ-dx-dy;
             plint maxZ = minZ+blockSize-1;
-            // printf("innerY=%ld, dx=%ld, dy=%ld, minY=%ld, maxY=%ld, minZ=%ld, maxZ=%ld\n", 
+            // printf("innerY=%ld, dx=%ld, dy=%ld, minY=%ld, maxY=%ld, minZ=%ld, maxZ=%ld\n",
                           // innerY, dx, dy, minY, maxY, minZ, maxZ);
 
-            for (plint innerZ=std::max(minZ,domain.z0); 
+            for (plint innerZ=std::max(minZ,domain.z0);
               innerZ <= std::min(maxZ, domain.z1);
               ++innerZ)
             {
@@ -1101,7 +1102,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_end(Box3D domain){
   collideRevertAndBoundSwapStream(domain, Box3D(iX, iX,
               iY, iY,
               domain.z0, domain.z1) );
-  // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n", 
+  // printf("1st-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
   //     iX, iX, iY, iY, domain.z0, domain.z1);
 
   /* 2. line [y0+1，y1-1] of each y-z surface */
@@ -1234,19 +1235,26 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
     global::profiler().start("collStream");
     global::profiler().increment("collStreamCells", domain.nCells());
 
-    // 2 collideAndStream on x0; 1 collideAndStream on x0+1
+    // step i: 2 collideAndStream on x0; 1 collideAndStream on x0+1
     step2CollideAndStream_init(domain);
 
-    // Then bulk [x0+2, x0-1]
-    //if(domain.x1-domain.x0 <= 250){
-       //step2CollideAndStream_bulk(domain);
-      step2CollideAndStream_bulk_omp(domain);
-    //}
-    //else{
-      //step2CollideAndStream_bulk_blockwise(domain);
-    //}
+    // step ii: Then bulk [x0+2, x0-1]
+#if defined(STEP2_OMP)
+    step2CollideAndStream_bulk_omp(domain);
 
-    // step2CollideAndStream_bulk
+#elif defined(STEP2_BLK)
+    if (domain.x1 - domain.x0 <= 250) {
+      step2CollideAndStream_bulk(domain);
+    }
+    else {
+      step2CollideAndStream_bulk_blockwise(domain);
+    }
+
+#else
+    step2CollideAndStream_bulk(domain);
+#endif
+
+    // step iii : computing the rest
     step2CollideAndStream_end(domain);
 
     global::profiler().stop("collStream");
@@ -1632,7 +1640,7 @@ void BlockLatticeDataTransfer3D<T,Descriptor>::send (
             send_dynamic(domain, buffer); break;
         // Serialization is the same no matter if the dynamics object
         //   is being regenerated or not by the recipient.
-        case modif::allVariables:  
+        case modif::allVariables:
         case modif::dataStructure:
             send_all(domain,buffer); break;
         default: PLB_ASSERT(false);
@@ -1764,7 +1772,7 @@ void BlockLatticeDataTransfer3D<T,Descriptor>::receive_dynamic (
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
                 // No assert is included here, because incompatible types of
                 //   dynamics are detected by asserts inside HierarchicUnserializer.
-                serializerPos = 
+                serializerPos =
                     unserialize (
                         lattice->get(iX,iY,iZ).getDynamics(), buffer, serializerPos );
             }
@@ -1783,7 +1791,7 @@ void BlockLatticeDataTransfer3D<T,Descriptor>::receive_all (
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
                 // 1. Unserialize dynamic data.
-                posInBuffer = 
+                posInBuffer =
                     unserialize (
                         lattice->get(iX,iY,iZ).getDynamics(), buffer, posInBuffer );
                 // 2. Unserialize static data.

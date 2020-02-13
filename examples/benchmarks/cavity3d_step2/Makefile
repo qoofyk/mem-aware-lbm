@@ -1,7 +1,7 @@
 ##########################################################################
 ## Makefile.
 ##
-## The present Makefile is a pure configuration file, in which 
+## The present Makefile is a pure configuration file, in which
 ## you can select compilation options. Compilation dependencies
 ## are managed automatically through the Python library SConstruct.
 ##
@@ -22,7 +22,7 @@ projectFiles = cavity3d_step2.cpp
 # Set optimization flags on/off
 optimize     = true
 # Set debug mode and debug flags on/off
-debug        = true
+debug        = false
 # Set profiling flags on/off
 profile      = false
 # Set MPI-parallel mode on/off (parallelism in cluster-like environment)
@@ -48,7 +48,11 @@ serialCXX    = icpc
 # Compiler to use with MPI parallelism
 parallelCXX  = mpiicpc
 # General compiler flags (e.g. -Wall to turn on all warnings on g++)
-compileFlags = -Wall -Wextra -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X -D_OPENMP -qopenmp -std=c++11  -xCORE-AVX2 -axCORE-AVX512,MIC-AVX512
+compileFlags = -Wall -Wextra -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X -D_OPENMP -qopenmp -std=c++11
+# Step2_OMP flags
+step2_omp_Flags = true
+# Step2_SEQ flags
+step2_seq_Flags = false
 # General linker flags (don't put library includes into this flag)
 linkFlags    = -qopenmp -lpthread -lm
 # Compiler flags to use when optimization mode is on
@@ -78,6 +82,8 @@ SConsArgs = palabosRoot=$(palabosRoot) \
             serialCXX=$(serialCXX) \
             parallelCXX=$(parallelCXX) \
             compileFlags="$(compileFlags)" \
+            step2_omp_Flags="$(step2_omp_Flags)" \
+            step2_seq_Flags="$(step2_seq_Flags)" \
             linkFlags="$(linkFlags)" \
             optimFlags="$(optimFlags)" \
             debugFlags="$(debugFlags)" \

@@ -5,7 +5,7 @@
  * 1010 Lausanne, Switzerland
  * E-mail contact: contact@flowkit.com
  *
- * The most recent release of Palabos can be downloaded at 
+ * The most recent release of Palabos can be downloaded at
  * <http://www.palabos.org/>
  *
  * The library Palabos is free software: you can redistribute it and/or
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     // pcout << "Start bench!" << std::endl;
     // Run the benchmark for good.
     global::timer("benchmark").start();
-    global::profiler().turnOn();
+    // global::profiler().turnOn();
     for (plint iT=0; iT<numIter; iT += 1) {
         // pcout << "iT=" << iT << std::endl;
         lattice.collideAndStream();
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
             Box3D line(iX, iX, iY, iY, 0, N);
             pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, line)) << endl;
         }
-    }    
+    }
 #endif
 
     pcout << "After " << numIter << " iterations: "
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
           << " Mega site updates per second." << std::endl << std::endl;
     pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << std::endl;
 
-    global::profiler().writeReport();
+    // global::profiler().writeReport();
 
     delete boundaryCondition;
 }

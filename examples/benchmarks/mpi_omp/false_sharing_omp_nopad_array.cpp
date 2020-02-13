@@ -1,18 +1,26 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
 #include <omp.h>
+#include <vector>
+
+using namespace std;
+
 static long num_steps= 1000000000;
 double step;
+#define NUM_THREADS 28
 // #define    PAD      8  // assume 64 byte L1 cache line size
-#define NUM_THREADS 2
 
 #pragma optimize ("", off)
 void main () {
-	int nthreads;
-	double pi, sum[NUM_THREADS];
-	step = 1.0/(double) num_steps;
-	omp_set_num_threads(NUM_THREADS);
-#pragma omp parallel 
+	int nthreads, sum[NUM_THREADS];
+	double pi;
+	step = 1.0 / (double) num_steps;
+
+#ifdef _OPENMP
+    int omp_threads = atoi(getenv("OMP_NUM_THREADS"));
+    omp_set_num_threads(omp_threads);
+#endif
+
+#pragma omp parallel
 {
 	int i, id, nthrds;
 	double x;
@@ -26,6 +34,6 @@ void main () {
 	}
 }
 
-	for(int i=0, pi=0.0; i < nthreads; i++)
+	for (int i = 0, pi = 0.0; i < nthreads; i++)
 		pi += sum[i] * step;
 }
