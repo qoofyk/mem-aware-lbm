@@ -4,7 +4,7 @@
 #SBATCH --partition=RM
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
-#SBATCH -t 10:0:00
+#SBATCH -t 20:0:00
 #SBATCH --export=ALL
 
 # mail alert at start, end and abortion of execution
@@ -49,9 +49,9 @@ EMPTY_DIR=${SCRATCH}/empty/
 # done
 
 # dim=$((224 + 2))
-# steps=150
+# steps=100
 # block_size=0
-# warmup_steps=40
+# warmup_steps=100
 # for i in `seq 3`
 # do
 #     export KMP_AFFINITY=granularity=core,scatter
@@ -76,9 +76,9 @@ EMPTY_DIR=${SCRATCH}/empty/
 # done
 
 # dim=$((336 + 2))
-# steps=50
+# steps=100
 # block_size=0
-# warmup_steps=20
+# warmup_steps=100
 # for i in `seq 3`
 # do
 #     export KMP_AFFINITY=granularity=core,scatter
@@ -103,9 +103,9 @@ EMPTY_DIR=${SCRATCH}/empty/
 # done
 
 # dim=$((448 + 2))
-# steps=50
+# steps=100
 # block_size=0
-# warmup_steps=20
+# warmup_steps=100
 # for i in `seq 3`
 # do
 #     export KMP_AFFINITY=granularity=core,scatter
@@ -130,7 +130,34 @@ EMPTY_DIR=${SCRATCH}/empty/
 # done
 
 # dim=$((560 + 2))
-# steps=50
+# steps=100
+# block_size=0
+# warmup_steps=100
+# for i in `seq 3`
+# do
+#     export KMP_AFFINITY=granularity=core,scatter
+#     echo "KMP_AFFINITY = $KMP_AFFINITY"
+#     export OMP_NUM_THREADS=1
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+#     export OMP_NUM_THREADS=2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+#     export OMP_NUM_THREADS=4
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+#     export OMP_NUM_THREADS=8
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+#     export OMP_NUM_THREADS=14
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+#     export OMP_NUM_THREADS=16
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+
+#     export KMP_AFFINITY=granularity=core,compact
+#     echo "KMP_AFFINITY = $KMP_AFFINITY"
+#     export OMP_NUM_THREADS=28
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+# done
+
+# dim=$((112 * 6 + 2))
+# steps=20
 # block_size=0
 # warmup_steps=20
 # for i in `seq 3`
@@ -156,64 +183,37 @@ EMPTY_DIR=${SCRATCH}/empty/
 #     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
 # done
 
-dim=$((112 * 6 + 2))
-steps=20
-block_size=0
-warmup_steps=2
-for i in `seq 3`
-do
-    export KMP_AFFINITY=granularity=core,scatter
-    echo "KMP_AFFINITY = $KMP_AFFINITY"
-    export OMP_NUM_THREADS=1
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-    export OMP_NUM_THREADS=2
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-    export OMP_NUM_THREADS=4
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-    export OMP_NUM_THREADS=8
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-    export OMP_NUM_THREADS=14
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-    export OMP_NUM_THREADS=16
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+# dim=$((112 * 7 + 2))
+# steps=20
+# block_size=0
+# warmup_steps=20
+# for i in `seq 3`
+# do
+#     export KMP_AFFINITY=granularity=core,scatter
+#     echo "KMP_AFFINITY = $KMP_AFFINITY"
+#     export OMP_NUM_THREADS=1
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+#     export OMP_NUM_THREADS=2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+#     export OMP_NUM_THREADS=4
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+#     export OMP_NUM_THREADS=8
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+#     export OMP_NUM_THREADS=14
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+#     export OMP_NUM_THREADS=16
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
 
-    export KMP_AFFINITY=granularity=core,compact
-    echo "KMP_AFFINITY = $KMP_AFFINITY"
-    export OMP_NUM_THREADS=28
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-done
-
-dim=$((112 * 7 + 2))
-steps=20
-block_size=0
-warmup_steps=2
-for i in `seq 3`
-do
-    export KMP_AFFINITY=granularity=core,scatter
-    echo "KMP_AFFINITY = $KMP_AFFINITY"
-    export OMP_NUM_THREADS=1
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-    export OMP_NUM_THREADS=2
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-    export OMP_NUM_THREADS=4
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-    export OMP_NUM_THREADS=8
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-    export OMP_NUM_THREADS=14
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-    export OMP_NUM_THREADS=16
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-
-    export KMP_AFFINITY=granularity=core,compact
-    echo "KMP_AFFINITY = $KMP_AFFINITY"
-    export OMP_NUM_THREADS=28
-    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
-done
+#     export KMP_AFFINITY=granularity=core,compact
+#     echo "KMP_AFFINITY = $KMP_AFFINITY"
+#     export OMP_NUM_THREADS=28
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+# done
 
 dim=$((112 * 8 + 2))
 steps=20
 block_size=0
-warmup_steps=2
+warmup_steps=20
 for i in `seq 3`
 do
     export KMP_AFFINITY=granularity=core,scatter

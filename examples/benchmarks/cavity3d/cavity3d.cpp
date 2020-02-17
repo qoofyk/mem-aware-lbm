@@ -50,9 +50,9 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
     boundaryCondition.setVelocityConditionOnBlockBoundaries(lattice);
 
     T u = std::sqrt((T)2)/(T)2 * parameters.getLatticeU();
-    //initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
+    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
     // Modify by Yuankun, set init value to 0.01 to avoid 0 computation
-    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01,(T)0.01,(T)0.01) );
+    //initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01,(T)0.01,(T)0.01) );
     initializeAtEquilibrium(lattice, topLid, (T) 1., Array<T,3>(u,(T)0.,u) );
     setBoundaryVelocity(lattice, topLid, Array<T,3>(u,0.,u) );
 
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     // pcout << "Start bench!" << std::endl;
     // Run the benchmark for good.
     global::timer("benchmark").start();
-    // global::profiler().turnOn();
+     global::profiler().turnOn();
     for (plint iT=0; iT<numIter; iT += 1) {
         // pcout << "iT=" << iT << std::endl;
         lattice.collideAndStream();
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
           << " Mega site updates per second." << std::endl << std::endl;
     pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << std::endl;
 
-    // global::profiler().writeReport();
+     global::profiler().writeReport();
 
     delete boundaryCondition;
 }
