@@ -39,6 +39,10 @@ namespace plb {
 SparseBlockStructure3D createRegularDistribution3D (
         Box3D const& domain, plint numBlocksX, plint numBlocksY, plint numBlocksZ )
 {
+#if 0
+    printf("createRegularDistribution3D(domain, X, Y, Z): Nz=%ld, numBlocksX=%ld, numBlocksY=%ld, numBlocksZ=%ld\n", 
+        domain.getNz(), numBlocksX, numBlocksY, numBlocksZ);
+#endif    
     SparseBlockStructure3D dataGeometry(domain);
     plint posX = domain.x0;
     for (plint iBlockX=0; iBlockX<numBlocksX; ++iBlockX) {
@@ -53,8 +57,9 @@ SparseBlockStructure3D createRegularDistribution3D (
                 plint lz = domain.getNz() / numBlocksZ;
                 if (iBlockZ < domain.getNz()%numBlocksZ) ++lz;
 #if 0
-                printf("createRegularDistribution3D addBlock: Nz=%ld, iBlockZ=%ld, [posZ, posZ+lz-1]=[%ld, %ld], lz=%ld\n", 
-                    domain.getNz(), iBlockZ, posZ, posZ+lz-1, lz);
+                printf("createRegularDistribution3D(domain, X, Y, Z) addBlock: \
+iBlockZ=%ld, [posX, posX+lx-1]=[%ld, %ld], [posY, posY+ly-1]=[%ld, %ld], [posZ, posZ+lz-1]=[%ld, %ld], lz=%ld, ly=%ld, lx=%ld\n",  
+iBlockZ, posX, posX+lx-1, posY, posY+ly-1, posZ, posZ+lz-1, lz, ly, lx);
 #endif
                 dataGeometry.addBlock (
                         Box3D(posX, posX+lx-1, posY, posY+ly-1, posZ, posZ+lz-1),
@@ -118,6 +123,12 @@ SparseBlockStructure3D createRegularDistribution3D (
             newRepartition[0] = repartition[2];
         }
     }
+
+#if 0
+    printf("createRegularDistribution3D(domain, numProc): newRepartition[0]=%ld, newRepartition[1]=%ld, newRepartition[2]=%ld\n", 
+            newRepartition[0], newRepartition[1], newRepartition[2]);
+#endif
+
     return createRegularDistribution3D (
                  domain,
                  newRepartition[0], newRepartition[1], newRepartition[2] );

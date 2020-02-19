@@ -259,6 +259,10 @@ void BlockLattice3D<T,Descriptor>::stream()
  */
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::collideAndStream(Box3D domain) {
+#if 0
+    printf("collideAndStream: domain-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+      domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
+#endif
     // Make sure domain is contained within current lattice
     PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
@@ -619,9 +623,10 @@ plint thread_block;
 #if 1
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
-
-  // printf("domain-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
-  //   domain.x0, domain.x0, domain.y0, domain.y1, domain.z0, domain.z1);
+#if 0
+  printf("domain-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+    domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
+#endif
 
   plint iX, iY, iZ;
 #ifdef _OPENMP
@@ -1444,6 +1449,10 @@ void BlockLattice3D<T,Descriptor>::bulkCollideAndStream(Box3D domain) {
  */
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::linearBulkCollideAndStream(Box3D domain) {
+#if 0  
+    printf("linearBulkCollideAndStream: domain-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+      domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
+#endif
     // Make sure domain is contained within current lattice
     PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 

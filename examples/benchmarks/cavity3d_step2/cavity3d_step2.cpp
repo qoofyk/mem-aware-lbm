@@ -43,11 +43,15 @@ typedef double T;
 
 void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
                   IncomprFlowParam<T> const& parameters,
-                  OnLatticeBoundaryCondition3D<T,DESCRIPTOR>& boundaryCondition )
+                  OnLatticeBoundaryCondition3D<T,DESCRIPTOR>& boundaryCondition,
+                  plint Nx, plint Ny, plint Nz)
 {
-    const plint nx = parameters.getNx();
-    const plint ny = parameters.getNy();
-    const plint nz = parameters.getNz();
+    // const plint nx = parameters.getNx();
+    // const plint ny = parameters.getNy();
+    // const plint nz = parameters.getNz();
+    const plint nx = Nx;
+    const plint ny = Ny;
+    const plint nz = Nz;
     Box3D topLid = Box3D(0, nx-1, ny-1, ny-1, 0, nz-1);
     Box3D everythingButTopLid = Box3D(0, nx-1, 0, ny-2, 0, nz-1);
 
@@ -87,6 +91,7 @@ int main(int argc, char* argv[]) {
     //defaultMultiBlockPolicy3D().toggleBlockingCommunication(true);
 
     plint N;
+    plint Nx, Ny, Nz;
     plint numIter;
     plint warmUpIter;
     plint NUM_THREADS = 1;
@@ -103,13 +108,21 @@ int main(int argc, char* argv[]) {
         global::argv(2).read(numIter);
         global::argv(3).read(ykBlockSize);
         global::argv(4).read(warmUpIter);
+        global::argv(5).read(Nx);
+        global::argv(6).read(Ny);
+        global::argv(7).read(Nz);
 
         // check (N + 1 - 3) % NUM_THREADS == 0
-        if ((N - 2) % NUM_THREADS != 0) throw 'N';
-        thread_block = (N - 2) / NUM_THREADS;
+        // if ((N - 2) % NUM_THREADS != 0) throw 'N';
+        // thread_block = (N - 2) / NUM_THREADS;
+
+        // check (Nx - 3) % NUM_THREADS == 0
+        if ((Nx - 3) % NUM_THREADS != 0) throw 'N';
+        thread_block = (Nx - 3) / NUM_THREADS;
     }
     catch(char param) {
-        cout << "(N - 2) % OMP_NUM_THREADS != 0, Not Divisible\n";
+        // cout << "(N - 2) % OMP_NUM_THREADS != 0, Not Divisible\n";
+        cout << "(N - 3) % OMP_NUM_THREADS != 0, Not Divisible\n";
         exit(1);
     }
     catch(...) {
@@ -120,22 +133,24 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    pcout << "Starting benchmark with " << N+1 << "x" << N+1 << "x" << N+1 << " grid points "
-          << " Estimated memory occupied " << (N+1) * (N+1) * (N+1) * 168 / (1024*1024) << " MB "
-          << " (approx. 2 minutes on modern processors).\n";
-
-
     IncomprFlowParam<T> parameters(
             (T) 1e-2,  // uMax
-            (T) 1.,    // Re
-            N,         // N
+            (T) 1.,    // Re, Reynolds number
+            N,         // N, resolution
             1.,        // lx
             1.,        // ly
             1.         // lz
     );
 
+    pcout << "Starting benchmark with " << Nx << "x" << Ny << "x" << Nz << " grid points "
+          << " Estimated memory occupied " << Nx * Ny * Nz * 168 / (1024*1024) << " MB "
+          << " (approx. 2 minutes on modern processors).\n";
+
+    // MultiBlockLattice3D<T, DESCRIPTOR> lattice (
+    //         parameters.getNx(), parameters.getNy(), parameters.getNz(),
+    //         new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
     MultiBlockLattice3D<T, DESCRIPTOR> lattice (
-            parameters.getNx(), parameters.getNy(), parameters.getNz(),
+            Nx, Ny, Nz,
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
 
     plint numProcs = global::mpi().getSize();
@@ -155,7 +170,7 @@ int main(int argc, char* argv[]) {
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
 
-    cavitySetup(lattice, parameters, *boundaryCondition);
+    cavitySetup(lattice, parameters, *boundaryCondition, Nx, Ny, Nz);
 
 #if 0
     pcout << "Init: Velocity norm of the box: " << endl;
