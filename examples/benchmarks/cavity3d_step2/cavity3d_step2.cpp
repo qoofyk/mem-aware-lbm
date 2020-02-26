@@ -59,9 +59,9 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
     boundaryCondition.setVelocityConditionOnBlockBoundaries(lattice);
 
     T u = std::sqrt((T)2)/(T)2 * parameters.getLatticeU();
-    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
+    // initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
     // Modify by Yuankun, set init value to 0.01 to avoid 0 computation
-    // initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01,(T)0.01,(T)0.01) );
+    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01,(T)0.01,(T)0.01) );
     initializeAtEquilibrium(lattice, topLid, (T) 1., Array<T,3>(u,(T)0.,u) );
     setBoundaryVelocity(lattice, topLid, Array<T,3>(u,0.,u) );
 
@@ -170,7 +170,10 @@ int main(int argc, char* argv[]) {
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
 
+    global::timer("cavitySetup").start();
+    // cavitySetup(lattice, parameters, *boundaryCondition);
     cavitySetup(lattice, parameters, *boundaryCondition, Nx, Ny, Nz);
+    pcout << "cavitySetup time (s) = "<< global::timer("cavitySetup").getTime() << std::endl;
 
 #if 0
     pcout << "Init: Velocity norm of the box: " << endl;
@@ -214,8 +217,8 @@ int main(int argc, char* argv[]) {
     pcout << "After " << numIter << " iterations: "
           << (T) (numCells*numIter) /
              global::timer("benchmark").getTime() / 1.e6
-          << " Mega site updates per second.\n\n";
-    pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << std::endl;
+          << " Mega site updates per second.\n";
+    pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << "\n\n";
     global::profiler().writeReport();
 
     delete boundaryCondition;

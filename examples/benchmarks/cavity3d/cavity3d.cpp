@@ -38,11 +38,15 @@ typedef double T;
 
 void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
                   IncomprFlowParam<T> const& parameters,
-                  OnLatticeBoundaryCondition3D<T,DESCRIPTOR>& boundaryCondition )
+                  OnLatticeBoundaryCondition3D<T,DESCRIPTOR>& boundaryCondition,
+                  plint Nx, plint Ny, plint Nz)
 {
-    const plint nx = parameters.getNx();
-    const plint ny = parameters.getNy();
-    const plint nz = parameters.getNz();
+    // const plint nx = parameters.getNx();
+    // const plint ny = parameters.getNy();
+    // const plint nz = parameters.getNz();
+    const plint nx = Nx;
+    const plint ny = Ny;
+    const plint nz = Nz;
     Box3D topLid = Box3D(0, nx-1, ny-1, ny-1, 0, nz-1);
     Box3D everythingButTopLid = Box3D(0, nx-1, 0, ny-2, 0, nz-1);
 
@@ -50,9 +54,9 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
     boundaryCondition.setVelocityConditionOnBlockBoundaries(lattice);
 
     T u = std::sqrt((T)2)/(T)2 * parameters.getLatticeU();
-    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
+    // initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
     // Modify by Yuankun, set init value to 0.01 to avoid 0 computation
-    //initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01,(T)0.01,(T)0.01) );
+    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01,(T)0.01,(T)0.01) );
     initializeAtEquilibrium(lattice, topLid, (T) 1., Array<T,3>(u,(T)0.,u) );
     setBoundaryVelocity(lattice, topLid, Array<T,3>(u,0.,u) );
 
@@ -65,6 +69,7 @@ int main(int argc, char* argv[]) {
     //defaultMultiBlockPolicy3D().toggleBlockingCommunication(true);
 
     plint N;
+    plint Nx, Ny, Nz;
     plint numIter;
     plint warmUpIter;
     try {
@@ -72,6 +77,9 @@ int main(int argc, char* argv[]) {
         global::argv(2).read(numIter);
         global::argv(3).read(ykBlockSize);
         global::argv(4).read(warmUpIter);
+        global::argv(5).read(Nx);
+        global::argv(6).read(Ny);
+        global::argv(7).read(Nz);
     }
     catch(...)
     {
@@ -82,7 +90,8 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    pcout << "Starting benchmark with " << N+1 << "x" << N+1 << "x" << N+1 << " grid points "
+    // pcout << "Starting benchmark with " << N+1 << "x" << N+1 << "x" << N+1 << " grid points "
+    pcout << "Starting benchmark with " << Nx << "x" << Ny << "x" << Nz << " grid points "
           << "(approx. 2 minutes on modern processors)." << std::endl;
 
 
@@ -96,7 +105,8 @@ int main(int argc, char* argv[]) {
     );
 
     MultiBlockLattice3D<T, DESCRIPTOR> lattice (
-            parameters.getNx(), parameters.getNy(), parameters.getNz(),
+            // parameters.getNx(), parameters.getNy(), parameters.getNz(),
+            Nx, Ny, Nz,
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
 
     plint numCores = global::mpi().getSize();
@@ -115,7 +125,10 @@ int main(int argc, char* argv[]) {
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
 
-    cavitySetup(lattice, parameters, *boundaryCondition);
+    global::timer("cavitySetup").start();
+    // cavitySetup(lattice, parameters, *boundaryCondition);
+    cavitySetup(lattice, parameters, *boundaryCondition, Nx, Ny, Nz);
+    pcout << "cavitySetup time (s) = "<< global::timer("cavitySetup").getTime() << std::endl;
 
 #if 0
     pcout << "Init: Velocity norm of the box: " << endl;
@@ -159,8 +172,8 @@ int main(int argc, char* argv[]) {
     pcout << "After " << numIter << " iterations: "
           << (T) (numCells*numIter) /
              global::timer("benchmark").getTime() / 1.e6
-          << " Mega site updates per second." << std::endl << std::endl;
-    pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << std::endl;
+          << " Mega site updates per second.\n";
+    pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << "\n\n";
 
      global::profiler().writeReport();
 
