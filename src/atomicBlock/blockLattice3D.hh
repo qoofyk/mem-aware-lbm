@@ -67,6 +67,11 @@ BlockLattice3D<T,Descriptor>::BlockLattice3D (
     plint nz = this->getNz();
     // Allocate memory, and initialize dynamics.
     allocateAndInitialize();
+
+    // std::cout << "BlockLattice3D" << std::endl;
+
+#if defined(STEP2_OMP)
+    #pragma omp parallel for default(shared) schedule(static, thread_block)
     for (plint iX=0; iX<nx; ++iX) {
         for (plint iY=0; iY<ny; ++iY) {
             for (plint iZ=0; iZ<nz; ++iZ) {
@@ -74,6 +79,16 @@ BlockLattice3D<T,Descriptor>::BlockLattice3D (
             }
         }
     }
+#else
+    for (plint iX=0; iX<nx; ++iX) {
+        for (plint iY=0; iY<ny; ++iY) {
+            for (plint iZ=0; iZ<nz; ++iZ) {
+                grid[iX][iY][iZ].attributeDynamics(backgroundDynamics);
+            }
+        }
+    }
+#endif
+
     // Attribute default value to the standard statistics (average uSqr,
     //   max uSqr, average rho). These have previously been subscribed
     //   in the constructor of BlockLatticeBase3D.
@@ -115,6 +130,11 @@ BlockLattice3D<T,Descriptor>::BlockLattice3D(BlockLattice3D<T,Descriptor> const&
     plint ny = this->getNy();
     plint nz = this->getNz();
     allocateAndInitialize();
+
+    std::cout << "BlockLattice3D(rhs)" << std::endl;
+
+#if defined(STEP2_OMP)
+    #pragma omp parallel for default(shared) schedule(static, thread_block)
     for (plint iX=0; iX<nx; ++iX) {
         for (plint iY=0; iY<ny; ++iY) {
             for (plint iZ=0; iZ<nz; ++iZ) {
@@ -132,6 +152,25 @@ BlockLattice3D<T,Descriptor>::BlockLattice3D(BlockLattice3D<T,Descriptor> const&
             }
         }
     }
+#else
+    for (plint iX=0; iX<nx; ++iX) {
+        for (plint iY=0; iY<ny; ++iY) {
+            for (plint iZ=0; iZ<nz; ++iZ) {
+                Cell<T,Descriptor>& cell = grid[iX][iY][iZ];
+                // Assign cell from rhs
+                cell = rhs.grid[iX][iY][iZ];
+                // Get an independent clone of the dynamics,
+                //   or assign backgroundDynamics
+                if (&cell.getDynamics()==rhs.backgroundDynamics) {
+                    cell.attributeDynamics(backgroundDynamics);
+                }
+                else {
+                    cell.attributeDynamics(cell.getDynamics().clone());
+                }
+            }
+        }
+    }
+#endif    
     global::plbCounter("MEMORY_LATTICE").increment(allocatedMemory());
 }
 
@@ -1329,6 +1368,11 @@ void BlockLattice3D<T,Descriptor>::releaseMemory() {
     plint nx = this->getNx();
     plint ny = this->getNy();
     plint nz = this->getNz();
+
+    // std::cout << "BlockLattice3D::releaseMemory()" << std::endl;
+    
+#if defined(STEP2_OMP)
+    #pragma omp parallel for default(shared) schedule(static, thread_block)      
     for (plint iX=0; iX<nx; ++iX) {
         for (plint iY=0; iY<ny; ++iY) {
             for (plint iZ=0; iZ<nz; ++iZ) {
@@ -1339,6 +1383,19 @@ void BlockLattice3D<T,Descriptor>::releaseMemory() {
             }
         }
     }
+#else
+    for (plint iX=0; iX<nx; ++iX) {
+        for (plint iY=0; iY<ny; ++iY) {
+            for (plint iZ=0; iZ<nz; ++iZ) {
+                Dynamics<T,Descriptor>* dynamics = &grid[iX][iY][iZ].getDynamics();
+                if (dynamics != backgroundDynamics) {
+                    delete dynamics;
+                }
+            }
+        }
+    }
+#endif
+
     delete backgroundDynamics;
     delete [] rawData;
     for (plint iX=0; iX<nx; ++iX) {
