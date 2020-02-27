@@ -47,6 +47,7 @@
 #endif
 
 namespace plb {
+plint thread_block;
 
 // Class BlockLattice3D /////////////////////////
 
@@ -168,6 +169,8 @@ void BlockLattice3D<T,Descriptor>::specifyStatisticsStatus(Box3D domain, bool st
     // Make sure domain is contained within current lattice
     PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
+#if defined(STEP2_OMP)
+    #pragma omp parallel for default(shared) schedule(static, thread_block)
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
@@ -175,6 +178,15 @@ void BlockLattice3D<T,Descriptor>::specifyStatisticsStatus(Box3D domain, bool st
             }
         }
     }
+#else
+    for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
+        for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
+            for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
+                grid[iX][iY][iZ].specifyStatisticsStatus(status);
+            }
+        }
+    }
+#endif
 }
 
 template<typename T, template<typename U> class Descriptor>
@@ -619,7 +631,6 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk(Box3D domain){
 }
 #endif
 
-plint thread_block;
 #if 1
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
@@ -1295,12 +1306,22 @@ void BlockLattice3D<T,Descriptor>::allocateAndInitialize() {
     plint nz = this->getNz();
     rawData = new Cell<T,Descriptor> [nx*ny*nz];
     grid    = new Cell<T,Descriptor>** [nx];
+#if defined(STEP2_OMP)
+    #pragma omp parallel for default(shared) schedule(static, thread_block)
     for (plint iX=0; iX<nx; ++iX) {
         grid[iX] = new Cell<T,Descriptor>* [ny];
         for (plint iY=0; iY<ny; ++iY) {
             grid[iX][iY] = rawData + nz*(iY+ny*iX);
         }
     }
+#else
+    for (plint iX=0; iX<nx; ++iX) {
+        grid[iX] = new Cell<T,Descriptor>* [ny];
+        for (plint iY=0; iY<ny; ++iY) {
+            grid[iX][iY] = rawData + nz*(iY+ny*iX);
+        }
+    }
+#endif
 }
 
 template<typename T, template<typename U> class Descriptor>
