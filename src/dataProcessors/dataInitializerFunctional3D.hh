@@ -1003,6 +1003,11 @@ void SetConstBoundaryVelocityFunctional3D<T,Descriptor>::process (
     T scaleFactor = scaleFromReference(this->getDxScale(), dimDx,
                                        this->getDtScale(), dimDt);
     Array<T,3> scaledU = u*scaleFactor;
+
+    // std::cout << "here at SetConstBoundaryVelocityFunctional3D" << std::endl;
+
+#if defined(STEP2_OMP)
+    #pragma omp parallel for default(shared) schedule(static)
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
@@ -1010,6 +1015,15 @@ void SetConstBoundaryVelocityFunctional3D<T,Descriptor>::process (
             }
         }
     }
+#else
+    for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
+        for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
+            for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
+                lattice.get(iX,iY,iZ).defineVelocity(scaledU);
+            }
+        }
+    }
+#endif
 }
 
 template<typename T, template<typename U> class Descriptor>
@@ -1356,6 +1370,10 @@ void IniConstEquilibriumFunctional3D<T,Descriptor>::process (
     int dimDt = -1;
     T scaleFactor = scaleFromReference(this->getDxScale(), dimDx,
                                        this->getDtScale(), dimDt);
+    // std::cout << "here at IniConstEquilibriumFunctional3D" << std::endl;
+
+#if defined(STEP2_OMP)
+    #pragma omp parallel for default(shared) schedule(static)
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
@@ -1373,6 +1391,25 @@ void IniConstEquilibriumFunctional3D<T,Descriptor>::process (
             }
         }
     }
+#else
+    for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
+        for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
+            for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
+                Array<T,Descriptor<T>::d> f;
+                f[0] = getExternalForceComponent(lattice.get(iX,iY,iZ), 0);
+                f[1] = getExternalForceComponent(lattice.get(iX,iY,iZ), 1);
+                f[2] = getExternalForceComponent(lattice.get(iX,iY,iZ), 2);
+                Array<T,Descriptor<T>::d> scaledJ;
+                scaledJ[0] = scaleFactor * rho * (u[0] - (T) 0.5 * f[0]);
+                scaledJ[1] = scaleFactor * rho * (u[1] - (T) 0.5 * f[1]);
+                scaledJ[2] = scaleFactor * rho * (u[2] - (T) 0.5 * f[2]);
+                T scaledJsqr = normSqr(scaledJ);
+                lattice.get(iX,iY,iZ).getDynamics().computeEquilibria(lattice.get(iX,iY,iZ).getRawPopulations(),
+                        rhoBar, scaledJ, scaledJsqr, thetaBar);
+            }
+        }
+    }
+#endif
 }
 
 template<typename T, template<typename U> class Descriptor>
