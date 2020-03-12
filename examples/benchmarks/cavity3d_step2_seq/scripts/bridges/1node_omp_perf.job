@@ -1,0 +1,106 @@
+#!/bin/bash
+#SBATCH --job-name="perf"
+#SBATCH --output="results/1node.perf.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 2:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module load intel/19.5
+
+which mpirun
+mkdir -pv results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+mkdir -pv ${SCRATCH_DIR}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+dim=$((112 + 2))
+steps=150
+block_size=0
+warmup_steps=40
+
+#dim=$((336 + 2))
+#steps=50
+#block_size=0
+#warmup_steps=20
+
+#export KMP_AFFINITY=granularity=core,scatter
+echo "KMP_AFFINITY = $KMP_AFFINITY"
+
+threads=(1 2 4 8 14 16 28)
+
+for ((k=0; k<${#threads[@]}; k++)); do
+    export OMP_NUM_THREADS=${threads[k]}
+
+    echo "1. collect hpc"
+    mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hpc${OMP_NUM_THREADS} -quiet -collect hpc-performance -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+
+    echo "2. collect hotspot"
+    mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/hotspot${OMP_NUM_THREADS} -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+
+    echo "3. collect snapshot"
+    mpirun -np 1 aps -result-dir ${SCRATCH_DIR}/snapshot${OMP_NUM_THREADS} ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+
+    echo "4. collect memory-access with openmp=true"
+    mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+    
+    echo "5. collect memory-access with analysze-dynamic-mem-obj=true"
+    mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/mem-dynamic-alloc-${OMP_NUM_THREADS} -quiet -collect memory-access -knob analyze-mem-objects=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+
+    echo "6. collect uarch-exploration with collect-memory-bandwidth=true"
+    mpirun -np 1 amplxe-cl -result-dir ${SCRATCH_DIR}/uarch${OMP_NUM_THREADS} -quiet -collect uarch-exploration -knob collect-memory-bandwidth=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+
+    echo "7. collect hw-events"
+    mkdir -pv ${SCRATCH_DIR}/hw-events${OMP_NUM_THREADS}
+    mpirun -np 1 amplxe-cl -report hw-events -quiet -result-dir ${SCRATCH_DIR}/hw-events${OMP_NUM_THREADS} ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+
+    echo "8. collect top-down"
+    mkdir -pv ${SCRATCH_DIR}/top-down${OMP_NUM_THREADS}
+    mpirun -np 1 amplxe-cl -report top-down -quiet -result-dir ${SCRATCH_DIR}/top-down${OMP_NUM_THREADS} ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+
+    echo "9. collect summary"
+    mkdir -pv ${SCRATCH_DIR}/summary${OMP_NUM_THREADS}
+    mpirun -np 1 amplxe-cl -report summary -quiet -result-dir ${SCRATCH_DIR}/summary${OMP_NUM_THREADS} ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+
+    echo "10. collect page fault"
+    mkdir -pv ${SCRATCH_DIR}/sys-overview${OMP_NUM_THREADS}
+    mpirun -np 1 amplxe-cl -collect system-overview -quiet -result-dir ${SCRATCH_DIR}/sys-overview${OMP_NUM_THREADS} -knob collecting-mode=hw-tracing -data-limit=0 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    echo "============================================"
+    echo
+    
+done
+
+cd ${SCRATCH_DIR}
+for i in "${threads[@]}"
+do
+    aps-report snapshot${i} -O snapshot${i}.html
+done

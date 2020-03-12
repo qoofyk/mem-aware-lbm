@@ -1,0 +1,65 @@
+#!/bin/bash
+#SBATCH --job-name="s2_short"
+#SBATCH --output="results/1node.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 20:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module list
+
+mkdir results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+BIN=${PBS_O_WORKDIR}/cavity3d_step2
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+# for i in `seq 3`
+# do
+#     mpirun -n 1 $BIN 31 100 200 2
+#     mpirun -n 1 $BIN 63 100 200 2
+#     mpirun -n 1 $BIN 99 100 200 2
+#     mpirun -n 1 $BIN 127 100 200 2
+#     mpirun -n 1 $BIN 149 50 200 2
+#     mpirun -n 1 $BIN 199 50 200 2
+#     mpirun -n 1 $BIN 249 40 200 2
+#     #mpirun -n 1 $BIN 255 40 200 2
+#     mpirun -n 1 $BIN 299 20 200 2
+#     mpirun -n 1 $BIN 324 20 200 2
+#     mpirun -n 1 $BIN 349 20 200 2
+#     mpirun -n 1 $BIN 399 20 200 2
+#     mpirun -n 1 $BIN 449 20 200 2
+#     mpirun -n 1 $BIN 511 20 200 2
+#     #mpirun -n 1 $BIN 511 20 200 2
+#     #mpirun -n 1 $BIN 549 20 200 2
+#     #mpirun -n 1 $BIN 599 20 200 2
+#     #mpirun -n 1 $BIN 649 20 200 2
+#     #mpirun -n 1 $BIN 699 20 200 2
+#     #mpirun -n 1 $BIN 767 20 200 2
+#     #mpirun -n 1 $BIN 799 20 200 2
+#     #mpirun -n 1 $BIN 849 20 200 2
+#     #mpirun -n 1 $BIN 899 20 200 2
+#     #mpirun -n 1 $BIN 1023 20 200 2
+# done
+
+for i in `seq 3`
+do
+    mpirun -n 1 $BIN 114 100 0 100
+    mpirun -n 1 $BIN 226 100 0 100
+    mpirun -n 1 $BIN 338 100 0 100
+    mpirun -n 1 $BIN 450 100 0 100
+    mpirun -n 1 $BIN 562 100 0 100
+    mpirun -n 1 $BIN 674 20 0 20
+    mpirun -n 1 $BIN 786 20 0 20
+    mpirun -n 1 $BIN 898 20 0 20
+done
+
