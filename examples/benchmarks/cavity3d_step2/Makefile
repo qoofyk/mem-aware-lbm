@@ -53,6 +53,8 @@ compileFlags = -Wall -Wextra -Wnon-virtual-dtor -Wno-deprecated-declarations -DP
 step2_omp_Flags = true
 # Step2_SEQ flags
 step2_seq_Flags = false
+# Step2_pyramid flags
+step2_pyramid_Flags = false
 # General linker flags (don't put library includes into this flag)
 linkFlags    = -qopenmp -lpthread -lm
 # Compiler flags to use when optimization mode is on
@@ -84,6 +86,7 @@ SConsArgs = palabosRoot=$(palabosRoot) \
             compileFlags="$(compileFlags)" \
             step2_omp_Flags="$(step2_omp_Flags)" \
             step2_seq_Flags="$(step2_seq_Flags)" \
+            step2_pyramid_Flags="$(step2_pyramid_Flags)" \
             linkFlags="$(linkFlags)" \
             optimFlags="$(optimFlags)" \
             debugFlags="$(debugFlags)" \

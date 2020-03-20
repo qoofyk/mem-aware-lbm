@@ -34,6 +34,7 @@ includePaths  = Split(argdict['includePaths'])
 libraries     = Split(argdict['libraries'])
 step2_omp_Flags  = argdict['step2_omp_Flags'].lower() == 'true'
 step2_seq_Flags  = argdict['step2_seq_Flags'].lower() == 'true'
+step2_pyramid_Flags = argdict['step2_pyramid_Flags'].lower() == 'true'
 
 # Read the optional input parameters
 try:
@@ -75,6 +76,9 @@ if usePOSIX:
 if step2_omp_Flags:
     flags.append('-DSTEP2_OMP')
 
+if step2_pyramid_Flags:
+    flags.append('-DSTEP2_PYRAMID')
+
 env = Environment ( ENV       = os.environ,
                     CXX       = compiler,
                     CXXFLAGS  = flags,
@@ -104,6 +108,9 @@ if MPIparallel:
     elif step2_seq_Flags:
         palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_seq',
                                   source  = sourceFiles )
+    elif step2_pyramid_Flags:
+        palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_pyramid',
+                                  source  = sourceFiles )
     else:
         palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi',
                                   source  = sourceFiles )
@@ -113,6 +120,7 @@ else:
 
 local_objects = env.Object(source = projectFiles)
 
-all_objects = local_objects + palabos_library
+all_objects = local_objects + palabos_library + libraries
+print(all_objects)
 
-env.Program(all_objects, LIBS=libraries, LIBPATH=libraryPaths)
+env.Program(all_objects, LIBPATH=libraryPaths)

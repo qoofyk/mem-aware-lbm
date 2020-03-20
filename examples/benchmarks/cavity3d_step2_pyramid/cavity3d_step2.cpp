@@ -29,9 +29,7 @@
 #include "palabos3D.h"
 #include "palabos3D.hh"   // include full template code
 #include <iostream>
-#ifdef _OPENMP
-  #include <omp.h>
-#endif
+#include "ittnotify.h"
 
 using namespace plb;
 using namespace std;
@@ -43,11 +41,15 @@ typedef double T;
 
 void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
                   IncomprFlowParam<T> const& parameters,
-                  OnLatticeBoundaryCondition3D<T,DESCRIPTOR>& boundaryCondition )
+                  OnLatticeBoundaryCondition3D<T,DESCRIPTOR>& boundaryCondition,
+                  plint Nx, plint Ny, plint Nz)
 {
-    const plint nx = parameters.getNx();
-    const plint ny = parameters.getNy();
-    const plint nz = parameters.getNz();
+    // const plint nx = parameters.getNx();
+    // const plint ny = parameters.getNy();
+    // const plint nz = parameters.getNz();
+    const plint nx = Nx;
+    const plint ny = Ny;
+    const plint nz = Nz;
     Box3D topLid = Box3D(0, nx-1, ny-1, ny-1, 0, nz-1);
     Box3D everythingButTopLid = Box3D(0, nx-1, 0, ny-2, 0, nz-1);
 
@@ -55,9 +57,9 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
     boundaryCondition.setVelocityConditionOnBlockBoundaries(lattice);
 
     T u = std::sqrt((T)2)/(T)2 * parameters.getLatticeU();
-    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
+    // initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
     // Modify by Yuankun, set init value to 0.01 to avoid 0 computation
-    // initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01,(T)0.01,(T)0.01) );
+    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01,(T)0.01,(T)0.01) );
     initializeAtEquilibrium(lattice, topLid, (T) 1., Array<T,3>(u,(T)0.,u) );
     setBoundaryVelocity(lattice, topLid, Array<T,3>(u,0.,u) );
 
@@ -66,10 +68,12 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
 
 int main(int argc, char* argv[]) {
 
+    __itt_pause();
     plbInit(&argc, &argv);
     //defaultMultiBlockPolicy3D().toggleBlockingCommunication(true);
 
     plint N;
+    plint Nx, Ny, Nz;
     plint numIter;
     plint warmUpIter;
     plint NUM_THREADS = 1;
@@ -79,14 +83,9 @@ int main(int argc, char* argv[]) {
         global::argv(2).read(numIter);
         global::argv(3).read(ykBlockSize);
         global::argv(4).read(warmUpIter);
-
-        // check (N + 1 - 3) % NUM_THREADS == 0
-        if ((N - 2) % NUM_THREADS != 0) throw 'N';
-        thread_block = (N - 2) / NUM_THREADS;
-    }
-    catch(char param) {
-        cout << "(N - 2) % OMP_NUM_THREADS != 0, Not Divisible\n";
-        exit(1);
+        global::argv(5).read(Nx);
+        global::argv(6).read(Ny);
+        global::argv(7).read(Nz);
     }
     catch(...) {
         pcout << "Wrong parameters. The syntax is " << std::endl;
@@ -96,22 +95,24 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    pcout << "Starting benchmark with " << N+1 << "x" << N+1 << "x" << N+1 << " grid points "
-          << " Estimated memory occupied " << (N+1) * (N+1) * (N+1) * 168 / (1024*1024) << " MB "
-          << " (approx. 2 minutes on modern processors).\n";
-
-
     IncomprFlowParam<T> parameters(
             (T) 1e-2,  // uMax
-            (T) 1.,    // Re
-            N,         // N
+            (T) 1.,    // Re, Reynolds number
+            N,         // N, resolution
             1.,        // lx
             1.,        // ly
             1.         // lz
     );
 
+    pcout << "Starting benchmark with " << Nx << "x" << Ny << "x" << Nz << " grid points "
+          << " Estimated memory occupied " << Nx * Ny * Nz * 168 / (1024*1024) << " MB "
+          << " (approx. 2 minutes on modern processors).\n";
+
+    // MultiBlockLattice3D<T, DESCRIPTOR> lattice (
+    //         parameters.getNx(), parameters.getNy(), parameters.getNz(),
+    //         new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
     MultiBlockLattice3D<T, DESCRIPTOR> lattice (
-            parameters.getNx(), parameters.getNy(), parameters.getNz(),
+            Nx, Ny, Nz,
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
 
     plint numProcs = global::mpi().getSize();
@@ -131,7 +132,10 @@ int main(int argc, char* argv[]) {
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
 
-    cavitySetup(lattice, parameters, *boundaryCondition);
+    global::timer("cavitySetup").start();
+    // cavitySetup(lattice, parameters, *boundaryCondition);
+    cavitySetup(lattice, parameters, *boundaryCondition, Nx, Ny, Nz);
+    pcout << "cavitySetup time (s) = "<< global::timer("cavitySetup").getTime() << std::endl;
 
 #if 0
     pcout << "Init: Velocity norm of the box: " << endl;
@@ -154,6 +158,7 @@ int main(int argc, char* argv[]) {
 
     // pcout << "Start bench!" << std::endl;
     // Run the benchmark for good.
+    __itt_resume();
     global::timer("benchmark").start();
     global::profiler().turnOn();
     for (plint iT=0; iT < numIter; iT += K) {
@@ -161,7 +166,7 @@ int main(int argc, char* argv[]) {
         lattice.step2collideAndStream();
     }
 
-#if 0
+#if 1
     pcout << "After: Velocity norm of the box: " << endl;
     // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
     for (plint iX=0; iX <= N; ++iX){
@@ -175,9 +180,8 @@ int main(int argc, char* argv[]) {
     pcout << "After " << numIter << " iterations: "
           << (T) (numCells*numIter) /
              global::timer("benchmark").getTime() / 1.e6
-          << " Mega site updates per second.\n\n";
-    pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << std::endl;
-
+          << " Mega site updates per second.\n";
+    pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << "\n\n";
     global::profiler().writeReport();
 
     delete boundaryCondition;

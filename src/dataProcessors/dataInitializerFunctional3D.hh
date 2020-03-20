@@ -1007,7 +1007,7 @@ void SetConstBoundaryVelocityFunctional3D<T,Descriptor>::process (
     // std::cout << "here at SetConstBoundaryVelocityFunctional3D" << std::endl;
 
 #if defined(STEP2_OMP)
-    #pragma omp parallel for default(shared) schedule(static, thread_block)
+    #pragma omp parallel for default(shared) schedule(static)
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
@@ -1373,7 +1373,7 @@ void IniConstEquilibriumFunctional3D<T,Descriptor>::process (
     // std::cout << "here at IniConstEquilibriumFunctional3D" << std::endl;
 
 #if defined(STEP2_OMP)
-    #pragma omp parallel for default(shared) schedule(static, thread_block)
+    #pragma omp parallel for default(shared) schedule(static)
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {

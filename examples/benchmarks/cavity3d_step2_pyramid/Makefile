@@ -37,11 +37,9 @@ usePOSIX     = true
 # Path to external source files (other than Palabos)
 srcPaths =
 # Path to external libraries (other than Palabos)
-libraryPaths =
-# Path to inlude directories (other than Palabos)
-includePaths =
+includePaths = -I${HOME}/intel/vtune_amplifier_2019.6.0.602217/include
 # Dynamic and static libraries (other than Palabos)
-libraries    =
+libraries    = ${HOME}/intel/vtune_amplifier_2019.6.0.602217/lib64/libittnotify.a
 
 # Compiler to use without MPI parallelism
 serialCXX    = icpc
@@ -52,9 +50,9 @@ compileFlags = -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_O
 # Step2_OMP flags
 step2_omp_Flags = false
 # Step2_seq flags
-step2_seq_Flags = true
+step2_seq_Flags = false
 # Step2_pyramid flags
-step2_pyramid_Flags = false
+step2_pyramid_Flags = true
 # General linker flags (don't put library includes into this flag)
 linkFlags    =
 # Compiler flags to use when optimization mode is on
