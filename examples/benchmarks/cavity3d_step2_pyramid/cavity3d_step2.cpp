@@ -59,9 +59,9 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
     T u = std::sqrt((T)2)/(T)2 * parameters.getLatticeU();
     // initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
     // Modify by Yuankun, set init value to 0.01 to avoid 0 computation
-    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01,(T)0.01,(T)0.01) );
-    initializeAtEquilibrium(lattice, topLid, (T) 1., Array<T,3>(u,(T)0.,u) );
-    setBoundaryVelocity(lattice, topLid, Array<T,3>(u,0.,u) );
+    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01, (T)0.01, (T)0.01) );
+    initializeAtEquilibrium(lattice, topLid, (T) 1., Array<T,3>(u, (T)0., u) );
+    setBoundaryVelocity(lattice, topLid, Array<T,3>(u,0., u) );
 
     lattice.initialize();
 }
@@ -176,6 +176,7 @@ int main(int argc, char* argv[]) {
         }
     }
 #endif
+    __itt_pause();
 
     pcout << "After " << numIter << " iterations: "
           << (T) (numCells*numIter) /

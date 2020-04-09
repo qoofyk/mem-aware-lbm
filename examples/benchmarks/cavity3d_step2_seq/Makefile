@@ -48,7 +48,7 @@ serialCXX    = icpc
 # Compiler to use with MPI parallelism
 parallelCXX  = mpiicpc
 # General compiler flags (e.g. -Wall to turn on all warnings on g++)
-compileFlags = -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X
+compileFlags = -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X -DSTEP2_BLK
 # Step2_OMP flags
 step2_omp_Flags = false
 # Step2_seq flags
