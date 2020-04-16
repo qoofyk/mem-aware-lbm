@@ -29,6 +29,9 @@
 #include "palabos3D.h"
 #include "palabos3D.hh"   // include full template code
 #include <iostream>
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 #include "ittnotify.h"
 
 using namespace plb;
@@ -59,11 +62,28 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
     T u = std::sqrt((T)2)/(T)2 * parameters.getLatticeU();
     // initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
     // Modify by Yuankun, set init value to 0.01 to avoid 0 computation
-    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01, (T)0.01, (T)0.01) );
-    initializeAtEquilibrium(lattice, topLid, (T) 1., Array<T,3>(u, (T)0., u) );
-    setBoundaryVelocity(lattice, topLid, Array<T,3>(u,0., u) );
+    initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01,(T)0.01,(T)0.01) );
+    initializeAtEquilibrium(lattice, topLid, (T) 1., Array<T,3>(u,(T)0.,u) );
+    setBoundaryVelocity(lattice, topLid, Array<T,3>(u,0.,u) );
 
     lattice.initialize();
+}
+
+//OpenMP test hello
+void test_omp_hello(){
+    plint my_rank = 0;
+    plint thread_count = 1;
+
+#ifdef _OPENMP
+    #pragma omp parallel
+    {
+        my_rank = omp_get_thread_num();
+        thread_count = omp_get_num_threads();
+        printf("Hello from thread %ld of %ld\n", my_rank, thread_count);
+    }
+#else
+    printf("Hello from thread %ld of %ld\n", my_rank, thread_count);
+#endif
 }
 
 int main(int argc, char* argv[]) {
@@ -78,6 +98,13 @@ int main(int argc, char* argv[]) {
     plint warmUpIter;
     plint NUM_THREADS = 1;
 
+#ifdef _OPENMP
+    NUM_THREADS = atoi(getenv("OMP_NUM_THREADS"));
+    omp_set_num_threads(NUM_THREADS);
+#endif
+
+    test_omp_hello();
+
     try {
         global::argv(1).read(N);
         global::argv(2).read(numIter);
@@ -86,6 +113,19 @@ int main(int argc, char* argv[]) {
         global::argv(5).read(Nx);
         global::argv(6).read(Ny);
         global::argv(7).read(Nz);
+
+        // check (N + 1 - 3) % NUM_THREADS == 0
+        // if ((N - 2) % NUM_THREADS != 0) throw 'N';
+        // thread_block = (N - 2) / NUM_THREADS;
+
+        // check (Nx - 3) % NUM_THREADS == 0
+        if ((Nx - 3) % NUM_THREADS != 0) throw 'N';
+        thread_block = (Nx - 3) / NUM_THREADS;
+    }
+    catch(char param) {
+        // cout << "(N - 2) % OMP_NUM_THREADS != 0, Not Divisible\n";
+        cout << "(N - 3) % OMP_NUM_THREADS != 0, Not Divisible\n";
+        exit(1);
     }
     catch(...) {
         pcout << "Wrong parameters. The syntax is " << std::endl;
@@ -166,7 +206,7 @@ int main(int argc, char* argv[]) {
         lattice.step2collideAndStream();
     }
 
-#if 1
+#if 0
     pcout << "After: Velocity norm of the box: " << endl;
     // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
     for (plint iX=0; iX <= N; ++iX){

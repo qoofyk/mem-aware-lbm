@@ -17,7 +17,7 @@
 # Leading directory of the Palabos source code
 palabosRoot  = ../../..
 # Name of source files in current directory to compile and link with Palabos
-projectFiles = cavity3d.cpp
+projectFiles = cavity3d_step2.cpp
 
 # Set optimization flags on/off
 optimize     = true
@@ -37,29 +37,27 @@ usePOSIX     = true
 # Path to external source files (other than Palabos)
 srcPaths =
 # Path to external libraries (other than Palabos)
-libraryPaths =
-# Path to inlude directories (other than Palabos)
-includePaths =
+includePaths = -I${HOME}/intel/vtune_amplifier_2019.6.0.602217/include
 # Dynamic and static libraries (other than Palabos)
-libraries    =
+libraries    = ${HOME}/intel/vtune_amplifier_2019.6.0.602217/lib64/libittnotify.a
 
 # Compiler to use without MPI parallelism
 serialCXX    = icpc
 # Compiler to use with MPI parallelism
 parallelCXX  = mpiicpc
 # General compiler flags (e.g. -Wall to turn on all warnings on g++)
-compileFlags = -Wall -Wextra -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X
+compileFlags = -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X
 
 # STEP2_WHOLE flags
 step2_whole_Flags = false
 # STEP2_3PARTS flags
-step2_3parts_Flags = false
+step2_3parts_Flags = true
 # Step2_OMP flags
 step2_omp_Flags = false
 # Step2_seq flags
 step2_unroll_Flags = false
 # Step2_pyramid flags
-step2_pyramid_Flags = false
+step2_pyramid_Flags = true
 
 # General linker flags (don't put library includes into this flag)
 linkFlags    =
@@ -67,7 +65,7 @@ linkFlags    =
 optimFlags   = -O3
 #optimFlags   = -xHOST -O3 -ip -no-prec-div -static
 # Compiler flags to use when debug mode is on
-debugFlags   = -g
+debugFlags   = -g -gdwarf-2 -parallel-source-info=2 -debug inline-debug-info #-vec-report3 -qopt-report -qopt-report-phase=vec
 # Compiler flags to use when profile mode is on
 profileFlags = -pg
 

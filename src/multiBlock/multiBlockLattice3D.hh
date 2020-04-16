@@ -400,7 +400,6 @@ void MultiBlockLattice3D<T,Descriptor>::collideAndStreamImplementation() {
                                           this->getMultiBlockManagement().getEnvelopeWidth());
 
             it->second -> collideAndStream( bulk.toLocal(domain) );
-            // it->second -> step2CollideAndStream( bulk.toLocal(domain) );
         }
     }
 }

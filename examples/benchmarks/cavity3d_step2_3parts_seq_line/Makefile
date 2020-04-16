@@ -37,6 +37,8 @@ usePOSIX     = true
 # Path to external source files (other than Palabos)
 srcPaths =
 # Path to external libraries (other than Palabos)
+libraryPaths =
+# Path to external libraries (other than Palabos)
 includePaths = -I${HOME}/intel/vtune_amplifier_2019.6.0.602217/include
 # Dynamic and static libraries (other than Palabos)
 libraries    = ${HOME}/intel/vtune_amplifier_2019.6.0.602217/lib64/libittnotify.a
@@ -46,13 +48,19 @@ serialCXX    = icpc
 # Compiler to use with MPI parallelism
 parallelCXX  = mpiicpc
 # General compiler flags (e.g. -Wall to turn on all warnings on g++)
-compileFlags = -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X
+compileFlags = -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X -DSTEP2_BLK
+
+# STEP2_WHOLE flags
+step2_whole_Flags = false
+# STEP2_3PARTS flags
+step2_3parts_Flags = true
 # Step2_OMP flags
 step2_omp_Flags = false
 # Step2_seq flags
-step2_seq_Flags = false
+step2_unroll_Flags = false
 # Step2_pyramid flags
-step2_pyramid_Flags = true
+step2_pyramid_Flags = false
+
 # General linker flags (don't put library includes into this flag)
 linkFlags    =
 # Compiler flags to use when optimization mode is on
@@ -82,8 +90,10 @@ SConsArgs = palabosRoot=$(palabosRoot) \
             serialCXX=$(serialCXX) \
             parallelCXX=$(parallelCXX) \
             compileFlags="$(compileFlags)" \
+            step2_whole_Flags="$(step2_whole_Flags)" \
+            step2_3parts_Flags="$(step2_3parts_Flags)" \
             step2_omp_Flags="$(step2_omp_Flags)" \
-            step2_seq_Flags="$(step2_seq_Flags)" \
+            step2_unroll_Flags="$(step2_unroll_Flags)" \
             step2_pyramid_Flags="$(step2_pyramid_Flags)" \
             linkFlags="$(linkFlags)" \
             optimFlags="$(optimFlags)" \

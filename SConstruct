@@ -32,8 +32,10 @@ profileFlags  = Split(argdict['profileFlags'])
 libraryPaths  = Split(argdict['libraryPaths'])
 includePaths  = Split(argdict['includePaths'])
 libraries     = Split(argdict['libraries'])
+step2_whole_Flags = argdict['step2_whole_Flags'].lower() == 'true'
+step2_3parts_Flags = argdict['step2_3parts_Flags'].lower() == 'true'
 step2_omp_Flags  = argdict['step2_omp_Flags'].lower() == 'true'
-step2_seq_Flags  = argdict['step2_seq_Flags'].lower() == 'true'
+step2_unroll_Flags  = argdict['step2_unroll_Flags'].lower() == 'true'
 step2_pyramid_Flags = argdict['step2_pyramid_Flags'].lower() == 'true'
 
 # Read the optional input parameters
@@ -73,8 +75,17 @@ if SMPparallel:
 if usePOSIX:
     flags.append('-DPLB_USE_POSIX')
 
+if step2_whole_Flags:
+    flags.append('-DSTEP2_WHOLE')
+
+if step2_3parts_Flags:
+    flags.append('-DSTEP2_3PARTS')
+
 if step2_omp_Flags:
     flags.append('-DSTEP2_OMP')
+
+if step2_unroll_Flags:
+    flags.append('-DSTEP2_UNROLL')
 
 if step2_pyramid_Flags:
     flags.append('-DSTEP2_PYRAMID')
@@ -102,16 +113,37 @@ for srcDir in srcPaths:
 sourceFiles.extend(glob.glob(palabosRoot+'/externalLibraries/tinyxml/*.cpp'));
 
 if MPIparallel:
-    if step2_omp_Flags:
-        palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_omp',
+    if step2_whole_Flags:
+        if step2_omp_Flags:
+            if step2_unroll_Flags:
+                palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_whole_omp_unroll_pyramid',
+                                      source  = sourceFiles )
+            else:
+                palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_whole_omp_pyramid',
+                                      source  = sourceFiles )
+        else: # sequential
+            if step2_unroll_Flags:
+                palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_whole_seq_unroll_pyramid',
+                                      source  = sourceFiles )
+            else:
+                palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_whole_seq_pyramid',
+                                      source  = sourceFiles )
+    elif step2_3parts_Flags: # 3 parts
+        if step2_omp_Flags:
+            if step2_pyramid_Flags:
+                palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_3parts_omp_pyramid',
+                                      source  = sourceFiles )
+            else:
+                palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_3parts_omp_line',
                                   source  = sourceFiles )
-    elif step2_seq_Flags:
-        palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_seq',
-                                  source  = sourceFiles )
-    elif step2_pyramid_Flags:
-        palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_pyramid',
-                                  source  = sourceFiles )
-    else:
+        else: # sequential
+            if step2_pyramid_Flags:
+                palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_3parts_seq_pyramid',
+                                      source  = sourceFiles )
+            else:
+                palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_3parts_seq_line',
+                                      source  = sourceFiles )
+    else: #original
         palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi',
                                   source  = sourceFiles )
 else:
