@@ -1523,7 +1523,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                   else {
                     // first
                     if (innerX != domain.x1)
-                      latticeTemplates<T,Descriptor>::swapAndStream3D(grid, innerX, innerY, innerZ);
+                      swapStream(innerX, innerY, innerZ);
                     else
                       boundSwapStream(domain, innerX, innerY, innerZ);
                     
@@ -1569,8 +1569,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                   // first
                   // printf("case-3.3 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                   if (innerX != domain.x1)
-                    latticeTemplates<T,Descriptor>::swapAndStream3D (
-                          grid, innerX, innerY, innerZ );
+                    swapStream(innerX, innerY, innerZ);
                   else
                     boundSwapStream(domain, innerX, innerY, innerZ);
 
@@ -1597,8 +1596,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                 // printf("case-3.5 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                 // first Collide the cell.
                 if (innerX != domain.x1)
-                  latticeTemplates<T,Descriptor>::swapAndStream3D (
-                          grid, innerX, innerY, innerZ );
+                  swapStream(innerX, innerY, innerZ);
                 else
                   boundSwapStream(domain, innerX, innerY, innerZ);
 
