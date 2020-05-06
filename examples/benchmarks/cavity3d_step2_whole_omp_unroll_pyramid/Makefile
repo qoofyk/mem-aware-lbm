@@ -37,8 +37,6 @@ usePOSIX     = true
 # Path to external source files (other than Palabos)
 srcPaths =
 # Path to external libraries (other than Palabos)
-libraryPaths =
-# Path to external libraries (other than Palabos)
 includePaths = -I${HOME}/intel/vtune_amplifier_2019.6.0.602217/include
 # Dynamic and static libraries (other than Palabos)
 libraries    = ${HOME}/intel/vtune_amplifier_2019.6.0.602217/lib64/libittnotify.a
@@ -51,15 +49,15 @@ parallelCXX  = mpiicpc
 compileFlags = -Wall -Wextra -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X -D_OPENMP -qopenmp -std=c++11
 
 # STEP2_WHOLE flags
-step2_whole_Flags = false
+step2_whole_Flags = true
 # STEP2_3PARTS flags
-step2_3parts_Flags = true
+step2_3parts_Flags = false
 # Step2_OMP flags
 step2_omp_Flags = true
 # Step2_seq flags
 step2_unroll_Flags = true
 # Step2_pyramid flags
-step2_pyramid_Flags = false
+step2_pyramid_Flags = true
 
 # General linker flags (don't put library includes into this flag)
 linkFlags    = -qopenmp -lm
