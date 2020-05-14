@@ -1313,7 +1313,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
 #pragma omp parallel default(shared)
 {
   plint tid = omp_get_thread_num();
-  printf("tid: %ld, thread_block=%ld\n", tid, thread_block);
+  // printf("tid: %ld, thread_block=%ld\n", tid, thread_block);
 #if 1
   // ---------------1. compute thread boundaries surface ---------------------
   // 1st Collide_Revert
@@ -1333,7 +1333,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
   // ---------------2. compute bulk ---------------------
   #pragma omp for private(iX, iY, iZ) schedule(static, thread_block / blockSize)
   for (plint outerX = domain.x0; outerX <= domain.x1; outerX += blockSize) {
-    printf("tid: %ld, outerX=%ld\n", tid, outerX);
+    // printf("tid: %ld, outerX=%ld\n", tid, outerX);
     for (plint outerY = domain.y0; outerY <= domain.y1+blockSize-1; outerY += blockSize) {
       // printf("outerY=%ld\n", outerY);
       for (plint outerZ = domain.z0; outerZ <= domain.z1+2*(blockSize-1); outerZ += blockSize) {

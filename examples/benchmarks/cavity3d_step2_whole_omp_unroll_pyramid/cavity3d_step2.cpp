@@ -33,6 +33,7 @@
   #include <omp.h>
 #endif
 #include "ittnotify.h"
+#include <exception>
 
 using namespace plb;
 using namespace std;
@@ -86,6 +87,18 @@ void test_omp_hello(){
 #endif
 }
 
+struct MyException1 : public exception {
+  const char * what () const throw () {
+    return "N % OMP_NUM_THREADS != 0, Not Divisible";
+  }
+};
+
+struct MyException2 : public exception {
+  const char * what () const throw () {
+    return "thread_block % ykBlockSize != 0, Not Divisible";
+  }
+};
+
 int main(int argc, char* argv[]) {
 
     __itt_pause();
@@ -115,12 +128,16 @@ int main(int argc, char* argv[]) {
         global::argv(7).read(Nz);
 
         // check Nx % NUM_THREADS == 0
-        if (Nx % NUM_THREADS != 0) throw 'N';
+        if (Nx % NUM_THREADS != 0) throw MyException1();
         thread_block = Nx / NUM_THREADS;
+        if (thread_block % ykBlockSize != 0) throw MyException2();
     }
-    catch(char param) {
-        // cout << "(N - 2) % OMP_NUM_THREADS != 0, Not Divisible\n";
-        cout << "N % OMP_NUM_THREADS != 0, Not Divisible\n";
+    catch(MyException1& e) {
+        std::cout << e.what() << std::endl;
+        exit(1);
+    }
+    catch(MyException2& e) {
+        std::cout << e.what() << std::endl;
         exit(1);
     }
     catch(...) {

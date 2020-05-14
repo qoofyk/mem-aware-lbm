@@ -90,7 +90,6 @@ if step2_unroll_Flags:
 if step2_pyramid_Flags:
     flags.append('-DSTEP2_PYRAMID')
 
-print(compiler)
 env = Environment ( ENV       = os.environ,
                     CXX       = compiler,
                     CXXFLAGS  = flags,
