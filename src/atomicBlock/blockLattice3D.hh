@@ -2268,25 +2268,46 @@ void BlockLattice3D<T,Descriptor>::bulkStream(Box3D domain) {
  * \sa collideAndStream(int,int,int,int,int,int)
  * \sa collideAndStream()
  */
+#if 0
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::bulkCollideAndStream(Box3D domain) {
     // Make sure domain is contained within current lattice
     PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
      //if (Descriptor<T>::q==15 || Descriptor<T>::q==19) {
-     //if (Descriptor<T>::q==19) {
+     if (Descriptor<T>::q==19) {
          // On nearest-neighbor lattice, use the cache-efficient
          //   version of collidAndStream.
-         //blockwiseBulkCollideAndStream(domain);
-     //}
-     //else {
+         blockwiseBulkCollideAndStream(domain);
+     }
+     else {
         // Otherwise, use the straightforward implementation.
         //   Note that at some point, we should implement the cache-efficient
         //   version for extended lattices as well.
         linearBulkCollideAndStream(domain);
-     //}
+     }
 }
+#endif
+bool yk_use_pymd_flag;
+template<typename T, template<typename U> class Descriptor>
+void BlockLattice3D<T,Descriptor>::bulkCollideAndStream(Box3D domain) {
+    // Make sure domain is contained within current lattice
+    PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
+     //if (Descriptor<T>::q==15 || Descriptor<T>::q==19) {
+     // if (Descriptor<T>::q==19) {
+      if (yk_use_pymd_flag) {
+         // On nearest-neighbor lattice, use the cache-efficient
+         //   version of collidAndStream.
+         blockwiseBulkCollideAndStream(domain);
+     }
+     else {
+        // Otherwise, use the straightforward implementation.
+        //   Note that at some point, we should implement the cache-efficient
+        //   version for extended lattices as well.
+        linearBulkCollideAndStream(domain);
+     }
+}
 
 /** Straightforward implementation which works for all kinds of lattices,
  *  not only nearest-neighbor.

@@ -65,7 +65,7 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
     // Modify by Yuankun, set init value to 0.01 to avoid 0 computation
     initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.01, (T)0.01, (T)0.01) );
     initializeAtEquilibrium(lattice, topLid, (T) 1., Array<T,3>(u, (T)0., u) );
-    setBoundaryVelocity(lattice, topLid, Array<T,3>(u,0., u) );
+    setBoundaryVelocity(lattice, topLid, Array<T,3>(u, 0., u) );
 
     lattice.initialize();
 }
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     omp_set_num_threads(NUM_THREADS);
 #endif
 
-    test_omp_hello();
+    // test_omp_hello();
 
     try {
         global::argv(1).read(N);
@@ -132,15 +132,15 @@ int main(int argc, char* argv[]) {
         thread_block = Nx / NUM_THREADS;
         if (thread_block % ykBlockSize != 0) throw MyException2();
     }
-    catch(MyException1& e) {
+    catch (MyException1& e) {
         std::cout << e.what() << std::endl;
         exit(1);
     }
-    catch(MyException2& e) {
+    catch (MyException2& e) {
         std::cout << e.what() << std::endl;
         exit(1);
     }
-    catch(...) {
+    catch (...) {
         pcout << "Wrong parameters. The syntax is " << std::endl;
         pcout << argv[0] << " N" << std::endl;
         pcout << "where N is the resolution. The benchmark cases published " << std::endl;
@@ -213,13 +213,13 @@ int main(int argc, char* argv[]) {
     // Run the benchmark for good.
     __itt_resume();
     global::timer("benchmark").start();
-    global::profiler().turnOn();
+    // global::profiler().turnOn();
     for (plint iT = 0; iT < numIter; iT += K) {
         // pcout << "iT=" << iT << std::endl;
         lattice.step2collideAndStream();
     }
 
-#if 1
+#if 0
     pcout << "After: Velocity norm of the box: " << endl;
     // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
     for (plint iX = 0; iX <= N; ++iX){
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
              global::timer("benchmark").getTime() / 1.e6
           << " Mega site updates per second.\n";
     pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << "\n\n";
-    global::profiler().writeReport();
+    // global::profiler().writeReport();
 
     delete boundaryCondition;
 }

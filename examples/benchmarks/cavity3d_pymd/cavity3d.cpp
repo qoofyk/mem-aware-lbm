@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
     plbInit(&argc, &argv);
     //defaultMultiBlockPolicy3D().toggleBlockingCommunication(true);
 
-    // not using Palabos pymd alg
-    yk_use_pymd_flag = false;
+    // using Palabos pymd alg
+    yk_use_pymd_flag = true;
 
     plint N;
     plint Nx, Ny, Nz;
