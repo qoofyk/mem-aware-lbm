@@ -115,7 +115,6 @@ int main(int argc, char* argv[]) {
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
 
     plint numCores = global::mpi().getSize();
-    pcout << "Number of MPI threads: " << numCores << std::endl;
     pcout << "Number of MPI threads: " << numCores << " ykBlockSize: " << ykBlockSize << std::endl;
     // Current cores run approximately at 5 Mega Sus.
     T estimateSus= 5.e6*numCores;
