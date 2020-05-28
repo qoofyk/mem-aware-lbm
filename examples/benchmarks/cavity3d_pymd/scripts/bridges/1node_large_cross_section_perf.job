@@ -1,0 +1,95 @@
+#!/bin/bash
+#SBATCH --job-name="s1.Lcs.perf"
+#SBATCH --output="results/1node.s1.Lcs.perf.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 8:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module load intel/19.5
+
+which mpirun
+mkdir -pv results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+mkdir -pv ${SCRATCH_DIR}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+BIN=${PBS_O_WORKDIR}/cavity3d
+analysis () {
+    for ((k=0; k<${#procs[@]}; k++)); do
+        NP=${procs[k]}
+        Nx=$((height * NP + 3))
+        echo "1. collect hpc"
+        mpirun -np $NP amplxe-cl -result-dir ${SCRATCH_DIR}/$N/hpc${NP} -quiet -collect hpc-performance -data-limit=0 $BIN $N $steps $block_size $warmup_steps $Nx $Ny $Nz
+        echo "============================================"
+        echo
+
+        echo "2. collect hotspot"
+        mpirun -np $NP amplxe-cl -result-dir ${SCRATCH_DIR}/$N/hotspot${NP} -quiet -collect hotspots -data-limit=0 $BIN $N $steps $block_size $warmup_steps $Nx $Ny $Nz
+        echo "============================================"
+        echo
+
+        echo "3. collect snapshot"
+        mpirun -np $NP aps -result-dir ${SCRATCH_DIR}/$N/snapshot${NP} $BIN $N $steps $block_size $warmup_steps $Nx $Ny $Nz
+        aps-report ${SCRATCH_DIR}/$N/snapshot${NP} -O ${SCRATCH_DIR}/$N/snapshot${NP}.html
+        echo "============================================"
+        echo
+
+        echo "4. collect memory-access with openmp=true"
+        mpirun -np $NP amplxe-cl -result-dir ${SCRATCH_DIR}/$N/mem${NP} -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 $BIN $N $steps $block_size $warmup_steps $Nx $Ny $Nz
+        echo "============================================"
+        echo
+
+        # echo "5. collect memory-access with analysze-dynamic-mem-obj=true"
+        # mpirun -np $NP amplxe-cl -result-dir ${SCRATCH_DIR}/$N/mem-dynamic-alloc-${NP} -quiet -collect memory-access -knob analyze-mem-objects=true -data-limit=0 $BIN $N $steps $block_size $warmup_steps $Nx $Ny $Nz
+        # echo "============================================"
+        # echo
+
+        echo "6. collect uarch-exploration with collect-memory-bandwidth=true"
+        mpirun -np $NP amplxe-cl -result-dir ${SCRATCH_DIR}/$N/uarch${NP} -quiet -collect uarch-exploration -knob collect-memory-bandwidth=true -data-limit=0 $BIN $N $steps $block_size $warmup_steps $Nx $Ny $Nz
+        echo "============================================"
+        echo
+
+        echo "7. report hw-events from uarch"
+        amplxe-cl -report hw-events -quiet -result-dir ${SCRATCH_DIR}/$N/uarch${NP}.* -report-output ${SCRATCH_DIR}/$N/hw-events${NP}.csv -format csv -csv-delimiter comma
+        echo "============================================"
+        echo
+
+        echo "8. report top-down from uarch"
+        amplxe-cl -report top-down -quiet -result-dir ${SCRATCH_DIR}/$N/uarch${NP}.* -report-output ${SCRATCH_DIR}/$N/top-down${NP}.csv -format csv -csv-delimiter comma
+        echo "============================================"
+        echo
+
+        echo "9. report summary from uarch"
+        amplxe-cl -report summary -quiet -result-dir ${SCRATCH_DIR}/$N/uarch${NP}.* -report-output ${SCRATCH_DIR}/$N/summary${NP}.csv -format csv -csv-delimiter comma
+        echo "============================================"
+        echo
+
+        # echo "10. collect page fault"
+        # # mkdir -pv ${SCRATCH_DIR}/$N/sys-overview${NP}
+        # mpirun -np $NP amplxe-cl -collect system-overview -quiet -result-dir ${SCRATCH_DIR}/$N/sys-overview${NP} -data-limit=0 $BIN $N $steps $block_size $warmup_steps $Nx $Ny $Nz
+        # echo "============================================"
+        # echo
+    done
+}
+
+N=900 #if input is cube
+Nz=$N
+Ny=$N
+height=20 # Nx=height * NP + 3
+steps=20
+block_size=0
+warmup_steps=6
+procs=(2 4 28)
+analysis

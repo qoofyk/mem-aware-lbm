@@ -1,0 +1,83 @@
+#!/bin/bash
+#SBATCH --job-name="s1_long"
+#SBATCH --output="results/1node.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 12:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+mkdir results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+#for i in `seq 3`
+#do
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 31 200 200
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 63 200 200
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 99 200 200
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 127 200 200
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 149 200 200
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 199 200 200
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 249 200 200
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 255 200 200
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 299 200 200
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 349 100 30 26
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 399 100 30 26
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 449 100 30 26
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 511 100 30 26
+	##mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 767 104 200
+#done
+
+for i in `seq 3`
+do
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 31 100 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 63 100 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 99 100 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 127 100 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 149 100 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 199 100 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 249 100 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 255 100 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 299 100 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 349 100 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 399 100 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 449 100 30 2
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 511 20 30 2
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 511 100 30 2
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 549 20 30 2
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 549 100 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 599 20 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 649 20 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 699 20 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 767 20 30 2
+   # mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 799 20 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 849 20 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 899 20 30 2
+	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 1023 20 200 2
+done
+
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 31 34 200
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 63 66 200
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 99 102 200
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 127 130 200
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 149 152 200
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 199 202 200
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 249 252 200
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 255 258 200
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 299 302 200
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 349 352 200
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 399 402 200
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 449 452 200
+# mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 511 514 200
+# #mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 767 104 200

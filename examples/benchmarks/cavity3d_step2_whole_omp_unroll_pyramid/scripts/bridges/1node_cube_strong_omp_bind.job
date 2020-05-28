@@ -1,0 +1,113 @@
+#!/bin/bash
+#SBATCH --job-name="step2.1node.cube.strong.whole-omp-unroll-pymd.bind"
+#SBATCH --output="results/1node.cube.whole-omp-unroll-pymd.bind.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 23:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module list
+mkdir -p results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+BIN=${PBS_O_WORKDIR}/cavity3d_step2
+strong_perf () {
+    N=$((dim - 1))
+    Nx=$dim
+    Ny=$dim
+    Nz=$dim
+    for i in `seq 3`
+    do
+        for ((k=0; k<${#tile[@]}; k++)); do
+            export OMP_NUM_THREADS=${threads[k]}
+
+            if [[ $OMP_NUM_THREADS -eq 28 ]]
+            then
+              export KMP_AFFINITY=granularity=core,compact
+            else
+              export KMP_AFFINITY=granularity=core,scatter
+            fi
+            echo "KMP_AFFINITY = $KMP_AFFINITY"
+
+            mpirun -n 1 $BIN $N $steps ${tile[k]} $warmup_steps $Nx $Ny $Nz
+
+            sleep 1
+        done
+    done
+}
+
+# dim=112
+# steps=150
+# tile=(112 56 28 14 8 7 4)
+# warmup_steps=40
+# threads=(1 2 4 8 14 16 28)
+# strong_perf
+
+# dim=224
+# steps=150
+# tile=(112 112 56 28 16 14 8)
+# warmup_steps=40
+# threads=(1 2 4 8 14 16 28)
+# strong_perf
+
+# dim=336
+# steps=50
+# tile=(112 84 84 42 24 21 12)
+# warmup_steps=20
+# threads=(1 2 4 8 14 16 28)
+# strong_perf
+
+# dim=$((448))
+# steps=50
+# tile=(112 112 112 56 32 28 16)
+# warmup_steps=20
+# threads=(1 2 4 8 14 16 28)
+# strong_perf
+
+# dim=$((112 * 5)) #560
+# steps=50
+# tile=(112 70 70 70 40 35 20)
+# warmup_steps=20
+# threads=(1 2 4 8 14 16 28)
+# strong_perf
+
+# dim=$((112 * 6)) #672
+# steps=20
+# tile=(112 84 84 84 48 42 24)
+# warmup_steps=20
+# threads=(1 2 4 8 14 16 28)
+# strong_perf
+
+dim=$((112 * 7)) #784
+steps=20
+warmup_steps=20
+tile=(112 98 98 98 56 49 28)
+# tile=(28 28 28 49 28 28 28)
+threads=(1 2 4 8 14 16 28)
+strong_perf
+
+dim=$((112 * 7 + 56)) #840
+steps=20
+warmup_steps=20
+tile=(28 28 30 21 30 30)
+threads=(1 2 4 8 14 28)
+strong_perf
+
+dim=$((832))
+steps=20
+warmup_steps=20
+tile=(26)
+threads=(16)
+strong_perf

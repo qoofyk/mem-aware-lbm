@@ -1,0 +1,135 @@
+#!/bin/bash
+#SBATCH --job-name="omp.default"
+#SBATCH --output="results/1node.omp.default.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 10:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+mkdir results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+#export KMP_AFFINITY=verbose,none
+echo "KMP_AFFINITY = $KMP_AFFINITY"
+
+dim=$((112 + 2))
+steps=150
+block_size=0
+warmup_steps=40
+for i in `seq 3`
+do
+    export OMP_NUM_THREADS=1
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=2
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=4
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=8
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=14
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=16
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=28
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+done
+
+dim=$((224 + 2))
+steps=150
+block_size=0
+warmup_steps=40
+for i in `seq 3`
+do
+    export OMP_NUM_THREADS=1
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=2
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=4
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=8
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=14
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=16
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=28
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+done
+
+dim=$((336 + 2))
+steps=50
+block_size=0
+warmup_steps=20
+for i in `seq 3`
+do
+    export OMP_NUM_THREADS=1
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=2
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=4
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=8
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=14
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=16
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=28
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+done
+
+dim=$((448 + 2))
+steps=50
+block_size=0
+warmup_steps=20
+for i in `seq 3`
+do
+    export OMP_NUM_THREADS=1
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=2
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=4
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=8
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=14
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=16
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=28
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+done
+
+dim=$((560 + 2))
+steps=50
+block_size=0
+warmup_steps=20
+for i in `seq 3`
+do
+    export OMP_NUM_THREADS=1
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=2
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=4
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=8
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=14
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=16
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+    export OMP_NUM_THREADS=28
+    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d_step2 $dim $steps $block_size $warmup_steps
+done

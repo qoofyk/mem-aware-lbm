@@ -1,0 +1,236 @@
+#!/bin/bash
+#SBATCH --job-name="s2.wk.cs.pymd.512"
+#SBATCH --output="results/1node.s2.wk.cs.pymd.512.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 23:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module list
+mkdir -p results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+BIN=${PBS_O_WORKDIR}/cavity3d_step2
+weak_perf () {
+  for i in `seq 3`
+  do
+    for t in "${threads[@]}"
+    do
+      export OMP_NUM_THREADS=$t
+      Nx=$((nx * OMP_NUM_THREADS))
+
+      if [[ $OMP_NUM_THREADS -eq 28 ]]
+      then
+        export KMP_AFFINITY=granularity=core,compact
+      else
+        export KMP_AFFINITY=granularity=core,scatter
+      fi
+      echo "KMP_AFFINITY = $KMP_AFFINITY"
+      echo "parameters: $BIN $resolution $steps $tile $warmup_steps $Nx $Ny $Nz"
+      mpirun -n 1 $BIN $resolution $steps $tile $warmup_steps $Nx $Ny $Nz
+    done
+  done
+}
+
+#constants
+nx=512 # Each core compute this height
+threads=(1 2 4 8 14 16 28)
+
+# Case 1
+tile=8
+resolution=1
+steps=100
+warmup_steps=20
+# cross_section_len=(16 32 64 96 128 160 192 224 256 288 320 352 384 416 448 480 512 544 576 608 640 672 704 736 768)
+Nz=16
+Ny=16
+weak_perf
+
+cross_section_len=32
+for t in {1..4}
+do
+  Nz=$((t * cross_section_len))
+  Ny=$((t * cross_section_len))
+  steps=100
+  warmup_steps=20
+  weak_perf
+done
+
+for t in {5..6} #max 192
+do
+  Nz=$((t * cross_section_len))
+  Ny=$((t * cross_section_len))
+  steps=50
+  warmup_steps=16
+  weak_perf
+done
+
+# for t in {11..12}
+# do
+#   Nz=$((t * cross_section_len))
+#   Ny=$((t * cross_section_len))
+#   steps=20
+#   warmup_steps=6
+#   weak_perf
+# done
+
+# Case 2
+tile=16
+resolution=1
+steps=100
+warmup_steps=20
+# cross_section_len=(16 32 64 96 128 160 192 224 256 288 320 352 384 416 448 480 512 544 576 608 640 672 704 736 768)
+Nz=16
+Ny=16
+weak_perf
+
+cross_section_len=32
+for t in {1..4}
+do
+  Nz=$((t * cross_section_len))
+  Ny=$((t * cross_section_len))
+  steps=100
+  warmup_steps=20
+  weak_perf
+done
+
+for t in {5..6} #max 192
+do
+  Nz=$((t * cross_section_len))
+  Ny=$((t * cross_section_len))
+  steps=50
+  warmup_steps=16
+  weak_perf
+done
+
+# for t in {11..12} 
+# do
+#   Nz=$((t * cross_section_len))
+#   Ny=$((t * cross_section_len))
+#   steps=20
+#   warmup_steps=6
+#   weak_perf
+# done
+
+# Case 3
+tile=32
+cross_section_len=32
+for t in {1..4}
+do
+  Nz=$((t * cross_section_len))
+  Ny=$((t * cross_section_len))
+  steps=100
+  warmup_steps=20
+  weak_perf
+done
+
+for t in {5..6} #max 192
+do
+  Nz=$((t * cross_section_len))
+  Ny=$((t * cross_section_len))
+  steps=50
+  warmup_steps=16
+  weak_perf
+done
+
+# for t in {11..12}
+# do
+#   Nz=$((t * cross_section_len))
+#   Ny=$((t * cross_section_len))
+#   steps=20
+#   warmup_steps=6
+#   weak_perf
+# done
+
+# Case 4
+tile=64
+cross_section_len=32
+for t in {2..4..2}
+do
+  Nz=$((t * cross_section_len))
+  Ny=$((t * cross_section_len))
+  steps=100
+  warmup_steps=20
+  weak_perf
+done
+
+for t in 6
+do
+  Nz=$((t * cross_section_len))
+  Ny=$((t * cross_section_len))
+  steps=50
+  warmup_steps=16
+  weak_perf
+done
+
+# for t in 12
+# do
+#   Nz=$((t * cross_section_len))
+#   Ny=$((t * cross_section_len))
+#   steps=20
+#   warmup_steps=6
+#   weak_perf
+# done
+
+# Case 4
+tile=128
+cross_section_len=32
+for t in 4
+do
+  Nz=$((t * cross_section_len))
+  Ny=$((t * cross_section_len))
+  steps=100
+  warmup_steps=20
+  weak_perf
+done
+
+# for t in 8
+# do
+#   Nz=$((t * cross_section_len))
+#   Ny=$((t * cross_section_len))
+#   steps=50
+#   warmup_steps=16
+#   weak_perf
+# done
+
+# for t in 12
+# do
+#   Nz=$((t * cross_section_len))
+#   Ny=$((t * cross_section_len))
+#   steps=20
+#   warmup_steps=6
+#   weak_perf
+# done
+
+# Case 5
+# tile=256
+# cross_section_len=32
+# for t in 8
+# do
+#   Nz=$((t * cross_section_len))
+#   Ny=$((t * cross_section_len))
+#   steps=50
+#   warmup_steps=16
+#   weak_perf
+# done
+
+# for t in 16
+# do
+#   Nz=$((t * cross_section_len))
+#   Ny=$((t * cross_section_len))
+#   steps=20
+#   warmup_steps=6
+#   weak_perf
+# done

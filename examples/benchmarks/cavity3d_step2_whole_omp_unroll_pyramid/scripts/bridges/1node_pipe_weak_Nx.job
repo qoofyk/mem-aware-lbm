@@ -1,0 +1,109 @@
+#!/bin/bash
+#SBATCH --job-name="s2.wk.Nx"
+#SBATCH --output="results/1node.s2.weak.Nx.bind.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 23:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module list
+mkdir -p results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+BIN=${PBS_O_WORKDIR}/cavity3d_step2
+weak_perf () {
+    # M=(1 2 4 8 16 32 64 128 256 512 1024 1536 2048)
+    for m in  "${M[@]}"
+    do
+        for i in `seq 3`
+        do
+            for t in "${threads[@]}"
+            do
+                export OMP_NUM_THREADS=$t
+                Nx=$((m * d * OMP_NUM_THREADS))
+
+                if [[ $OMP_NUM_THREADS -eq 28 ]]
+                then
+                  export KMP_AFFINITY=granularity=core,compact
+                else
+                  export KMP_AFFINITY=granularity=core,scatter
+                fi
+                echo "KMP_AFFINITY = $KMP_AFFINITY"
+
+                mpirun -n 1 $BIN $N $steps $tile $warmup_steps $Nx $Ny $Nz
+            done
+        done
+    done
+}
+
+dim=(16 32 64)
+for d in "${dim[@]}"
+do
+    N=$((d-1))
+    Nz=$d
+    Ny=$d
+    # Nx=$N
+    steps=100
+    tile=8
+    warmup_steps=20
+    threads=(1 2 4 8 14 16 28)
+    M=(1 2 4 8 16 32 64)
+    weak_perf
+done
+
+dim=(96)
+for d in "${dim[@]}"
+do
+    N=$((d-1))
+    Nz=$d
+    Ny=$d
+    # Nx=$N
+    steps=50
+    tile=16
+    warmup_steps=20
+    threads=(1 2 4 8 14 16 28)
+    M=(1 2 4 8 16)
+    weak_perf
+done
+
+dim=(128 160 192)
+for d in "${dim[@]}"
+do
+    N=$((d-1))
+    Nz=$d
+    Ny=$d
+    # Nx=$N
+    steps=50
+    tile=16
+    warmup_steps=20
+    threads=(1 2 4 8 14 16 28)
+    M=(1 2 4 8)
+    weak_perf
+done
+
+dim=(224)
+for d in "${dim[@]}"
+do
+    N=$((d-1))
+    Nz=$d
+    Ny=$d
+    # Nx=$N
+    steps=50
+    tile=16
+    warmup_steps=20
+    threads=(1 2 4 8 14 16 28)
+    M=(1 2)
+    weak_perf
+done

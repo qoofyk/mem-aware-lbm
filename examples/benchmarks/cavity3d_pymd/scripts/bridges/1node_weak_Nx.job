@@ -1,0 +1,98 @@
+#!/bin/bash
+#SBATCH --job-name="s1.wk.Nx"
+#SBATCH --output="results/1node.s1.weak.Nx.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 20:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module list
+mkdir -p results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+BIN=${PBS_O_WORKDIR}/cavity3d
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+weak_perf () {
+    for m in  "${M[@]}"
+    do
+        for i in `seq 3`
+        do
+            for NP in "${threads[@]}"
+            do
+                Nx=$((m * d * NP))
+                mpirun -n $NP $BIN $N $steps $tile $warmup_steps $Nx $Ny $Nz
+            done
+        done
+    done
+}
+
+dim=(16 32 64)
+for d in "${dim[@]}"
+do
+    N=$((d-1))
+    Nz=$d
+    Ny=$d
+    # Nx=$N
+    steps=100
+    tile=8
+    warmup_steps=20
+    threads=(1 2 4 8 14 16 28)
+    M=(1 2 4 8 16 32 64)
+    weak_perf
+done
+
+dim=(96)
+for d in "${dim[@]}"
+do
+    N=$((d-1))
+    Nz=$d
+    Ny=$d
+    # Nx=$N
+    steps=50
+    tile=16
+    warmup_steps=20
+    threads=(1 2 4 8 14 16 28)
+    M=(1 2 4 8 16)
+    weak_perf
+done
+
+dim=(128 160 192)
+for d in "${dim[@]}"
+do
+    N=$((d-1))
+    Nz=$d
+    Ny=$d
+    # Nx=$N
+    steps=50
+    tile=16
+    warmup_steps=20
+    threads=(1 2 4 8 14 16 28)
+    M=(1 2 4 8)
+    weak_perf
+done
+
+dim=(224)
+for d in "${dim[@]}"
+do
+    N=$((d-1))
+    Nz=$d
+    Ny=$d
+    # Nx=$N
+    steps=50
+    tile=16
+    warmup_steps=20
+    threads=(1 2 4 8 14 16 28)
+    M=(1 2)
+    weak_perf
+done

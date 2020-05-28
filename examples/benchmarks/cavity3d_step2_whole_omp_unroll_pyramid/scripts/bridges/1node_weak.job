@@ -1,0 +1,100 @@
+#!/bin/bash
+#SBATCH --job-name="s2.weak"
+#SBATCH --output="results/1node.s2.weak.bind.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 23:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+mkdir results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+BIN=${PBS_O_WORKDIR}/cavity3d_step2
+weak_perf () {
+    for i in `seq 3`
+    do
+        for ((k=0; k<${#threads[@]}; k++)); do
+            export OMP_NUM_THREADS=${threads[k]}
+            Nx=$((N * OMP_NUM_THREADS))
+
+            if [[ $OMP_NUM_THREADS -eq 28 ]]
+            then
+              export KMP_AFFINITY=granularity=core,compact
+            else
+              export KMP_AFFINITY=granularity=core,scatter
+            fi
+            echo "KMP_AFFINITY = $KMP_AFFINITY"
+
+            mpirun -n 1 $BIN $N $steps $block_size $warmup_steps $Nx $Ny $Nz
+        done
+    done
+}
+
+dim=(16 32 64)
+for d in "${dim[@]}"
+do
+    N=$((d-1))
+    Nz=$d
+    Ny=$d
+    # Nx=$N
+    steps=150
+    block_size=8
+    warmup_steps=40
+    threads=(1 2 4 8 14 16 28)
+    weak_perf
+done
+
+dim=(128 160 192 224 256)
+for d in "${dim[@]}"
+do
+    N=$((d-1))
+    Nz=$d
+    Ny=$d
+    # Nx=$N
+    steps=100
+    block_size=16
+    warmup_steps=20
+    threads=(1 2 4 8 14 16 28)
+    weak_perf
+done
+
+dim=(288 320 352)
+for d in "${dim[@]}"
+do
+    N=$((d-1))
+    Nz=$d
+    Ny=$d
+    # Nx=$N
+    steps=50
+    block_size=16
+    warmup_steps=20
+    threads=(1 2 4 8 14 16 28)
+    weak_perf
+done
+
+# dim=(384 416 448 480 512 544 576 608 640 672 704 736 768 800)
+dim=(384 416 448 480 512 544 576 608 640 672 704 736 768 800)
+for d in "${dim[@]}"
+do
+    N=$((d-1))
+    Nz=$d
+    Ny=$d
+    # Nx=$N
+    steps=20
+    block_size=16
+    warmup_steps=6
+    threads=(1 2 4 8 14 16 28)
+    weak_perf
+done

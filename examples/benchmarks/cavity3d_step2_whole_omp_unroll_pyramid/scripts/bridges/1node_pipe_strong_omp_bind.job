@@ -1,0 +1,133 @@
+#!/bin/bash
+#SBATCH --job-name="step2.1node.pipe.strong.whole-omp-unroll-pymd.bind"
+#SBATCH --output="results/1node.pipe.whole-omp-unroll-pymd.bind.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 23:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module list
+mkdir -p results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+BIN=${PBS_O_WORKDIR}/cavity3d_step2
+strong_perf () {
+    N=$((dim - 1))
+    Nx=$((dim * 112))
+    Ny=$dim
+    Nz=$dim
+    for i in `seq 3`
+    do
+        for ((k=0; k<${#threads[@]}; k++)); do
+            export OMP_NUM_THREADS=${threads[k]}
+
+            if [[ $OMP_NUM_THREADS -eq 28 ]]
+            then
+              export KMP_AFFINITY=granularity=core,compact
+            else
+              export KMP_AFFINITY=granularity=core,scatter
+            fi
+            echo "KMP_AFFINITY = $KMP_AFFINITY"
+
+            mpirun -n 1 $BIN $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+            sleep 1
+        done
+    done
+}
+
+# dim=8
+# steps=150
+# tile=8
+# warmup_steps=40
+# threads=(1 2 4 8 14 16 28)
+# strong_perf
+
+# dim=16
+# steps=150
+# tile=16
+# warmup_steps=40
+# threads=(1 2 4 8 14 16 28)
+# strong_perf
+
+# dim=32
+# steps=150
+# tile=16
+# warmup_steps=40
+# threads=(1 2 4 8 14 16 28)
+# strong_perf
+
+# dim=48
+# steps=150
+# tile=16
+# warmup_steps=40
+# threads=(1 2 4 8 14 16 28)
+# strong_perf
+
+# dim=64
+# steps=50
+# tile=16
+# warmup_steps=20
+# threads=(1 2 4 8 14 16 28)
+# strong_perf
+
+# dim=80
+# steps=50
+# tile=16
+# warmup_steps=20
+# threads=(1 2 4 8 14 16 28)
+# strong_perf
+
+dim=96
+steps=50
+tile=16
+warmup_steps=20
+threads=(1 2 4 8 14 16 28)
+strong_perf
+
+dim=112
+steps=50
+tile=16
+warmup_steps=20
+threads=(1 2 4 8 14 16 28)
+strong_perf
+
+dim=128
+steps=50
+tile=16
+warmup_steps=20
+threads=(1 2 4 8 14 16 28)
+strong_perf
+
+dim=144
+steps=50
+tile=16
+warmup_steps=20
+threads=(1 2 4 8 14 16 28)
+strong_perf
+
+dim=160
+steps=50
+tile=16
+warmup_steps=20
+threads=(1 2 4 8 14 16 28)
+strong_perf
+
+dim=176
+steps=50
+tile=16
+warmup_steps=20
+threads=(1 2 4 8 14 16 28)
+strong_perf
