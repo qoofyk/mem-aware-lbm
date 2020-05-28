@@ -37,18 +37,18 @@ usePOSIX     = true
 # Path to external source files (other than Palabos)
 srcPaths =
 # Path to external libraries (other than Palabos)
-libraryPaths =
+libraryPaths = 
 # Path to inlude directories (other than Palabos)
-includePaths =
+includePaths = -I/opt/intel/vtune_amplifier_2019.6.0.602217/include
 # Dynamic and static libraries (other than Palabos)
-libraries    =
+libraries    = /opt/intel/vtune_amplifier_2019.6.0.602217/lib64/libittnotify.a
 
 # Compiler to use without MPI parallelism
 serialCXX    = icpc
 # Compiler to use with MPI parallelism
 parallelCXX  = mpiicpc
 # General compiler flags (e.g. -Wall to turn on all warnings on g++)
-compileFlags = -Wall -Wextra -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X
+compileFlags = -Wall -Wextra -Wnon-virtual-dtor -Wno-deprecated-declarations -DPLB_MAC_OS_X -std=c++11
 
 # STEP2_WHOLE flags
 step2_whole_Flags = false
@@ -62,12 +62,12 @@ step2_unroll_Flags = false
 step2_pyramid_Flags = false
 
 # General linker flags (don't put library includes into this flag)
-linkFlags    =
+linkFlags    = -lm
 # Compiler flags to use when optimization mode is on
 optimFlags   = -O3
 #optimFlags   = -xHOST -O3 -ip -no-prec-div -static
 # Compiler flags to use when debug mode is on
-debugFlags   = -g
+debugFlags   = -g -gdwarf-2 -parallel-source-info=2 -debug inline-debug-info #-vec-report3 -qopt-report -qopt-report-phase=vec
 # Compiler flags to use when profile mode is on
 profileFlags = -pg
 

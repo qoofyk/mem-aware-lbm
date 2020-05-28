@@ -37,9 +37,9 @@ usePOSIX     = true
 # Path to external source files (other than Palabos)
 srcPaths =
 # Path to external libraries (other than Palabos)
-includePaths = -I${HOME}/intel/vtune_amplifier_2019.6.0.602217/include
+includePaths = -I/opt/intel/vtune_amplifier_2019.6.0.602217/include
 # Dynamic and static libraries (other than Palabos)
-libraries    = ${HOME}/intel/vtune_amplifier_2019.6.0.602217/lib64/libittnotify.a
+libraries    = /opt/intel/vtune_amplifier_2019.6.0.602217/lib64/libittnotify.a
 
 # Compiler to use without MPI parallelism
 serialCXX    = icpc
