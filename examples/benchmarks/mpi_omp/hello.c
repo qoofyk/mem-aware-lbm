@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
   int numprocs, rank, namelen;
   char processor_name[MPI_MAX_PROCESSOR_NAME];
   int iam = 0, np = 1;
-  int N=12;
+  int N=48;
   int thread_block = N/atoi(getenv("OMP_NUM_THREADS"));
 
   MPI_Init(&argc, &argv);
