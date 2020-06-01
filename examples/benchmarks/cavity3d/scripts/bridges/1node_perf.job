@@ -1,0 +1,105 @@
+#!/bin/bash
+#SBATCH --job-name="s1perf"
+#SBATCH --output="results/1node.s1perf.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 8:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module load intel/19.5
+
+which mpirun
+mkdir -pv results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+mkdir -pv ${SCRATCH_DIR}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+analysis () {
+    for ((k=0; k<${#procs[@]}; k++)); do
+        NP=${procs[k]}
+        echo "1. collect hpc"
+        mpirun -np $NP amplxe-cl -result-dir ${SCRATCH_DIR}/$dim/hpc${NP} -quiet -collect hpc-performance -data-limit=0 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+        echo "============================================"
+        echo
+
+        echo "2. collect hotspot"
+        mpirun -np $NP amplxe-cl -result-dir ${SCRATCH_DIR}/$dim/hotspot${NP} -quiet -collect hotspots -data-limit=0 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+        echo "============================================"
+        echo
+
+        echo "3. collect snapshot"
+        mpirun -np $NP aps -result-dir ${SCRATCH_DIR}/$dim/snapshot${NP} ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+        aps-report ${SCRATCH_DIR}/$dim/snapshot${NP} -O  ${SCRATCH_DIR}/$dim/snapshot${i}.html
+        echo "============================================"
+        echo
+
+        echo "4. collect memory-access with openmp=true"
+        mpirun -np $NP amplxe-cl -result-dir ${SCRATCH_DIR}/$dim/mem${NP} -quiet -collect memory-access -knob analyze-openmp=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+        echo "============================================"
+        echo
+
+        # echo "5. collect memory-access with analysze-dynamic-mem-obj=true"
+        # mpirun -np $NP amplxe-cl -result-dir ${SCRATCH_DIR}/$dim/mem-dynamic-alloc-${NP} -quiet -collect memory-access -knob analyze-mem-objects=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+        # echo "============================================"
+        # echo
+
+        echo "6. collect uarch-exploration with collect-memory-bandwidth=true"
+        mpirun -np $NP amplxe-cl -result-dir ${SCRATCH_DIR}/$dim/uarch${NP} -quiet -collect uarch-exploration -knob collect-memory-bandwidth=true -data-limit=0 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+        echo "============================================"
+        echo
+
+        echo "7. report hw-events from uarch"
+        amplxe-cl -report hw-events -quiet -result-dir ${SCRATCH_DIR}/$dim/uarch${NP} -report-output hw-events${NP}.csv -format csv -csv-delimiter comma
+        echo "============================================"
+        echo
+
+        echo "8. report top-down from uarch"
+        amplxe-cl -report top-down -quiet -result-dir ${SCRATCH_DIR}/$dim/uarch${NP} -report-output top-down${NP}.csv -format csv -csv-delimiter comma
+        echo "============================================"
+        echo
+
+        echo "9. report summary from uarch"
+        amplxe-cl -report summary -quiet -result-dir ${SCRATCH_DIR}/$dim/uarch${NP} -report-output summary${NP}.csv -format csv -csv-delimiter comma
+        echo "============================================"
+        echo
+
+        echo "10. collect page fault"
+        mkdir -pv ${SCRATCH_DIR}/$dim/sys-overview${NP}
+        mpirun -np $NP amplxe-cl -collect system-overview -quiet -result-dir ${SCRATCH_DIR}/$dim/sys-overview${NP} -data-limit=0 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+        echo "============================================"
+        echo
+    done
+}
+
+dim=$((112 + 2))
+steps=150
+block_size=0
+warmup_steps=40
+procs=(1 2 4 8 14 16 28)
+analysis
+
+dim=$((336 + 2))
+steps=50
+block_size=0
+warmup_steps=20
+procs=(1 2 4 8 14 16 28)
+analysis
+
+
+dim=$((448 + 2))
+steps=50
+block_size=0
+warmup_steps=20
+procs=(1 2 4 8 14 16 28)
+analysis

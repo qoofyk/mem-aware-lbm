@@ -59,7 +59,7 @@ step1_strong_perf () {
       mpirun -n $num_proc $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz
 
       echo " $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
-      mpirun -n $num_proc $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+      mpirun -n $num_proc $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz
     done
   done
 }

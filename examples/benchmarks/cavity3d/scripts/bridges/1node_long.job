@@ -1,0 +1,112 @@
+#!/bin/bash
+#SBATCH --job-name="s1_long" #step1
+#SBATCH --output="results/1node.long.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 23:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module list
+
+mkdir results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+# dim=$((112 * 6 + 2))
+# steps=20
+# block_size=0
+# warmup_steps=20
+# for i in `seq 3`
+# do
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 2 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 4 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 8 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 14 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 16 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 28 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+# done
+
+# dim=$((112 * 7 + 2))
+# steps=20
+# block_size=0
+# warmup_steps=20
+# for i in `seq 3`
+# do
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 2 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 4 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 8 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 14 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 16 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 28 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+# done
+
+dim=$((112 * 8 + 2))
+steps=20
+block_size=0
+warmup_steps=20
+for i in `seq 3`
+do
+#    mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+    #mpirun -n 2 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+    #mpirun -n 4 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+    #mpirun -n 8 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+    #mpirun -n 14 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+    #mpirun -n 16 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+    mpirun -n 28 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+done
+
+# dim=$((112 * 9 + 2)) #exceed memory
+# steps=20
+# block_size=0
+# warmup_steps=2
+# for i in `seq 3`
+# do
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 2 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 4 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 8 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 14 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 16 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+#     mpirun -n 28 ${PBS_O_WORKDIR}/cavity3d $dim $steps $block_size $warmup_steps
+# done
+
+# girdSize, iteration, blockSize, warmUpIteration
+
+# for i in `seq 3`
+# do
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 31 100 30 2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 63 100 30 2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 99 100 30 2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 127 100 30 2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 149 100 30 2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 199 100 30 2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 249 100 30 2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 255 100 30 2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 299 50 30 2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 349 50 30 2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 399 50 30 2
+#     mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 449 50 30 2
+#     #mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 511 20 30 2
+# 	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 549 20 30 2
+# 	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 599 20 30 2
+# 	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 649 20 30 2
+# 	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 699 20 30 2
+# 	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 767 20 30 2
+# 	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 799 20 30 2
+# 	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 849 20 30 2
+# 	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 899 20 30 2
+# 	#mpirun -n 1 ${PBS_O_WORKDIR}/cavity3d 1023 20 200 2
+# done

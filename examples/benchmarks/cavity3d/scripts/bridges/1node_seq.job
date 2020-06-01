@@ -1,0 +1,58 @@
+#!/bin/bash
+#SBATCH --job-name="s1_seq_py" #step1
+#SBATCH --output="results/1node.seq.pyramid.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 12:00:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+mkdir -p results
+module list
+
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+BIN=${PBS_O_WORKDIR}/cavity3d
+
+step2_seq () {
+  for blk in "${block_size[@]}"
+  do
+    for i in `seq 2`
+    do
+      Nx=$((N + 1))
+      Ny=$((N + 1))
+      Nz=$((N + 1))
+      echo "mpirun -n 1 $BIN $N $steps $blk $warmup_steps $Nx $Ny $Nz"
+      mpirun -n 1 $BIN $N $steps $blk $warmup_steps $Nx $Ny $Nz
+    done
+  done
+}
+
+# dim=(16 32 64)
+# steps=100
+# block_size=30
+# warmup_steps=20
+# for N in "${dim[@]}"
+# do
+#   seq
+# done
+
+dim=(256 300 350 400 450 500 550 600 650 700)
+steps=50
+block_size=(32 64 128 200)
+warmup_steps=20
+for N in "${dim[@]}"
+do
+  step2_seq
+done

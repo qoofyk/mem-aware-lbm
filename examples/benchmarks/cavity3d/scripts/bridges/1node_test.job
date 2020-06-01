@@ -1,0 +1,126 @@
+#!/bin/bash
+#SBATCH --job-name="s1_cav3d_test"
+#SBATCH --output="results/1node.s1_cav3d_test.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 10:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module list
+
+mkdir results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(pwd)
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+BIN=${PBS_O_WORKDIR}/cavity3d
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+#dim=$((112 + 2))
+#steps=100
+#block_size=0
+#warmup_steps=2
+#for i in `seq 3`
+#do
+    #mpirun -n 1 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 2 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 4 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 8 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 14 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 16 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 28 $BIN $dim $steps $block_size $warmup_steps
+#done
+
+#dim=$((224 + 2))
+#steps=100
+#block_size=0
+#warmup_steps=2
+#for i in `seq 3`
+#do
+    #mpirun -n 1 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 2 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 4 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 8 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 14 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 16 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 28 $BIN $dim $steps $block_size $warmup_steps
+#done
+
+#dim=$((336 + 2))
+dim=349
+steps=104
+block_size=0
+warmup_steps=104
+for i in `seq 3`
+do
+    mpirun -n 1 $BIN $dim $steps $block_size $warmup_steps
+#    mpirun -n 2 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 4 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 8 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 14 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 16 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 28 $BIN $dim $steps $block_size $warmup_steps
+done
+
+#dim=$((448 + 2))
+#steps=20
+#block_size=0
+#warmup_steps=2
+#for i in `seq 3`
+#do
+    #mpirun -n 1 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 2 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 4 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 8 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 14 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 16 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 28 $BIN $dim $steps $block_size $warmup_steps
+#done
+
+#dim=$((560 + 2))
+#steps=20
+#block_size=0
+#warmup_steps=2
+#for i in `seq 3`
+#do
+    #mpirun -n 1 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 2 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 4 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 8 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 14 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 16 $BIN $dim $steps $block_size $warmup_steps
+    #mpirun -n 28 $BIN $dim $steps $block_size $warmup_steps
+#done
+
+## for i in `seq 3`
+# do
+#     mpirun -n 1 $BIN 31 100 30 2
+#     mpirun -n 1 $BIN 63 100 30 2
+#     mpirun -n 1 $BIN 99 100 30 2
+#     mpirun -n 1 $BIN 127 100 30 2
+#     mpirun -n 1 $BIN 149 100 30 2
+#     mpirun -n 1 $BIN 199 50 30 2
+#     mpirun -n 1 $BIN 249 50 30 2
+#     mpirun -n 1 $BIN 255 50 30 2
+#     mpirun -n 1 $BIN 299 40 30 2
+#     mpirun -n 1 $BIN 349 40 30 2
+#     mpirun -n 1 $BIN 399 20 30 2
+#     mpirun -n 1 $BIN 449 20 30 2
+#     mpirun -n 1 $BIN 511 20 30 2
+#   #mpirun -n 1 $BIN 549 20 30 2
+#   #mpirun -n 1 $BIN 599 20 30 2
+#   #mpirun -n 1 $BIN 649 20 30 2
+#   #mpirun -n 1 $BIN 699 20 30 2
+#   #mpirun -n 1 $BIN 767 20 30 2
+#   #mpirun -n 1 $BIN 799 20 30 2
+#   #mpirun -n 1 $BIN 849 20 30 2
+#   #mpirun -n 1 $BIN 899 20 30 2
+# done

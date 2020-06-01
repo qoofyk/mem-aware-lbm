@@ -3,7 +3,7 @@
 #SBATCH --output="results/1node.s1.weak.Nx.%j.out"
 #SBATCH --partition=RM
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=28 #a maximum count of tasks per node
+#SBATCH --ntasks-per-node=28
 #SBATCH -t 20:0:00
 #SBATCH --export=ALL
 
