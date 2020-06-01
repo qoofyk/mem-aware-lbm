@@ -33,6 +33,7 @@
   #include <omp.h>
 #endif
 #include "ittnotify.h"
+#include <exception>
 
 using namespace plb;
 using namespace std;
@@ -86,6 +87,18 @@ void test_omp_hello(){
 #endif
 }
 
+struct MyException1 : public exception {
+  const char * what () const throw () {
+    return "(N-3 % OMP_NUM_THREADS != 0, Not Divisible";
+  }
+};
+
+struct MyException2 : public exception {
+  const char * what () const throw () {
+    return "thread_block % ykBlockSize != 0, Not Divisible";
+  }
+};
+
 int main(int argc, char* argv[]) {
 
     __itt_pause();
@@ -103,7 +116,7 @@ int main(int argc, char* argv[]) {
     omp_set_num_threads(NUM_THREADS);
 #endif
 
-    test_omp_hello();
+    // test_omp_hello();
 
     try {
         global::argv(1).read(N);
@@ -119,12 +132,16 @@ int main(int argc, char* argv[]) {
         // thread_block = (N - 2) / NUM_THREADS;
 
         // check (Nx - 3) % NUM_THREADS == 0
-        if ((Nx - 3) % NUM_THREADS != 0) throw 'N';
+        if ((Nx - 3) % NUM_THREADS != 0) throw MyException1();
         thread_block = (Nx - 3) / NUM_THREADS;
+        if (thread_block % ykBlockSize != 0) throw MyException2();
     }
-    catch(char param) {
-        // cout << "(N - 2) % OMP_NUM_THREADS != 0, Not Divisible\n";
-        cout << "(N - 3) % OMP_NUM_THREADS != 0, Not Divisible\n";
+    catch (MyException1& e) {
+        std::cout << e.what() << std::endl;
+        exit(1);
+    }
+    catch (MyException2& e) {
+        std::cout << e.what() << std::endl;
         exit(1);
     }
     catch(...) {
@@ -200,7 +217,7 @@ int main(int argc, char* argv[]) {
     // Run the benchmark for good.
     __itt_resume();
     global::timer("benchmark").start();
-    global::profiler().turnOn();
+    // global::profiler().turnOn();
     for (plint iT=0; iT < numIter; iT += K) {
         // pcout << "iT=" << iT << std::endl;
         lattice.step2collideAndStream();
@@ -223,7 +240,7 @@ int main(int argc, char* argv[]) {
              global::timer("benchmark").getTime() / 1.e6
           << " Mega site updates per second.\n";
     pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << "\n\n";
-    global::profiler().writeReport();
+    // global::profiler().writeReport();
 
     delete boundaryCondition;
 }

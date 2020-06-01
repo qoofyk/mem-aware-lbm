@@ -83,6 +83,7 @@ cube_step1_strong_perf () {
   done
 }
 
+max_cores=28
 dim=$((max_cores * 4)) #112
 steps=300
 # tile=(112 56 28 14 8 7 4)

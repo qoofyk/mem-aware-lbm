@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name="palabos.1node.cube.strong"
-#SBATCH --output="results/1node.cube.s1_cav3d_strong_sht.%j.out"
+#SBATCH --output="results/1node.cube.s1_cav3d_strong.%j.out"
 #SBATCH --partition=RM
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
@@ -15,7 +15,7 @@
 module list
 mkdir -p results
 PBS_O_HOME=$HOME
-PBS_O_WORKDIR=$(pwd)
+PBS_O_WORKDIR=$(dirname "$PWD") #dirname - strip last component from file name || dir="$PWD/.." || dir=".."
 export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
 
 # bridges
@@ -83,6 +83,7 @@ cube_step1_strong_perf () {
   done
 }
 
+max_cores=28
 dim=$((max_cores * 4)) #112
 steps=300
 # tile=(112 56 28 14 8 7 4)
