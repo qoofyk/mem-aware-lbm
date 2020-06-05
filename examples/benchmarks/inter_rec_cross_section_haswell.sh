@@ -127,7 +127,7 @@ rec_cross_section_step1_strong_perf () {
       # mpirun -env I_MPI_PIN_PROCESSOR_LIST=:map=spread -n $num_proc $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz
 
       # echo "spread $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
-      # mpirun -env I_MPI_PIN_PROCESSOR_LIST=:map=spread -n $num_proc $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+      # mpirun -env I_MPI_PIN_PROCESSOR_LIST=:map=spread -n $num_proc $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz
 
       # echo "---------------------------------------------------------------------"
 
@@ -161,16 +161,36 @@ rec_cross_section_step1_strong_perf () {
 
 tile=8
 
-Whole_Nx=$((32 * 112))
-for base in 32
+# Whole_Nx=$((32 * 112))
+# for base in 32
+# do
+#   for i in {10..16..2}
+#   do
+#     Ny=$((base * i))
+#     Nz=$base
+#     steps=300
+#     # tile=(192 96 48 32 24 16 12 8 6 4)
+#     warmup_steps=150
+#     # threads=(1 2 4 6 8 12 16 24 32 48)
+#     threads=(16 28)
+#     rec_cross_section_step2_whole_strong_perf
+#     rec_cross_section_step2_3parts_strong_perf
+#     rec_cross_section_step1_strong_perf
+
+#     echo "========================================================================================="
+#   done
+# done
+
+Whole_Nx=$((16 * 112))
+for base in 64
 do
-  for i in {10..16..2}
+  for i in {1..8}
   do
     Ny=$((base * i))
     Nz=$base
-    steps=300
+    steps=150
     # tile=(192 96 48 32 24 16 12 8 6 4)
-    warmup_steps=150
+    warmup_steps=100
     # threads=(1 2 4 6 8 12 16 24 32 48)
     threads=(16 28)
     rec_cross_section_step2_whole_strong_perf
@@ -181,16 +201,16 @@ do
   done
 done
 
-Whole_Nx=$((16 * 112))
-for base in 64
+Whole_Nx=$((8 * 112))
+for base in 128
 do
-  for i in {1..16..2}
+  for i in {1..4}
   do
     Ny=$((base * i))
     Nz=$base
-    steps=300
+    steps=150
     # tile=(192 96 48 32 24 16 12 8 6 4)
-    warmup_steps=150
+    warmup_steps=100
     # threads=(1 2 4 6 8 12 16 24 32 48)
     threads=(16 28)
     rec_cross_section_step2_whole_strong_perf
