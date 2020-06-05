@@ -27,6 +27,7 @@
  */
 
 #include "atomicBlock/blockLattice3D.hh"
+#include "atomicBlock/blockLattice3D_step2.hh"
 #include "atomicBlock/dataField3D.hh"
 #include "atomicBlock/dataProcessingFunctional3D.hh"
 #include "atomicBlock/dataProcessorWrapper3D.hh"
