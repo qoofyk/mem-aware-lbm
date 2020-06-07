@@ -114,8 +114,7 @@ BlockLattice3D<T,Descriptor>::BlockLattice3D(BlockLattice3D<T,Descriptor> const&
 
     std::cout << "BlockLattice3D(rhs)" << std::endl;
 
-    // #pragma omp parallel for default(shared) schedule(static, thread_block)
-    #pragma omp parallel for default(shared) schedule(static)
+    #pragma omp parallel for default(shared) schedule(static, thread_block)
     for (plint iX=0; iX<nx; ++iX) {
         for (plint iY=0; iY<ny; ++iY) {
             for (plint iZ=0; iZ<nz; ++iZ) {
@@ -1866,6 +1865,8 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) { }
 // Add by Yuankun
 plint ykPanel_len;
 #if defined(STEP2_OMP)
+
+#if defined(PANEL_MEM)
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::allocateAndInitialize() {
     this->getInternalStatistics().subscribeAverage(); // Subscribe average rho-bar
@@ -1878,27 +1879,41 @@ void BlockLattice3D<T,Descriptor>::allocateAndInitialize() {
     rawData = new Cell<T,Descriptor> [nx*ny*nz];
     grid    = new Cell<T,Descriptor>** [nx];
 
-    if (ykPanel_len <= 0) { // Before: access grid[iX][iY][iZ]
-      #pragma omp parallel for default(shared) schedule(static)
-      for (plint iX=0; iX<nx; ++iX) {
-        grid[iX] = new Cell<T,Descriptor>* [ny];
-        for (plint iY=0; iY<ny; ++iY) {
-          grid[iX][iY] = rawData + nz*(iY+ny*iX);
-        }
-      }
-    }
-    else { // Now: use panel memory layout to compute, access grid[iX][iY + ykPanel_len * (iZ / ykPanel_len)][iZ % ykPanel_len]
-      plint NewNy = ny * (nz / ykPanel_len);
-      plint NewNz = ykPanel_len;
-      #pragma omp parallel for default(shared) schedule(static)
-      for (plint iX = 0; iX < nx; ++iX) {
-        grid[iX] = new Cell<T,Descriptor>* [NewNy];
-        for (plint iY = 0; iY < NewNy; ++iY) {
-          grid[iX][iY] = rawData + NewNz*(iY+NewNy*iX);
-        }
+   // Now: use panel memory layout to compute, access grid[iX][iY + ykPanel_len * (iZ / ykPanel_len)][iZ % ykPanel_len]
+    plint NewNy = ny * (nz / ykPanel_len);
+    plint NewNz = ykPanel_len;
+    #pragma omp parallel for default(shared) schedule(static, thread_block)
+    for (plint iX = 0; iX < nx; ++iX) {
+      grid[iX] = new Cell<T,Descriptor>* [NewNy];
+      for (plint iY = 0; iY < NewNy; ++iY) {
+        grid[iX][iY] = rawData + NewNz*(iY+NewNy*iX);
       }
     }
 }
+#else
+template<typename T, template<typename U> class Descriptor>
+void BlockLattice3D<T,Descriptor>::allocateAndInitialize() {
+    this->getInternalStatistics().subscribeAverage(); // Subscribe average rho-bar
+    this->getInternalStatistics().subscribeAverage(); // Subscribe average uSqr
+    this->getInternalStatistics().subscribeMax();     // Subscribe max uSqr
+
+    plint nx = this->getNx();
+    plint ny = this->getNy();
+    plint nz = this->getNz();
+    rawData = new Cell<T,Descriptor> [nx*ny*nz];
+    grid    = new Cell<T,Descriptor>** [nx];
+
+    // Before: access grid[iX][iY][iZ]
+    #pragma omp parallel for default(shared) schedule(static, thread_block)
+    for (plint iX=0; iX<nx; ++iX) {
+      grid[iX] = new Cell<T,Descriptor>* [ny];
+      for (plint iY=0; iY<ny; ++iY) {
+        grid[iX][iY] = rawData + nz*(iY+ny*iX);
+      }
+    }
+    
+}
+#endif
 
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::releaseMemory() {
