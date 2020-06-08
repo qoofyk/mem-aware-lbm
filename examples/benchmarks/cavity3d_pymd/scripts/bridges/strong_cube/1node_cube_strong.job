@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name="step2.1node.cube.strong.whole-omp-unroll-pymd.bind"
-#SBATCH --output="results/1node.cube.whole-omp-unroll-pymd.bind.%j.out"
+#SBATCH --job-name="palabos.pymd.1node.cube.strong"
+#SBATCH --output="results/strong_cube/1node.cube.s1_cav3d_strong.%j.out"
 #SBATCH --partition=RM
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
@@ -30,7 +30,7 @@ BIN4=${PBS_O_WORKDIR}/cavity3d/cavity3d
 
 max_cores=28
 
-cube_step2_strong_perf () {
+cube_step1_strong_perf () {
   N=$dim
   Nx=$dim
   Ny=$dim
@@ -39,39 +39,49 @@ cube_step2_strong_perf () {
   do
     # for ((k=0; k<${#threads[@]}; k++)); do
     for ((k=${#threads[@]}-1; k>=0; k--)); do
-      export OMP_NUM_THREADS=${threads[k]}
-      export OMP_PROC_BIND=spread
-      # export KMP_AFFINITY=verbose
-
-      echo "KMP_AFFINITY=${KMP_AFFINITY}, OMP_PROC_BIND=${OMP_PROC_BIND}"
+      num_proc=${threads[k]}
       tile=$((Nx / threads[k]))
-      echo "spread $BIN1 $N $steps $tile ${warmup_steps} $Nx $Ny $Nz"
-      mpirun -n 1 $BIN1 $N $steps $tile $warmup_steps $Nx $Ny $Nz
 
-      # export OMP_PROC_BIND=false
-      # if [[ $OMP_NUM_THREADS -eq $max_cores ]]
+      # export I_MPI_DEBUG=4 #MPI runtime report process binding
+
+      # echo "default $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      # mpirun -n $num_proc $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      # echo "default $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      # mpirun -n $num_proc $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      # echo "---------------------------------------------------------------------"
+
+      echo "spread $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      mpirun -env I_MPI_PIN_PROCESSOR_LIST=:map=spread -n $num_proc $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      # echo "spread $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      # mpirun -env I_MPI_PIN_PROCESSOR_LIST=:map=spread -n $num_proc $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      # echo "---------------------------------------------------------------------"
+
+      # if [[ $num_proc -eq 16 ]]
       # then
-      #   # export KMP_AFFINITY=verbose,granularity=fine,balanced
-      #   export OMP_PROC_BIND=spread
-      # elif [[ $OMP_NUM_THREADS -eq 16 ]]
+      #   echo "explict $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      #   mpirun -env I_MPI_PIN_PROCESSOR_LIST=0,14,1,15,17,18,5,6,7,8,9,23,24,25,26,27 \
+      #         -n $num_proc $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      #   echo "explict $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      #   mpirun -env I_MPI_PIN_PROCESSOR_LIST=0,14,1,15,17,18,5,6,7,8,9,23,24,25,26,27 \
+      #         -n $num_proc $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      # elif [[ $num_proc -eq 24 ]]
       # then
-      #   export KMP_AFFINITY=verbose,explicit,granularity=fine,proclist=[0,14,1,15,17,18,5,6,7,8,9,23,24,25,26,27]
-      # elif [[ $OMP_NUM_THREADS -eq 24 ]]
-      # then
-      #   export KMP_AFFINITY=verbose,explicit,granularity=fine,proclist=[0,14,1,15,2,16,17,4,18,5,19,6,7,21,8,22,9,23,24,11,25,12,26,13]
-      # else
-      #   export OMP_PROC_BIND=spread
+      #   echo "explict $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      #   mpirun -env I_MPI_PIN_PROCESSOR_LIST=0,14,1,15,2,16,17,4,18,5,19,6,7,21,8,22,9,23,24,11,25,12,26,13 \
+      #         -n $num_proc $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      #   echo "explict $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      #   mpirun -env I_MPI_PIN_PROCESSOR_LIST=0,14,1,15,2,16,17,4,18,5,19,6,7,21,8,22,9,23,24,11,25,12,26,13 \
+      #         -n $num_proc $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      #   echo "---------------------------------------------------------------------"
       # fi
-      # # export KMP_AFFINITY=verbose,granularity=core,scatter
-      # # export KMP_AFFINITY=verbose,granularity=core,compact
-      # # export KMP_AFFINITY=none,granularity=core
-
-      # echo "KMP_AFFINITY=${KMP_AFFINITY}, OMP_PROC_BIND=${OMP_PROC_BIND}"
-      # tile=$((Nx / threads[k]))
-      # echo "explicit $BIN1 $N $steps $tile ${warmup_steps} $Nx $Ny $Nz"
-      # mpirun -n 1 $BIN1 $N $steps $tile $warmup_steps $Nx $Ny $Nz
-
-      echo "---------------------------------------------------------------------"
     done
   done
 }
@@ -79,162 +89,162 @@ cube_step2_strong_perf () {
 dim=$((max_cores * 4)) #112
 steps=300
 # tile=(112 56 28 14 8 7 4)
-warmup_steps=150
+warmup_steps=200
 threads=(1 2 4 8 14 16 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 5)) #140
 steps=300
 # tile=(112 56 28 14 8 7 4)
-warmup_steps=150
+warmup_steps=200
 threads=(1 2 4 10 14 20 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 6)) #168
-steps=100
+steps=300
 # tile=(112 56 28 14 8 7 4)
-warmup_steps=50
+warmup_steps=200
 threads=(1 2 4 6 8 12 14 24 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 7)) #196
 steps=100
 # tile=(112 56 28 14 8 7 4)
-warmup_steps=50
+warmup_steps=200
 threads=(1 2 4 14 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 8)) #224
-steps=100
+steps=300
 # tile=(112 70 70 70 40 35 20)
-warmup_steps=50
+warmup_steps=200
 threads=(1 2 4 8 14 16 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 9)) #252
-steps=100
+steps=300
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=50
+warmup_steps=200
 threads=(1 2 4 6 12 14 18 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 10)) #280
-steps=100
+steps=300
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=50
+warmup_steps=200
 threads=(1 2 4 8 10 14 20 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 11)) #308
-steps=100
+steps=300
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=50
+warmup_steps=200
 threads=(1 2 4 14 22 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 12)) #336
-steps=50
+steps=300
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=200
 threads=(1 2 4 6 8 12 14 16 24 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 13)) #364
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 14 26 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 14)) #392
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 8 14 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 15)) #420
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 6 10 12 14 20 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 16)) #448
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 8 14 16 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 17)) #476
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 14 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 18)) #504
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 6 8 12 14 18 24 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 19)) #532
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 14 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 20)) #560
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 8 10 14 16 20 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 21)) #588
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 6 12 14 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
@@ -243,78 +253,78 @@ steps=50
 # tile=(112 84 84 84 48 42 24)
 warmup_steps=20
 threads=(1 2 4 8 14 22 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 23)) #644
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 14 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 24)) #672
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 6 8 12 14 16 24 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 25)) #700
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 10 14 20 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 26)) #728
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 8 14 26 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 27)) #756
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 6 12 14 18 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 28)) #784
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 8 14 16 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 29)) #812
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 14 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
 
 dim=$((max_cores * 30)) #840
 steps=50
 # tile=(112 84 84 84 48 42 24)
-warmup_steps=20
+warmup_steps=100
 threads=(1 2 4 6 8 10 12 14 20 24 28)
-cube_step2_strong_perf
+cube_step1_strong_perf
 
 echo "========================================================================================="
