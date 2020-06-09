@@ -1,0 +1,157 @@
+#!/bin/bash
+#SBATCH --job-name="palabos.line.rec-cs.strong.512"
+#SBATCH --output="results/rec_cs/pl.line.rec-cs.strong.512.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 40:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module list
+mkdir -p results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(dirname "$PWD") #dirname - strip last component from file name || dir="$PWD/.." || dir=".."
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+BIN1=${PBS_O_WORKDIR}/cavity3d_step2_whole_omp_unroll_pyramid/cavity3d_step2
+BIN2=${PBS_O_WORKDIR}/cavity3d_pymd/cavity3d
+
+BIN3=${PBS_O_WORKDIR}/cavity3d_step2_3parts_omp_line/cavity3d_step2
+BIN4=${PBS_O_WORKDIR}/cavity3d/cavity3d
+
+max_cores=28
+
+rec_cross_section_step1_strong_perf () {
+  N=$Nz
+
+  # for ((k=0; k<${#threads[@]}; k++)); do
+  for ((k=${#threads[@]}-1; k>=0; k--)); do
+      num_proc=${threads[k]}
+      tile=$((Nx / threads[k]))
+
+      # export I_MPI_DEBUG=4 #MPI runtime report process binding
+
+      # echo "default $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      # mpirun -n $num_proc $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      # echo "default $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      # mpirun -n $num_proc $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      # echo "---------------------------------------------------------------------"
+
+      for i in `seq 3`
+      do
+        # echo "spread $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz" # spread shows same core binding with default
+        # mpirun -env I_MPI_PIN_PROCESSOR_LIST=:map=spread -n $num_proc $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+        echo "spread $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+        mpirun -env I_MPI_PIN_PROCESSOR_LIST=:map=spread -n $num_proc $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+      done
+      echo "---------------------------------------------------------------------"
+
+      # mpi default's performance same as explicit
+      # if [[ $num_proc -eq 16 ]]
+      # then
+      #   echo "explict $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      #   mpirun -env I_MPI_PIN_PROCESSOR_LIST=0,14,1,15,17,18,5,6,7,8,9,23,24,25,26,27 \
+      #         -n $num_proc $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      #   echo "explict $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      #   mpirun -env I_MPI_PIN_PROCESSOR_LIST=0,14,1,15,17,18,5,6,7,8,9,23,24,25,26,27 \
+      #         -n $num_proc $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      # elif [[ $num_proc -eq 24 ]]
+      # then
+      #   echo "explict $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      #   mpirun -env I_MPI_PIN_PROCESSOR_LIST=0,14,1,15,2,16,17,4,18,5,19,6,7,21,8,22,9,23,24,11,25,12,26,13 \
+      #         -n $num_proc $BIN2 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      #   echo "explict $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz"
+      #   mpirun -env I_MPI_PIN_PROCESSOR_LIST=0,14,1,15,2,16,17,4,18,5,19,6,7,21,8,22,9,23,24,11,25,12,26,13 \
+      #         -n $num_proc $BIN4 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+      #   echo "---------------------------------------------------------------------"
+      # fi
+  done
+}
+
+# Nx=$((32 * 112))
+# Nz=32
+# for Ny in {32..928..32}
+# do
+#   steps=150
+#   # tile=(192 96 48 32 24 16 12 8 6 4)
+#   warmup_steps=100
+#   threads=(1 2 4 8 14 16 28)
+#   rec_cross_section_step1_strong_perf
+#   echo "========================================================================================="  
+# done
+
+# Nx=$((16 * 112))
+# Nz=64
+# for Ny in {32..928..32}
+# do
+#   steps=150
+#   # tile=(192 96 48 32 24 16 12 8 6 4)
+#   warmup_steps=100
+#   threads=(1 2 4 8 14 16 28)
+#   rec_cross_section_step1_strong_perf
+#   echo "========================================================================================="  
+# done
+
+# Nx=$((8 * 112))
+# Nz=128
+# for Ny in {32..928..32}
+# do
+#   steps=150
+#   # tile=(192 96 48 32 24 16 12 8 6 4)
+#   warmup_steps=100
+#   threads=(1 2 4 8 14 16 28)
+#   rec_cross_section_step1_strong_perf
+#   echo "========================================================================================="  
+# done
+
+# Nx=$((4 * 112))
+# Nz=256
+# for Ny in {32..928..32}
+# do
+#   steps=150
+#   # tile=(192 96 48 32 24 16 12 8 6 4)
+#   warmup_steps=100
+#   threads=(1 2 4 8 14 16 28)
+#   rec_cross_section_step1_strong_perf
+#   echo "========================================================================================="  
+# done
+
+Nx=$((2 * 112))
+Nz=512
+for Ny in {32..928..128}
+do
+  steps=150
+  # tile=(192 96 48 32 24 16 12 8 6 4)
+  warmup_steps=100
+  threads=(1 2 4 8 14 16 28)
+  rec_cross_section_step1_strong_perf
+  echo "========================================================================================="  
+done
+
+# Nx=$((112))
+# Nz=1024
+# for Ny in {32..928..32}
+# do
+#   steps=150
+#   # tile=(192 96 48 32 24 16 12 8 6 4)
+#   warmup_steps=100
+#   threads=(1 2 4 8 14 16 28)
+#   rec_cross_section_step1_strong_perf
+#   echo "========================================================================================="  
+# done

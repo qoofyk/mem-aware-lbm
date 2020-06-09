@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name="s2.strong.rec-cs.whole-omp-unroll-pymd.bind.128"
-#SBATCH --output="results/rec_cs/1node.cube.whole-omp-unroll-pymd.bind.128.%j.out"
+#SBATCH --job-name="s2.strong.rec-cs.whole-omp-unroll-pymd.bind.512"
+#SBATCH --output="results/rec_cs/1node.cube.whole-omp-unroll-pymd.bind.512.%j.out"
 #SBATCH --partition=RM
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
@@ -31,7 +31,7 @@ BIN4=${PBS_O_WORKDIR}/cavity3d/cavity3d
 max_cores=28
 
 rec_cross_section_step2_whole_strong_perf () {
-  N=$Nz
+  N=1
 
   # for ((k=0; k<${#threads[@]}; k++)); do
   for ((k=${#threads[@]}-1; k>=0; k--)); do
@@ -76,7 +76,7 @@ rec_cross_section_step2_whole_strong_perf () {
 
 # Nx=$((32 * 112))
 # Nz=32
-# for Ny in {32..864..32}
+# for Ny in {32..928..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)
@@ -88,7 +88,7 @@ rec_cross_section_step2_whole_strong_perf () {
 
 # Nx=$((16 * 112))
 # Nz=64
-# for Ny in {32..864..32}
+# for Ny in {32..928..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)
@@ -98,9 +98,33 @@ rec_cross_section_step2_whole_strong_perf () {
 #   echo "========================================================================================="  
 # done
 
-Nx=$((8 * 112))
-Nz=128
-for Ny in {32..864..32}
+# Nx=$((8 * 112))
+# Nz=128
+# for Ny in {32..928..32}
+# do
+#   steps=150
+#   # tile=(192 96 48 32 24 16 12 8 6 4)
+#   warmup_steps=100
+#   threads=(1 2 4 8 14 16 28)
+#   rec_cross_section_step2_whole_strong_perf
+#   echo "========================================================================================="  
+# done
+
+# Nx=$((4 * 112))
+# Nz=256
+# for Ny in {32..928..32}
+# do
+#   steps=150
+#   # tile=(192 96 48 32 24 16 12 8 6 4)
+#   warmup_steps=100
+#   threads=(1 2 4 8 14 16 28)
+#   rec_cross_section_step2_whole_strong_perf
+#   echo "========================================================================================="  
+# done
+
+Nx=$((2 * 112))
+Nz=512
+for Ny in {32..928..128}
 do
   steps=150
   # tile=(192 96 48 32 24 16 12 8 6 4)
@@ -110,33 +134,9 @@ do
   echo "========================================================================================="  
 done
 
-# Nx=$((4 * 112))
-# Nz=256
-# for Ny in {32..864..32}
-# do
-#   steps=150
-#   # tile=(192 96 48 32 24 16 12 8 6 4)
-#   warmup_steps=100
-#   threads=(1 2 4 8 14 16 28)
-#   rec_cross_section_step2_whole_strong_perf
-#   echo "========================================================================================="  
-# done
-
-# Nx=$((2 * 112))
-# Nz=512
-# for Ny in {32..864..32}
-# do
-#   steps=150
-#   # tile=(192 96 48 32 24 16 12 8 6 4)
-#   warmup_steps=100
-#   threads=(1 2 4 8 14 16 28)
-#   rec_cross_section_step2_whole_strong_perf
-#   echo "========================================================================================="  
-# done
-
 # Nx=$((112))
 # Nz=1024
-# for Ny in {32..864..32}
+# for Ny in {32..928..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)

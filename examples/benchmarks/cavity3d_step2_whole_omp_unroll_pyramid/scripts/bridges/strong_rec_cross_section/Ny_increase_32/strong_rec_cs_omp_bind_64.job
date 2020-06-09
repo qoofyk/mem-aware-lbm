@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name="s2.strong.rec-cs.whole-omp-unroll-pymd.bind.32"
-#SBATCH --output="results/rec_cs/1node.cube.whole-omp-unroll-pymd.bind.32.%j.out"
+#SBATCH --job-name="s2.strong.rec-cs.whole-omp-unroll-pymd.bind.64"
+#SBATCH --output="results/rec_cs/1node.cube.whole-omp-unroll-pymd.bind.64.%j.out"
 #SBATCH --partition=RM
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
-#SBATCH -t 23:0:00
+#SBATCH -t 40:0:00
 #SBATCH --export=ALL
 
 # mail alert at start, end and abortion of execution
@@ -74,21 +74,9 @@ rec_cross_section_step2_whole_strong_perf () {
   done
 }
 
-Nx=$((32 * 112))
-Nz=32
-for Ny in {32..864..32}
-do
-  steps=150
-  # tile=(192 96 48 32 24 16 12 8 6 4)
-  warmup_steps=100
-  threads=(1 2 4 8 14 16 28)
-  rec_cross_section_step2_whole_strong_perf
-  echo "========================================================================================="  
-done
-
-# Nx=$((16 * 112))
-# Nz=64
-# for Ny in {32..864..32}
+# Nx=$((32 * 112))
+# Nz=32
+# for Ny in {32..608..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)
@@ -98,9 +86,22 @@ done
 #   echo "========================================================================================="  
 # done
 
+Nx=$((16 * 112))
+Nz=64
+for Ny in {32..608..32}
+do
+  steps=150
+  # tile=(192 96 48 32 24 16 12 8 6 4)
+  warmup_steps=100
+  # threads=(1 2 4 8 14 16 28)
+  threads=(1)
+  rec_cross_section_step2_whole_strong_perf
+  echo "========================================================================================="  
+done
+
 # Nx=$((8 * 112))
 # Nz=128
-# for Ny in {32..864..32}
+# for Ny in {32..608..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)
@@ -112,7 +113,7 @@ done
 
 # Nx=$((4 * 112))
 # Nz=256
-# for Ny in {32..864..32}
+# for Ny in {32..608..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)
@@ -124,7 +125,7 @@ done
 
 # Nx=$((2 * 112))
 # Nz=512
-# for Ny in {32..864..32}
+# for Ny in {32..608..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)
@@ -136,7 +137,7 @@ done
 
 # Nx=$((112))
 # Nz=1024
-# for Ny in {32..864..32}
+# for Ny in {32..608..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)

@@ -1,0 +1,148 @@
+#!/bin/bash
+#SBATCH --job-name="s2.strong.rec-cs.whole-omp-unroll-pymd.bind.64"
+#SBATCH --output="results/rec_cs/1node.cube.whole-omp-unroll-pymd.bind.64.%j.out"
+#SBATCH --partition=RM
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=28
+#SBATCH -t 23:0:00
+#SBATCH --export=ALL
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module list
+mkdir -p results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(dirname "$PWD") #dirname - strip last component from file name || dir="$PWD/.." || dir=".."
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+BIN1=${PBS_O_WORKDIR}/cavity3d_step2_whole_omp_unroll_pyramid/cavity3d_step2
+BIN2=${PBS_O_WORKDIR}/cavity3d_pymd/cavity3d
+
+BIN3=${PBS_O_WORKDIR}/cavity3d_step2_3parts_omp_line/cavity3d_step2
+BIN4=${PBS_O_WORKDIR}/cavity3d/cavity3d
+
+max_cores=28
+
+rec_cross_section_step2_whole_strong_perf () {
+  N=$Nz
+
+  # for ((k=0; k<${#threads[@]}; k++)); do
+  for ((k=${#threads[@]}-1; k>=0; k--)); do
+    export OMP_NUM_THREADS=${threads[k]}
+    export OMP_PROC_BIND=spread
+    # export KMP_AFFINITY=verbose
+
+    echo "KMP_AFFINITY=${KMP_AFFINITY}, OMP_PROC_BIND=${OMP_PROC_BIND}"
+    tile=$((Nx / threads[k]))
+    echo "spread $BIN1 $N $steps $tile ${warmup_steps} $Nx $Ny $Nz"
+
+    for i in `seq 3`
+    do
+      mpirun -n 1 $BIN1 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+    done
+    # export OMP_PROC_BIND=false
+    # if [[ $OMP_NUM_THREADS -eq $max_cores ]]
+    # then
+    #   # export KMP_AFFINITY=verbose,granularity=fine,balanced
+    #   export OMP_PROC_BIND=spread
+    # elif [[ $OMP_NUM_THREADS -eq 16 ]]
+    # then
+    #   export KMP_AFFINITY=verbose,explicit,granularity=fine,proclist=[0,14,1,15,17,18,5,6,7,8,9,23,24,25,26,27]
+    # elif [[ $OMP_NUM_THREADS -eq 24 ]]
+    # then
+    #   export KMP_AFFINITY=verbose,explicit,granularity=fine,proclist=[0,14,1,15,2,16,17,4,18,5,19,6,7,21,8,22,9,23,24,11,25,12,26,13]
+    # else
+    #   export OMP_PROC_BIND=spread
+    # fi
+    # # export KMP_AFFINITY=verbose,granularity=core,scatter
+    # # export KMP_AFFINITY=verbose,granularity=core,compact
+    # # export KMP_AFFINITY=none,granularity=core
+
+    # echo "KMP_AFFINITY=${KMP_AFFINITY}, OMP_PROC_BIND=${OMP_PROC_BIND}"
+    # tile=$((Nx / threads[k]))
+    # echo "explicit $BIN1 $N $steps $tile ${warmup_steps} $Nx $Ny $Nz"
+    # mpirun -n 1 $BIN1 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+
+    echo "---------------------------------------------------------------------"
+  done
+}
+
+# Nx=$((32 * 112))
+# Nz=32
+# for Ny in {32..928..32}
+# do
+#   steps=150
+#   # tile=(192 96 48 32 24 16 12 8 6 4)
+#   warmup_steps=100
+#   threads=(1 2 4 8 14 16 28)
+#   rec_cross_section_step2_whole_strong_perf
+#   echo "========================================================================================="  
+# done
+
+Nx=$((16 * 112))
+Nz=64
+for Ny in {32..928..128}
+do
+  steps=150
+  # tile=(192 96 48 32 24 16 12 8 6 4)
+  warmup_steps=100
+  # threads=(1 2 4 8 14 16 28)
+  threads=(1)
+  rec_cross_section_step2_whole_strong_perf
+  echo "========================================================================================="  
+done
+
+# Nx=$((8 * 112))
+# Nz=128
+# for Ny in {32..928..32}
+# do
+#   steps=150
+#   # tile=(192 96 48 32 24 16 12 8 6 4)
+#   warmup_steps=100
+#   threads=(1 2 4 8 14 16 28)
+#   rec_cross_section_step2_whole_strong_perf
+#   echo "========================================================================================="  
+# done
+
+# Nx=$((4 * 112))
+# Nz=256
+# for Ny in {32..928..32}
+# do
+#   steps=150
+#   # tile=(192 96 48 32 24 16 12 8 6 4)
+#   warmup_steps=100
+#   threads=(1 2 4 8 14 16 28)
+#   rec_cross_section_step2_whole_strong_perf
+#   echo "========================================================================================="  
+# done
+
+# Nx=$((2 * 112))
+# Nz=512
+# for Ny in {32..928..32}
+# do
+#   steps=150
+#   # tile=(192 96 48 32 24 16 12 8 6 4)
+#   warmup_steps=100
+#   threads=(1 2 4 8 14 16 28)
+#   rec_cross_section_step2_whole_strong_perf
+#   echo "========================================================================================="  
+# done
+
+# Nx=$((112))
+# Nz=1024
+# for Ny in {32..928..32}
+# do
+#   steps=150
+#   # tile=(192 96 48 32 24 16 12 8 6 4)
+#   warmup_steps=100
+#   threads=(1 2 4 8 14 16 28)
+#   rec_cross_section_step2_whole_strong_perf
+#   echo "========================================================================================="  
+# done

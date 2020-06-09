@@ -76,7 +76,7 @@ rec_cross_section_step2_whole_strong_perf () {
 
 # Nx=$((32 * 112))
 # Nz=32
-# for Ny in {32..864..32}
+# for Ny in {32..928..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)
@@ -88,7 +88,7 @@ rec_cross_section_step2_whole_strong_perf () {
 
 # Nx=$((16 * 112))
 # Nz=64
-# for Ny in {32..864..32}
+# for Ny in {32..928..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)
@@ -100,7 +100,7 @@ rec_cross_section_step2_whole_strong_perf () {
 
 # Nx=$((8 * 112))
 # Nz=128
-# for Ny in {32..864..32}
+# for Ny in {32..928..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)
@@ -112,7 +112,7 @@ rec_cross_section_step2_whole_strong_perf () {
 
 # Nx=$((4 * 112))
 # Nz=256
-# for Ny in {32..864..32}
+# for Ny in {32..928..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)
@@ -124,7 +124,7 @@ rec_cross_section_step2_whole_strong_perf () {
 
 # Nx=$((2 * 112))
 # Nz=512
-# for Ny in {32..864..32}
+# for Ny in {32..928..32}
 # do
 #   steps=150
 #   # tile=(192 96 48 32 24 16 12 8 6 4)
@@ -136,12 +136,13 @@ rec_cross_section_step2_whole_strong_perf () {
 
 Nx=$((112))
 Nz=1024
-for Ny in {32..864..32}
+for Ny in {32..928..128}
 do
   steps=150
   # tile=(192 96 48 32 24 16 12 8 6 4)
   warmup_steps=100
   threads=(1 2 4 8 14 16 28)
+  # threads=(1 2 4)  
   rec_cross_section_step2_whole_strong_perf
   echo "========================================================================================="  
 done
