@@ -1022,6 +1022,7 @@ void BoundaryConditionInstantiator3D<T,Descriptor,BoundaryManager>::
 {
     PLB_PRECONDITION( domain.x0==domain.x1 || domain.y0==domain.y1 || domain.z0==domain.z1 );
 
+    // pcout << "addVelocityBoundary\n";
     // Convert (direction,orientation) description of the normal vector into a (normalX,normalY,normalZ)
     //   description, as it is requried by the data processor for Neumann boundaries.
     enum {
@@ -1038,6 +1039,7 @@ void BoundaryConditionInstantiator3D<T,Descriptor,BoundaryManager>::
             lattice, domain,
             BoundaryManager::template getVelocityBoundaryDynamics<direction,orientation> (
                                           new NoDynamics<T,Descriptor> ) );
+    // pcout << "setCompositeDynamics: NoDynamics\n";
 
     // In case an outflow condition is used, start by instantiating a data processor which copies
     //   all velocity values from the previous lattice cell.

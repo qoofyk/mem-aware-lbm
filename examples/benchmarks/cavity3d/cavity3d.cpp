@@ -42,6 +42,7 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
                   OnLatticeBoundaryCondition3D<T,DESCRIPTOR>& boundaryCondition,
                   plint Nx, plint Ny, plint Nz)
 {
+    // pcout << "cavitySetup\n";
     // const plint nx = parameters.getNx();
     // const plint ny = parameters.getNy();
     // const plint nz = parameters.getNz();
@@ -53,6 +54,7 @@ void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
 
     // All walls implement a Dirichlet velocity condition.
     boundaryCondition.setVelocityConditionOnBlockBoundaries(lattice);
+    // pcout << "boundaryCondition.setVelocityConditionOnBlockBoundaries(lattice)\n"; // Palabos memory outrage happens here when large num of processes are used
 
     T u = std::sqrt((T)2)/(T)2 * parameters.getLatticeU();
     // initializeAtEquilibrium(lattice, everythingButTopLid, (T) 1., Array<T,3>((T)0.,(T)0.,(T)0.) );
@@ -95,15 +97,13 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    // pcout << "Starting benchmark with " << N+1 << "x" << N+1 << "x" << N+1 << " grid points "
     pcout << "Starting benchmark with " << Nx << "x" << Ny << "x" << Nz << " grid points "
-          << "(approx. 2 minutes on modern processors)." << std::endl;
-
+          << " Estimated memory occupied " << Nx * Ny * Nz * 168 / (1024*1024) << " MB\n";
 
     IncomprFlowParam<T> parameters(
             (T) 1e-2,  // uMax
             (T) 1.,    // Re
-            N,         // N
+            N,         // N, resolution
             1.,        // lx
             1.,        // ly
             1.         // lz
@@ -113,6 +113,11 @@ int main(int argc, char* argv[]) {
             // parameters.getNx(), parameters.getNy(), parameters.getNz(),
             Nx, Ny, Nz,
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
+#if 0
+    int rank; // memory outrage not happen here
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    printf("Hello from Proc %d \n", rank);
+#endif
 
     plint numCores = global::mpi().getSize();
     pcout << "Number of MPI threads: " << numCores << " ykBlockSize: " << ykBlockSize << std::endl;
@@ -146,7 +151,7 @@ int main(int argc, char* argv[]) {
         }
     }
 #endif
-
+    // pcout << "Warm up the machine!" << std::endl;
     // Run the benchmark once "to warm up the machine".
     for (plint iT=0; iT<warmUpIter; iT += 1) {
     //for (plint iT=0; iT<2; iT += 1) {

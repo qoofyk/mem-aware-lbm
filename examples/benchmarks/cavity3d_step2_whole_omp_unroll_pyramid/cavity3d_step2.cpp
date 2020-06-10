@@ -158,8 +158,7 @@ int main(int argc, char* argv[]) {
     );
 
     pcout << "Starting benchmark with " << Nx << "x" << Ny << "x" << Nz << " grid points "
-          << " Estimated memory occupied " << Nx * Ny * Nz * 168 / (1024*1024) << " MB "
-          << " (approx. 2 minutes on modern processors).\n";
+          << " Estimated memory occupied " << Nx * Ny * Nz * 168 / (1024*1024) << " MB\n";
 
     // MultiBlockLattice3D<T, DESCRIPTOR> lattice (
     //         parameters.getNx(), parameters.getNy(), parameters.getNz(),

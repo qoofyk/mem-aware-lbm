@@ -303,96 +303,123 @@ void OnLatticeBoundaryCondition3D<T,Descriptor>::setVelocityConditionOnBlockBoun
         Box3D block, Box3D applicationDomain,
         boundary::BcType bcType )
 {
+    // pcout << "setVelocityConditionOnBlockBoundaries\n";
     plint boundaryWidth = 1;
     BlockSurface3D surf(block, boundaryWidth);
     Box3D intersection;
     if (intersect(surf.surface0N(), applicationDomain, intersection)) {
+        // pcout <<"addVelocityBoundary0N\n";
         addVelocityBoundary0N(intersection, lattice, bcType);
     }
     if (intersect(surf.surface0P(), applicationDomain, intersection)) {
+        // pcout <<"addVelocityBoundary0P\n";
         addVelocityBoundary0P(intersection, lattice, bcType);
     }
     if (intersect(surf.surface1N(), applicationDomain, intersection)) {
+        // pcout <<"addVelocityBoundary1N\n";
         addVelocityBoundary1N(intersection, lattice, bcType);
     }
     if (intersect(surf.surface1P(), applicationDomain, intersection)) {
+        // pcout <<"addVelocityBoundary1P\n";
         addVelocityBoundary1P(intersection, lattice, bcType);
     }
     if (intersect(surf.surface2N(), applicationDomain, intersection)) {
+        // pcout <<"addVelocityBoundary2N\n";
         addVelocityBoundary2N(intersection, lattice, bcType);
     }
     if (intersect(surf.surface2P(), applicationDomain, intersection)) {
+        // pcout <<"addVelocityBoundary2P\n";
         addVelocityBoundary2P(intersection, lattice, bcType);
     }
 
     if (intersect(surf.edge0NN(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityEdge0NN\n";
         addExternalVelocityEdge0NN(intersection, lattice, bcType);
     }
     if (intersect(surf.edge0NP(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityEdge0NP\n";
         addExternalVelocityEdge0NP(intersection, lattice, bcType);
     }
     if (intersect(surf.edge0PN(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityEdge0PN\n";
         addExternalVelocityEdge0PN(intersection, lattice, bcType);
     }
     if (intersect(surf.edge0PP(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityEdge0PP\n";
         addExternalVelocityEdge0PP(intersection, lattice, bcType);
     }
 
     if (intersect(surf.edge1NN(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityEdge1NN\n";
         addExternalVelocityEdge1NN(intersection, lattice, bcType);
     }
     if (intersect(surf.edge1NP(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityEdge1NP\n";
         addExternalVelocityEdge1NP(intersection, lattice, bcType);
     }
     if (intersect(surf.edge1PN(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityEdge1PN\n";
         addExternalVelocityEdge1PN(intersection, lattice, bcType);
     }
     if (intersect(surf.edge1PP(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityEdge1PP\n";
         addExternalVelocityEdge1PP(intersection, lattice, bcType);
     }
 
     if (intersect(surf.edge2NN(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityEdge2NN\n";
         addExternalVelocityEdge2NN(intersection, lattice, bcType);
     }
     if (intersect(surf.edge2NP(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityEdge2NP\n";
         addExternalVelocityEdge2NP(intersection, lattice, bcType);
     }
     if (intersect(surf.edge2PN(), applicationDomain, intersection)) {
+        // pcout << "addExternalVelocityEdge2PN\n";
         addExternalVelocityEdge2PN(intersection, lattice, bcType);
     }
     if (intersect(surf.edge2PP(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityEdge2PP\n";
         addExternalVelocityEdge2PP(intersection, lattice, bcType);
     }
 
     if (intersect(surf.cornerNNN(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityCornerNNN\n";
         addExternalVelocityCornerNNN (
                 intersection.x0, intersection.y0, intersection.z0, lattice, bcType);
     }
     if (intersect(surf.cornerNNP(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityCornerNNP\n";
         addExternalVelocityCornerNNP (
                 intersection.x0, intersection.y0, intersection.z0, lattice, bcType);
     }
     if (intersect(surf.cornerNPN(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityCornerNPN\n";
         addExternalVelocityCornerNPN (
                 intersection.x0, intersection.y0, intersection.z0, lattice, bcType);
     }
     if (intersect(surf.cornerNPP(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityCornerNPP\n";
         addExternalVelocityCornerNPP (
                 intersection.x0, intersection.y0, intersection.z0, lattice, bcType);
     }
     if (intersect(surf.cornerPNN(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityCornerPNN\n";
         addExternalVelocityCornerPNN (
                 intersection.x0, intersection.y0, intersection.z0, lattice, bcType);
     }
     if (intersect(surf.cornerPNP(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityCornerPNP\n";
         addExternalVelocityCornerPNP (
                 intersection.x0, intersection.y0, intersection.z0, lattice, bcType);
     }
     if (intersect(surf.cornerPPN(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityCornerPPN\n";
         addExternalVelocityCornerPPN (
                 intersection.x0, intersection.y0, intersection.z0, lattice, bcType);
     }
     if (intersect(surf.cornerPPP(), applicationDomain, intersection)) {
+        // pcout <<"addExternalVelocityCornerPPP\n";
         addExternalVelocityCornerPPP (
                 intersection.x0, intersection.y0, intersection.z0, lattice, bcType);
     }

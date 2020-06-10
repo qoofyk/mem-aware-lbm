@@ -134,7 +134,6 @@ int main(int argc, char* argv[]) {
         // check (Nx - 3) % NUM_THREADS == 0
         if ((Nx - 3) % NUM_THREADS != 0) throw MyException1();
         thread_block = (Nx - 3) / NUM_THREADS;
-        if (thread_block % ykBlockSize != 0) throw MyException2();
     }
     catch (MyException1& e) {
         std::cout << e.what() << std::endl;

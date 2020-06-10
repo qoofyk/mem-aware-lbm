@@ -97,9 +97,8 @@ int main(int argc, char* argv[]) {
 
     // pcout << "Starting benchmark with " << N+1 << "x" << N+1 << "x" << N+1 << " grid points "
     pcout << "Starting benchmark with " << Nx << "x" << Ny << "x" << Nz << " grid points "
-          << "(approx. 2 minutes on modern processors)." << std::endl;
-
-
+          << " Estimated memory occupied " << Nx * Ny * Nz * 168 / (1024*1024) << " MB\n";
+    
     IncomprFlowParam<T> parameters(
             (T) 1e-2,  // uMax
             (T) 1.,    // Re
