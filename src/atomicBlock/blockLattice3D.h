@@ -38,6 +38,10 @@
 #include <vector>
 #include <map>
 
+// Add by Yuankun
+#include "atomicBlock/blockLattice3D_panel_mem.h"
+// End add by Yuankun
+
 /// All Palabos code is contained in this namespace.
 namespace plb {
 
@@ -131,14 +135,26 @@ public:
         PLB_PRECONDITION(iX<this->getNx());
         PLB_PRECONDITION(iY<this->getNy());
         PLB_PRECONDITION(iZ<this->getNz());
+      #ifndef PANEL_MEM
         return grid[iX][iY][iZ];
+      #else
+        // Now: use panel memory layout to compute, access grid[iX][iY + ykPanel_len * (iZ / ykPanel_len)][iZ % ykPanel_len]
+        // Or use Bit hack: access by grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN) << YK_LOG_PANEL_LEN][iZ & (YK_PANEL_LEN - 1)]
+        return grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY)][iZ & (YK_PANEL_LEN - 1)];
+      #endif
     }
     /// Read only access to lattice cells
     virtual Cell<T,Descriptor> const& get(plint iX, plint iY, plint iZ) const {
         PLB_PRECONDITION(iX<this->getNx());
         PLB_PRECONDITION(iY<this->getNy());
         PLB_PRECONDITION(iZ<this->getNz());
+      #ifndef PANEL_MEM
         return grid[iX][iY][iZ];
+      #else
+        // Now: use panel memory layout to compute, access grid[iX][iY + ykPanel_len * (iZ / ykPanel_len)][iZ % ykPanel_len]
+        // Or use Bit hack: access by grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN) << YK_LOG_PANEL_LEN][iZ & (YK_PANEL_LEN - 1)]
+        return grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY)][iZ & (YK_PANEL_LEN - 1)];
+      #endif
     }
     /// Specify wheter statistics measurements are done on a rect. domain
     virtual void specifyStatisticsStatus (
@@ -178,7 +194,7 @@ public:
     void swapStream(plint iX, plint iY, plint iZ);
     /// Apply collision and streaming step to bulk (non-boundary) cells
     void bulkCollideAndStream(Box3D domain);
-    /// 2 steps
+    /// 2 steps // Add by Yuankun
     void collideRevert(Box3D bound, Box3D domain);
     void collideRevertAndBoundSwapStream(Box3D bound, Box3D domain);
     void collideRevertAndBoundSwapStream(Box3D domain, plint iX, plint iY, plint iZ);
@@ -189,6 +205,7 @@ public:
     void step2CollideAndStream_bulk_omp(Box3D domain);
     void step2CollideAndStream_bulk_blockwise(Box3D domain);
     void step2CollideAndStream_end(Box3D domain);
+    // End add by Yuankun
 private:
     /// Generic implementation of bulkCollideAndStream(domain).
     void linearBulkCollideAndStream(Box3D domain);

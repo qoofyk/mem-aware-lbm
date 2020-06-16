@@ -32,6 +32,10 @@
 #include "core/globalDefs.h"
 #include "latticeBoltzmann/nearestNeighborLattices3D.h"
 
+// Add by Yuankun
+#include "atomicBlock/blockLattice3D_panel_mem.h"
+// End add by Yuankun
+
 namespace plb {
 
 template<typename T>
@@ -47,6 +51,28 @@ static void swapAndStreamCell (
     grid[nX][nY][nZ][iPop]   = fTmp;
 }
 
+#ifdef PANEL_MEM
+// Now: use panel memory layout to compute, access grid[iX][iY + ykPanel_len * (iZ / ykPanel_len)][iZ % ykPanel_len]
+// Or use Bit hack: access by grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN) << YK_LOG_PANEL_LEN][iZ & (YK_PANEL_LEN - 1)]
+static void swapAndStream3D(Cell<T,descriptors::D3Q19Descriptor> ***grid,
+                            plint iX, plint iY_p, plint iZ)
+{
+    T fTmp;
+
+    // plint iY_p = iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
+    plint iZ_p = iZ & (YK_PANEL_LEN - 1);
+
+    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX-1, iY_p,   iZ_p,   1, fTmp);
+    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX,   iY_p-1, iZ_p,   2, fTmp);
+    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX,   iY_p  , (iZ-1) & (YK_PANEL_LEN - 1), 3, fTmp);
+    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX-1, iY_p-1, iZ_p,   4, fTmp);
+    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX-1, iY_p+1, iZ_p,   5, fTmp);
+    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX-1, iY_p  , (iZ-1) & (YK_PANEL_LEN - 1), 6, fTmp);
+    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX-1, iY_p  , (iZ+1) & (YK_PANEL_LEN - 1), 7, fTmp);
+    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX  , iY_p-1, (iZ-1) & (YK_PANEL_LEN - 1), 8, fTmp);
+    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX  , iY_p-1, (iZ+1) & (YK_PANEL_LEN - 1), 9, fTmp);
+}
+#else
 static void swapAndStream3D(Cell<T,descriptors::D3Q19Descriptor> ***grid,
                             plint iX, plint iY, plint iZ)
 {
@@ -61,7 +87,7 @@ static void swapAndStream3D(Cell<T,descriptors::D3Q19Descriptor> ***grid,
     swapAndStreamCell(grid, iX, iY, iZ, iX  , iY-1, iZ-1, 8, fTmp);
     swapAndStreamCell(grid, iX, iY, iZ, iX  , iY-1, iZ+1, 9, fTmp);
 }
-
+#endif
 };
 
 template<typename T>

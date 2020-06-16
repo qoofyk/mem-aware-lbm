@@ -37,7 +37,11 @@ step2_3parts_Flags = argdict['step2_3parts_Flags'].lower() == 'true'
 step2_omp_Flags  = argdict['step2_omp_Flags'].lower() == 'true'
 step2_unroll_Flags  = argdict['step2_unroll_Flags'].lower() == 'true'
 step2_pyramid_Flags = argdict['step2_pyramid_Flags'].lower() == 'true'
-
+if 'panel_mem_Flags' in argdict:
+    panel_mem_Flags = argdict['panel_mem_Flags'].lower() == 'true'
+else: 
+    panel_mem_Flags = False
+    
 # Read the optional input parameters
 try:
     dynamicLibrary = argdict['dynamicLibrary'].lower() == 'true'
@@ -90,6 +94,9 @@ if step2_unroll_Flags:
 if step2_pyramid_Flags:
     flags.append('-DSTEP2_PYRAMID')
 
+if panel_mem_Flags:
+    flags.append('-DPANEL_MEM')
+
 env = Environment ( ENV       = os.environ,
                     CXX       = compiler,
                     CXXFLAGS  = flags,
@@ -116,8 +123,12 @@ if MPIparallel:
     if step2_whole_Flags:
         if step2_omp_Flags:
             if step2_unroll_Flags:
-                palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_whole_omp_unroll_pyramid',
-                                      source  = sourceFiles )
+                if panel_mem_Flags:
+                    palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_whole_omp_unroll_pyramid_panel_mem',
+                                          source  = sourceFiles )
+                else:
+                    palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_whole_omp_unroll_pyramid',
+                                          source  = sourceFiles )
             else:
                 palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_whole_omp_pyramid',
                                       source  = sourceFiles )

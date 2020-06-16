@@ -403,7 +403,6 @@ void BlockLattice3D<T,Descriptor>::releaseMemory() {
     }
     delete [] grid;
 }
-#endif
 
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::attributeDynamics (
@@ -415,6 +414,7 @@ void BlockLattice3D<T,Descriptor>::attributeDynamics (
     }
     grid[iX][iY][iZ].attributeDynamics(dynamics);
 }
+#endif
 
 template<typename T, template<typename U> class Descriptor>
 Dynamics<T,Descriptor>& BlockLattice3D<T,Descriptor>::getBackgroundDynamics() {
@@ -440,6 +440,47 @@ void BlockLattice3D<T,Descriptor>::resetDynamics(Dynamics<T,Descriptor> const& d
     }
 }
 
+#ifdef PANEL_MEM
+/** This method is slower than bulkStream(int,int,int,int), because it must
+ * be verified which distribution functions are to be kept from leaving
+ * the domain.
+ * \sa stream(int,int,int,int)
+ * \sa stream()
+ */
+template<typename T, template<typename U> class Descriptor>
+void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
+    // Make sure bound is contained within current lattice
+    PLB_PRECONDITION( contained(bound, this->getBoundingBox()) );
+    // Make sure domain is contained within bound
+    PLB_PRECONDITION( contained(domain, bound) );
+
+    for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
+        for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
+            for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
+                for (plint iPop=1; iPop<=Descriptor<T>::q/2; ++iPop) {
+                    plint nextX = iX + Descriptor<T>::c[iPop][0];
+                    plint nextY = iY + Descriptor<T>::c[iPop][1];
+                    plint nextZ = iZ + Descriptor<T>::c[iPop][2];
+
+                    plint iY_p = iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
+                    plint iZ_p = iZ & (YK_PANEL_LEN - 1);
+
+                    if ( nextX>=bound.x0 && nextX<=bound.x1 &&
+                         nextY>=bound.y0 && nextY<=bound.y1 &&
+                         nextZ>=bound.z0 && nextZ<=bound.z1 )
+                    {
+                        plint nextY_p = nextY + (nextZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
+                        plint nextZ_p = nextZ & (YK_PANEL_LEN - 1);
+
+                        std::swap(grid[iX][iY_p][iZ_p][iPop+Descriptor<T>::q/2],
+                                  grid[nextX][nextY_p][nextZ_p][iPop]);
+                    }
+                }
+            }
+        }
+    }
+}
+#else
 /** This method is slower than bulkStream(int,int,int,int), because it must
  * be verified which distribution functions are to be kept from leaving
  * the domain.
@@ -472,6 +513,7 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
         }
     }
 }
+#endif
 
 /** This method is faster than boundaryStream(int,int,int,int,int,int), but it
  * is erroneous when applied to boundary cells.
