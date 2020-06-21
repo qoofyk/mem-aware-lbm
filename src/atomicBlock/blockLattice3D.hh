@@ -274,8 +274,9 @@ void BlockLattice3D<T,Descriptor>::stream()
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::collideAndStream(Box3D domain) {
 #if 0
-    printf("collideAndStream: domain-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
-      domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
+    pcout << "collideAndStream: domain-(" << domain.x0 << ", " << domain.x1 << ") "
+          << "(" << domain.y0 << ", " << domain.y1 << ") " 
+          << "(" << domain.z0 << ", " << domain.z1 << ") " << '\n';
 #endif
     // Make sure domain is contained within current lattice
     PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
