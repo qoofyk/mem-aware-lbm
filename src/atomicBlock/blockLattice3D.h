@@ -39,7 +39,7 @@
 #include <map>
 
 // Add by Yuankun
-#include "atomicBlock/blockLattice3D_panel_mem.h"
+#include "atomicBlock/blockLattice3D_pillar_mem.h"
 // End add by Yuankun
 
 /// All Palabos code is contained in this namespace.
@@ -132,28 +132,42 @@ public:
 public:
     /// Read/write access to lattice cells
     virtual Cell<T,Descriptor>& get(plint iX, plint iY, plint iZ) {
-        PLB_PRECONDITION(iX<this->getNx());
-        PLB_PRECONDITION(iY<this->getNy());
-        PLB_PRECONDITION(iZ<this->getNz());
-      #ifndef PANEL_MEM
+        plint nx = this->getNx();
+        plint ny = this->getNy();
+        plint nz = this->getNz();
+
+        PLB_PRECONDITION(iX < nx);
+        PLB_PRECONDITION(iY < ny);
+        PLB_PRECONDITION(iZ < nz);
+
+      #ifndef PILLAR_MEM
         return grid[iX][iY][iZ];
       #else
-        // Now: use panel memory layout to compute, access grid[iX][iY + ykPanel_len * (iZ / ykPanel_len)][iZ % ykPanel_len]
-        // Or use Bit hack: access by grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN) << YK_LOG_PANEL_LEN][iZ & (YK_PANEL_LEN - 1)]
-        return grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY)][iZ & (YK_PANEL_LEN - 1)];
+        // plint iX_t = iX % ykTile + ykTile * (iZ / ykTile + (iY / ykTile) * (nz / ykTile) + (iX / ykTile)  * (nz / ykTile)  * (ny / ykTile));
+        // plint iX_t = cube_mem_map_iX(iX, iY, iZ, nx, ny, nz);
+        // plint iY_t = iY % ykTile;
+        // plint iZ_t = iZ % ykTile;
+        // return grid[iX_t][iY_t][iZ_t];
+        return grid[cube_mem_map_iX(iX, iY, iZ, nx, ny, nz)][iY % ykTile][iZ % ykTile];
       #endif
     }
     /// Read only access to lattice cells
     virtual Cell<T,Descriptor> const& get(plint iX, plint iY, plint iZ) const {
-        PLB_PRECONDITION(iX<this->getNx());
-        PLB_PRECONDITION(iY<this->getNy());
-        PLB_PRECONDITION(iZ<this->getNz());
-      #ifndef PANEL_MEM
+        // PLB_PRECONDITION(iX<this->getNx());
+        // PLB_PRECONDITION(iY<this->getNy());
+        // PLB_PRECONDITION(iZ<this->getNz());
+
+        plint nx = this->getNx();
+        plint ny = this->getNy();
+        plint nz = this->getNz();
+
+        PLB_PRECONDITION(iX < nx);
+        PLB_PRECONDITION(iY < ny);
+        PLB_PRECONDITION(iZ < nz);
+      #ifndef PILLAR_MEM
         return grid[iX][iY][iZ];
       #else
-        // Now: use panel memory layout to compute, access grid[iX][iY + ykPanel_len * (iZ / ykPanel_len)][iZ % ykPanel_len]
-        // Or use Bit hack: access by grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN) << YK_LOG_PANEL_LEN][iZ & (YK_PANEL_LEN - 1)]
-        return grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY)][iZ & (YK_PANEL_LEN - 1)];
+        return grid[cube_mem_map_iX(iX, iY, iZ, nx, ny, nz)][iY % ykTile][iZ % ykTile];
       #endif
     }
     /// Specify wheter statistics measurements are done on a rect. domain

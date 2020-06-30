@@ -42,9 +42,13 @@
 #include <typeinfo>
 #include <cmath>
 
+#include "atomicBlock/blockLattice3D_pillar_mem.h"
+
 #ifdef _OPENMP
   #include <omp.h>
 #endif
+
+// #define DEBUG_PRINT
 
 namespace plb {
 // BlockLattice3D_step2_util /////////////////////////
@@ -52,6 +56,14 @@ namespace plb {
 // Add by Yuankun
 plint thread_block;
 // End add by Yuankun
+
+inline plint cube_mem_map_iX (plint iX, plint iY, plint iZ, plint nx_, plint ny_, plint nz_) {
+  return iX % ykTile + ykTile * (iZ / ykTile + (iY / ykTile) * (nz_ / ykTile) + (iX / ykTile)  * (nz_ / ykTile)  * (ny_ / ykTile));
+}
+
+inline plint pillar_mem_map_iX (plint iX, plint iY, plint iZ, plint nx_, plint ny_, plint nz_) {
+  return iX + nx_ * (iZ / ykTile + (iY / ykTile) * (nz_ / ykTile));
+}
 
 #ifdef STEP2_OMP
 /** \param nx_ lattice width (first index)
@@ -75,10 +87,12 @@ BlockLattice3D<T,Descriptor>::BlockLattice3D (
     for (plint iX=0; iX<nx; ++iX) {
       for (plint iY=0; iY<ny; ++iY) {
         for (plint iZ=0; iZ<nz; ++iZ) {
-          #ifdef PANEL_MEM
-            // printf("(%ld, %ld) -> (%ld, %ld)\n", iY, iZ, 
-            //   iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY), iZ & (YK_PANEL_LEN - 1));
-            grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY)][iZ & (YK_PANEL_LEN - 1)].attributeDynamics(backgroundDynamics);
+          #ifdef PILLAR_MEM
+            #ifdef DEBUG_PRINT
+            plint iX_t = cube_mem_map_iX(iX, iY, iZ, nx, ny, nz);
+            printf("(%ld, %ld, %ld) -> (%ld, %ld, %ld)\n", iX, iY, iZ, iX_t, iY % ykTile, iZ % ykTile);
+            #endif
+            grid[cube_mem_map_iX(iX, iY, iZ, nx, ny, nz)][iY % ykTile][iZ % ykTile].attributeDynamics(backgroundDynamics);
           #else
             grid[iX][iY][iZ].attributeDynamics(backgroundDynamics);
           #endif
@@ -86,7 +100,9 @@ BlockLattice3D<T,Descriptor>::BlockLattice3D (
       }
     }
 
-    // pcout << "Pass assign\n";
+    #ifdef DEBUG_PRINT
+    pcout << "Pass assign attributeDynamics\n";
+    #endif
 
     // Attribute default value to the standard statistics (average uSqr,
     //   max uSqr, average rho). These have previously been subscribed
@@ -126,10 +142,10 @@ BlockLattice3D<T,Descriptor>::BlockLattice3D(BlockLattice3D<T,Descriptor> const&
         for (plint iY=0; iY<ny; ++iY) {
             for (plint iZ=0; iZ<nz; ++iZ) {
                 
-              #ifdef PANEL_MEM
-                Cell<T,Descriptor>& cell = grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY)][iZ & (YK_PANEL_LEN - 1)];
+              #ifdef PILLAR_MEM
+                Cell<T,Descriptor>& cell = grid[cube_mem_map_iX(iX, iY, iZ, nx, ny, nz)][iY % ykTile][iZ % ykTile];
                 // Assign cell from rhs
-                cell = rhs.grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY)][iZ & (YK_PANEL_LEN - 1)];
+                cell = rhs.grid[cube_mem_map_iX(iX, iY, iZ, nx, ny, nz)][iY % ykTile][iZ % ykTile];
               #else
                 Cell<T,Descriptor>& cell = grid[iX][iY][iZ];
                 // Assign cell from rhs
@@ -155,12 +171,16 @@ void BlockLattice3D<T,Descriptor>::specifyStatisticsStatus(Box3D domain, bool st
     // Make sure domain is contained within current lattice
     PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
+    plint nx = this->getNx();
+    plint ny = this->getNy();
+    plint nz = this->getNz();
+
     #pragma omp parallel for default(shared) schedule(static, thread_block)
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
-              #ifdef PANEL_MEM
-                grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY)][iZ & (YK_PANEL_LEN - 1)].specifyStatisticsStatus(status);
+              #ifdef PILLAR_MEM
+                grid[cube_mem_map_iX(iX, iY, iZ, nx, ny, nz)][iY % ykTile][iZ % ykTile].specifyStatisticsStatus(status);
               #else
                 grid[iX][iY][iZ].specifyStatisticsStatus(status);
               #endif
@@ -170,19 +190,23 @@ void BlockLattice3D<T,Descriptor>::specifyStatisticsStatus(Box3D domain, bool st
 }
 #endif
 
-#ifdef PANEL_MEM
+#ifdef PILLAR_MEM
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::collideRevertAndBoundSwapStream(Box3D bound, Box3D domain) {
     // Make sure domain is contained within current lattice
     PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
+    plint nx = this->getNx();
+    plint ny = this->getNy();
+    plint nz = this->getNz();
 
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
-                plint iY_p = iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-                plint iZ_p = iZ & (YK_PANEL_LEN - 1);
-                grid[iX][iY_p][iZ_p].collide(this->getInternalStatistics());
-                grid[iX][iY_p][iZ_p].revert();
+                plint iX_t = cube_mem_map_iX(iX, iY, iZ, nx, ny, nz);
+                plint iY_t = iY % ykTile;
+                plint iZ_t = iZ % ykTile;
+                grid[iX_t][iY_t][iZ_t].collide(this->getInternalStatistics());
+                grid[iX_t][iY_t][iZ_t].revert();
 
                 for (plint iPop=1; iPop<=Descriptor<T>::q/2; ++iPop) {
                     plint nextX = iX + Descriptor<T>::c[iPop][0];
@@ -192,10 +216,11 @@ void BlockLattice3D<T,Descriptor>::collideRevertAndBoundSwapStream(Box3D bound, 
                          nextY>=bound.y0 && nextY<=bound.y1 &&
                          nextZ>=bound.z0 && nextZ<=bound.z1 )
                     {
-                        plint nextY_p = nextY + (nextZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-                        plint nextZ_p = nextZ & (YK_PANEL_LEN - 1);
-                        std::swap(grid[iX][iY_p][iZ_p][iPop+Descriptor<T>::q/2],
-                                  grid[nextX][nextY_p][nextZ_p][iPop]);
+                        plint nextX_t = cube_mem_map_iX(nextX, nextY, nextZ, nx, ny, nz);
+                        plint nextY_t = nextY % ykTile;
+                        plint nextZ_t = nextZ % ykTile;
+                        std::swap(grid[iX_t][iY_t][iZ_t][iPop + Descriptor<T>::q/2],
+                                  grid[nextX_t][nextY_t][nextZ_t][iPop]);
                     }
                 }
             }
@@ -207,11 +232,15 @@ template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::collideRevertAndBoundSwapStream(Box3D bound, plint iX, plint iY, plint iZ) {
     // Make sure domain is contained within current lattice
     // PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
+    plint nx = this->getNx();
+    plint ny = this->getNy();
+    plint nz = this->getNz();
 
-    plint iY_p = iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-    plint iZ_p = iZ & (YK_PANEL_LEN - 1);
-    grid[iX][iY_p][iZ_p].collide(this->getInternalStatistics());
-    grid[iX][iY_p][iZ_p].revert();
+    plint iX_t = cube_mem_map_iX(iX, iY, iZ, nx, ny, nz);
+    plint iY_t = iY % ykTile;
+    plint iZ_t = iZ % ykTile;
+    grid[iX_t][iY_t][iZ_t].collide(this->getInternalStatistics());
+    grid[iX_t][iY_t][iZ_t].revert();
 
     for (plint iPop=1; iPop<=Descriptor<T>::q/2; ++iPop) {
         plint nextX = iX + Descriptor<T>::c[iPop][0];
@@ -221,10 +250,11 @@ void BlockLattice3D<T,Descriptor>::collideRevertAndBoundSwapStream(Box3D bound, 
              nextY>=bound.y0 && nextY<=bound.y1 &&
              nextZ>=bound.z0 && nextZ<=bound.z1 )
         {
-            plint nextY_p = nextY + (nextZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-            plint nextZ_p = nextZ & (YK_PANEL_LEN - 1);
-            std::swap(grid[iX][iY_p][iZ_p][iPop+Descriptor<T>::q/2],
-                      grid[nextX][nextY_p][nextZ_p][iPop]);
+            plint nextX_t = cube_mem_map_iX(nextX, nextY, nextZ, nx, ny, nz);
+            plint nextY_t = nextY % ykTile;
+            plint nextZ_t = nextZ % ykTile;
+            std::swap(grid[iX_t][iY_t][iZ_t][iPop + Descriptor<T>::q/2],
+                      grid[nextX_t][nextY_t][nextZ_t][iPop]);
         }
     }
 }
@@ -234,8 +264,13 @@ void BlockLattice3D<T,Descriptor>::boundSwapStream(Box3D bound, plint iX, plint 
     // Make sure domain is contained within current lattice
     // PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
-    plint iY_p = iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-    plint iZ_p = iZ & (YK_PANEL_LEN - 1);
+    plint nx = this->getNx();
+    plint ny = this->getNy();
+    plint nz = this->getNz();
+
+    plint iX_t = cube_mem_map_iX(iX, iY, iZ, nx, ny, nz);
+    plint iY_t = iY % ykTile;
+    plint iZ_t = iZ % ykTile;
 
     for (plint iPop=1; iPop<=Descriptor<T>::q/2; ++iPop) {
         plint nextX = iX + Descriptor<T>::c[iPop][0];
@@ -245,10 +280,11 @@ void BlockLattice3D<T,Descriptor>::boundSwapStream(Box3D bound, plint iX, plint 
              nextY>=bound.y0 && nextY<=bound.y1 &&
              nextZ>=bound.z0 && nextZ<=bound.z1 )
         {
-            plint nextY_p = nextY + (nextZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-            plint nextZ_p = nextZ & (YK_PANEL_LEN - 1);
-            std::swap(grid[iX][iY_p][iZ_p][iPop+Descriptor<T>::q/2],
-                      grid[nextX][nextY_p][nextZ_p][iPop]);
+            plint nextX_t = cube_mem_map_iX(nextX, nextY, nextZ, nx, ny, nz);
+            plint nextY_t = nextY % ykTile;
+            plint nextZ_t = nextZ % ykTile;
+            std::swap(grid[iX_t][iY_t][iZ_t][iPop + Descriptor<T>::q/2],
+                      grid[nextX_t][nextY_t][nextZ_t][iPop]);
         }
     }
 }
@@ -258,18 +294,24 @@ void BlockLattice3D<T,Descriptor>::swapStream(plint iX, plint iY, plint iZ) {
     // Make sure domain is contained within current lattice
     // PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
-    plint iY_p = iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-    plint iZ_p = iZ & (YK_PANEL_LEN - 1);
+    plint nx = this->getNx();
+    plint ny = this->getNy();
+    plint nz = this->getNz();
+
+    plint iX_t = cube_mem_map_iX(iX, iY, iZ, nx, ny, nz);
+    plint iY_t = iY % ykTile;
+    plint iZ_t = iZ % ykTile;
 
     for (plint iPop=1; iPop<=Descriptor<T>::q/2; ++iPop) {
         plint nextX = iX + Descriptor<T>::c[iPop][0];
         plint nextY = iY + Descriptor<T>::c[iPop][1];
         plint nextZ = iZ + Descriptor<T>::c[iPop][2];
 
-        plint nextY_p = nextY + (nextZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-        plint nextZ_p = nextZ & (YK_PANEL_LEN - 1);
-        std::swap(grid[iX][iY_p][iZ_p][iPop+Descriptor<T>::q/2],
-                  grid[nextX][nextY_p][nextZ_p][iPop]);
+        plint nextX_t = cube_mem_map_iX(nextX, nextY, nextZ, nx, ny, nz);
+        plint nextY_t = nextY % ykTile;
+        plint nextZ_t = nextZ % ykTile;
+        std::swap(grid[iX_t][iY_t][iZ_t][iPop + Descriptor<T>::q/2],
+                  grid[nextX_t][nextY_t][nextZ_t][iPop]);
     }
 }
 
@@ -279,10 +321,16 @@ void BlockLattice3D<T,Descriptor>::step2_2nd_CollideAndStream(Box3D domain, plin
     collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
   }
   else{
-    plint iY_p = iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-    plint iZ_p = iZ & (YK_PANEL_LEN - 1);
-    grid[iX][iY_p][iZ_p].collide(this->getInternalStatistics());
-    latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY_p, iZ);
+    plint nx = this->getNx();
+    plint ny = this->getNy();
+    plint nz = this->getNz();
+
+    plint iX_t = cube_mem_map_iX(iX, iY, iZ, nx, ny, nz);
+    plint iY_t = iY % ykTile;
+    plint iZ_t = iZ % ykTile;
+    grid[iX_t][iY_t][iZ_t].collide(this->getInternalStatistics());
+
+    latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ, nx, ny, nz);
   }
 }
 
@@ -385,7 +433,7 @@ void BlockLattice3D<T,Descriptor>::step2_2nd_CollideAndStream(Box3D domain, plin
 #endif
 
 #if defined(STEP2_OMP)
-  #if defined(PANEL_MEM)
+  #if defined(PILLAR_MEM)
   // plint ykPanel_len;
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::allocateAndInitialize() {
@@ -397,40 +445,82 @@ void BlockLattice3D<T,Descriptor>::allocateAndInitialize() {
     plint ny = this->getNy();
     plint nz = this->getNz();
     rawData = new Cell<T,Descriptor> [nx*ny*nz];
-    grid    = new Cell<T,Descriptor>** [nx];
 
-    // Now: use panel memory layout to compute, access grid[iX][iY + ny * (iZ / YK_PANEL_LEN)][iZ % YK_PANEL_LEN]
-    // Or use Bit hack: access by grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY)][iZ & (YK_PANEL_LEN - 1)]
-    // plint NewNy = ny * (nz / ykPanel_len);
-    plint NewNy = ny * (nz >> YK_LOG_PANEL_LEN);
-    plint NewNz = YK_PANEL_LEN;
+    plint newNx = nx * (ny / ykTile) * (nz / ykTile);
+    grid    = new Cell<T,Descriptor>** [newNx];
 
-    pcout << "PANEL_MEM: allocateAndInitialize:" << nx << 'x' << ny << 'x' << nz << ' ' 
-          << ' ' << NewNy << 'x' << NewNz << '\n'; 
+    plint NewNy = ykTile;
+    plint NewNz = ykTile;
+
+    pcout << "PILLAR_MEM: allocateAndInitialize:" << nx << 'x' << ny << 'x' << nz << ' ' 
+          << newNx << 'x' << NewNy << 'x' << NewNz << '\n'; 
 
     #pragma omp parallel for default(shared) schedule(static, thread_block)
-    for (plint iX = 0; iX < nx; ++iX) {
+    for (plint iX = 0; iX < newNx; ++iX) {
       grid[iX] = new Cell<T,Descriptor>* [NewNy];
       for (plint iY = 0; iY < NewNy; ++iY) {
         grid[iX][iY] = rawData + NewNz * (iY + NewNy * iX);
       }
     }
 
-    // pcout << "PANEL_MEM: allocateAndInitialize End";
+    #ifdef DEBUG_PRINT
+    pcout << "PILLAR_MEM: allocateAndInitialize End\n";
+    #endif
 }
 
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::attributeDynamics (
         plint iX, plint iY, plint iZ, Dynamics<T,Descriptor>* dynamics )
 {
-    plint iY_p = iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-    plint iZ_p = iZ & (YK_PANEL_LEN - 1);
+    plint nx = this->getNx();
+    plint ny = this->getNy();
+    plint nz = this->getNz();
 
-    Dynamics<T,Descriptor>* previousDynamics = &grid[iX][iY_p][iZ_p].getDynamics();
+    plint iX_t = cube_mem_map_iX(iX, iY, iZ, nx, ny, nz);
+    plint iY_t = iY % ykTile;
+    plint iZ_t = iZ % ykTile;
+
+    Dynamics<T,Descriptor>* previousDynamics = &grid[iX_t][iY_t][iZ_t].getDynamics();
     if (previousDynamics != backgroundDynamics) {
         delete previousDynamics;
     }
-    grid[iX][iY_p][iZ_p].attributeDynamics(dynamics);
+    grid[iX_t][iY_t][iZ_t].attributeDynamics(dynamics);
+}
+
+template<typename T, template<typename U> class Descriptor>
+void BlockLattice3D<T,Descriptor>::releaseMemory() {
+    plint nx = this->getNx();
+    plint ny = this->getNy();
+    plint nz = this->getNz();
+
+    // pcout << "BlockLattice3D: releaseMemory:" << nx << 'x' << ny << 'x' << nz << '\n';
+
+    #pragma omp parallel for default(shared) schedule(static)
+    for (plint iX=0; iX<nx; ++iX) {
+        for (plint iY=0; iY<ny; ++iY) {
+            for (plint iZ=0; iZ<nz; ++iZ) {
+                // printf("(%ld, %ld, %ld) -> (%ld, %ld, %ld)\n", iX, iY, iZ, 
+                //         iX, iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY), iZ & (YK_PANEL_LEN - 1));
+                Dynamics<T,Descriptor>* dynamics = &grid[cube_mem_map_iX(iX, iY, iZ, nx, ny, nz)][iY % ykTile][iZ % ykTile].getDynamics();
+              
+                if (dynamics != backgroundDynamics) {
+                    delete dynamics;
+                }
+            }
+        }
+    }
+
+    // pcout << "BlockLattice3D::releaseMemory() delete dynamics\n";
+
+    delete backgroundDynamics;
+    delete [] rawData;
+
+    plint newNx = nx * (ny / ykTile) * (nz / ykTile);
+    for (plint iX = 0; iX < newNx; ++iX) {
+        delete [] grid[iX];
+    }
+
+    delete [] grid;
 }
 
   #else
@@ -467,7 +557,7 @@ void BlockLattice3D<T,Descriptor>::attributeDynamics (
     }
     grid[iX][iY][iZ].attributeDynamics(dynamics);
 }
-  #endif
+  
 
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::releaseMemory() {
@@ -481,13 +571,7 @@ void BlockLattice3D<T,Descriptor>::releaseMemory() {
     for (plint iX=0; iX<nx; ++iX) {
         for (plint iY=0; iY<ny; ++iY) {
             for (plint iZ=0; iZ<nz; ++iZ) {
-              #ifdef PANEL_MEM
-                // printf("(%ld, %ld, %ld) -> (%ld, %ld, %ld)\n", iX, iY, iZ, 
-                //         iX, iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY), iZ & (YK_PANEL_LEN - 1));
-                Dynamics<T,Descriptor>* dynamics = &grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY)][iZ & (YK_PANEL_LEN - 1)].getDynamics();
-              #else
                 Dynamics<T,Descriptor>* dynamics = &grid[iX][iY][iZ].getDynamics();
-              #endif
                 if (dynamics != backgroundDynamics) {
                     delete dynamics;
                 }
@@ -504,6 +588,7 @@ void BlockLattice3D<T,Descriptor>::releaseMemory() {
     }
     delete [] grid;
 }
+  #endif
 
 #endif
 

@@ -33,7 +33,7 @@
 #include "latticeBoltzmann/nearestNeighborLattices3D.h"
 
 // Add by Yuankun
-#include "atomicBlock/blockLattice3D_panel_mem.h"
+#include "atomicBlock/blockLattice3D_pillar_mem.h"
 // End add by Yuankun
 
 namespace plb {
@@ -51,28 +51,30 @@ static void swapAndStreamCell (
     grid[nX][nY][nZ][iPop]   = fTmp;
 }
 
-#ifdef PANEL_MEM
-// Now: use panel memory layout to compute, access grid[iX][iY + ykPanel_len * (iZ / ykPanel_len)][iZ % ykPanel_len]
-// Or use Bit hack: access by grid[iX][iY + (iZ >> YK_LOG_PANEL_LEN) << YK_LOG_PANEL_LEN][iZ & (YK_PANEL_LEN - 1)]
 static void swapAndStream3D(Cell<T,descriptors::D3Q19Descriptor> ***grid,
-                            plint iX, plint iY_p, plint iZ)
+                            plint iX, plint iY, plint iZ, plint Nx_, plint Ny_, plint Nz_)
 {
     T fTmp;
 
-    // plint iY_p = iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-    plint iZ_p = iZ & (YK_PANEL_LEN - 1);
+    plint iX_t = cube_mem_map_iX(iX, iY, iZ, Nx_, Ny_, Nz_);
+    plint iY_t = iY % ykTile;
+    plint iZ_t = iZ % ykTile;
 
-    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX-1, iY_p,   iZ_p,   1, fTmp);
-    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX,   iY_p-1, iZ_p,   2, fTmp);
-    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX,   iY_p  , (iZ-1) & (YK_PANEL_LEN - 1), 3, fTmp);
-    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX-1, iY_p-1, iZ_p,   4, fTmp);
-    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX-1, iY_p+1, iZ_p,   5, fTmp);
-    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX-1, iY_p  , (iZ-1) & (YK_PANEL_LEN - 1), 6, fTmp);
-    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX-1, iY_p  , (iZ+1) & (YK_PANEL_LEN - 1), 7, fTmp);
-    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX  , iY_p-1, (iZ-1) & (YK_PANEL_LEN - 1), 8, fTmp);
-    swapAndStreamCell(grid, iX, iY_p, iZ_p, iX  , iY_p-1, (iZ+1) & (YK_PANEL_LEN - 1), 9, fTmp);
+    plint iX_minus_1_t = cube_mem_map_iX(iX - 1, iY, iZ, Nx_, Ny_, Nz_);
+    plint iY_minus_1_t = (iY - 1) % ykTile;
+    plint iZ_minus_1_t = (iZ - 1) % ykTile;
+    plint iZ_plus_1_t = (iZ + 1) % ykTile;
+
+    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_minus_1_t, iY_t,               iZ_t,         1, fTmp);
+    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,         iY_minus_1_t,       iZ_t,         2, fTmp);
+    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,         iY_t,               iZ_minus_1_t, 3, fTmp);
+    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_minus_1_t, iY_minus_1_t,       iZ_t,         4, fTmp);
+    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_minus_1_t, (iY + 1) % ykTile,  iZ_t,         5, fTmp);
+    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_minus_1_t, iY_t,               iZ_minus_1_t, 6, fTmp);
+    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_minus_1_t, iY_t,               iZ_plus_1_t,  7, fTmp);
+    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,         iY_minus_1_t,       iZ_minus_1_t, 8, fTmp);
+    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,         iY_minus_1_t,       iZ_plus_1_t,  9, fTmp);
 }
-#else
 static void swapAndStream3D(Cell<T,descriptors::D3Q19Descriptor> ***grid,
                             plint iX, plint iY, plint iZ)
 {
@@ -87,7 +89,6 @@ static void swapAndStream3D(Cell<T,descriptors::D3Q19Descriptor> ***grid,
     swapAndStreamCell(grid, iX, iY, iZ, iX  , iY-1, iZ-1, 8, fTmp);
     swapAndStreamCell(grid, iX, iY, iZ, iX  , iY-1, iZ+1, 9, fTmp);
 }
-#endif
 };
 
 template<typename T>

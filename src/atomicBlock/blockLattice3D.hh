@@ -441,7 +441,7 @@ void BlockLattice3D<T,Descriptor>::resetDynamics(Dynamics<T,Descriptor> const& d
     }
 }
 
-#ifdef PANEL_MEM
+#ifdef PILLAR_MEM
 /** This method is slower than bulkStream(int,int,int,int), because it must
  * be verified which distribution functions are to be kept from leaving
  * the domain.
@@ -455,6 +455,10 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
     // Make sure domain is contained within bound
     PLB_PRECONDITION( contained(domain, bound) );
 
+    plint nx = this->getNx();
+    plint ny = this->getNy();
+    plint nz = this->getNz();
+
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
@@ -463,18 +467,20 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
                     plint nextY = iY + Descriptor<T>::c[iPop][1];
                     plint nextZ = iZ + Descriptor<T>::c[iPop][2];
 
-                    plint iY_p = iY + (iZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-                    plint iZ_p = iZ & (YK_PANEL_LEN - 1);
+                    plint iX_t = cube_mem_map_iX(iX, iY, iZ, nx, ny, nz);
+                    plint iY_t = iY % ykTile;
+                    plint iZ_t = iZ % ykTile;
 
                     if ( nextX>=bound.x0 && nextX<=bound.x1 &&
                          nextY>=bound.y0 && nextY<=bound.y1 &&
                          nextZ>=bound.z0 && nextZ<=bound.z1 )
                     {
-                        plint nextY_p = nextY + (nextZ >> YK_LOG_PANEL_LEN << YK_LOG_NY);
-                        plint nextZ_p = nextZ & (YK_PANEL_LEN - 1);
+                        plint nextX_t = cube_mem_map_iX(nextX, nextY, nextZ, nx, ny, nz);
+                        plint nextY_t = nextY % ykTile;
+                        plint nextZ_t = nextZ % ykTile;
 
-                        std::swap(grid[iX][iY_p][iZ_p][iPop+Descriptor<T>::q/2],
-                                  grid[nextX][nextY_p][nextZ_p][iPop]);
+                        std::swap(grid[iX_t][iY_t][iZ_t][iPop + Descriptor<T>::q/2],
+                                  grid[nextX_t][nextY_t][nextZ_t][iPop]);
                     }
                 }
             }
