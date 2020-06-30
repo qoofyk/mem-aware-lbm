@@ -57,10 +57,10 @@ namespace plb {
 plint thread_block;
 // End add by Yuankun
 
-inline plint cube_mem_map_iX (plint iX, plint iY, plint iZ) {
-  // return iX % ykTile + ykTile * (iZ / ykTile + (iY / ykTile) * (nz_ / ykTile) + (iX / ykTile)  * (nz_ / ykTile)  * (ny_ / ykTile));
-  return iX % ykTile + ykTile * (iZ / ykTile + (iY / ykTile) * NzTiles + (iX / ykTile)  * NzTiles  * NyTiles);  
-}
+// inline plint cube_mem_map_iX (plint iX, plint iY, plint iZ) {
+//   // return iX % ykTile + ykTile * (iZ / ykTile + (iY / ykTile) * (nz_ / ykTile) + (iX / ykTile)  * (nz_ / ykTile)  * (ny_ / ykTile));
+//   return iX % ykTile + ykTile * (iZ / ykTile + (iY / ykTile) * NzTiles + (iX / ykTile)  * NzTiles  * NyTiles);
+// }
 
 inline plint pillar_mem_map_iX (plint iX, plint iY, plint iZ) {
   return iX + memNx * (iZ / ykTile + (iY / ykTile) * NzTiles);
