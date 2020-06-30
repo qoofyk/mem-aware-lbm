@@ -45,6 +45,9 @@ typedef double T;
 
 namespace plb {
 plint ykTile;
+plint NzTiles;
+plint NyTiles;
+plint memNx;
 }
 
 void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
@@ -142,7 +145,10 @@ int main(int argc, char* argv[]) {
         if (Nx % NUM_THREADS != 0) throw MyException1();
         thread_block = Nx / NUM_THREADS;
         if (thread_block % ykBlockSize != 0) throw MyException2();
-        if ((Nz+2) % ykTile != 0 && (Ny+2) % ykTile != 0)  throw MyException3();
+        if ((Nz + 2) % ykTile != 0 && (Ny + 2) % ykTile != 0)  throw MyException3();
+        NzTiles = (Nz + 2) / ykTile;
+        NyTiles = (Ny + 2) / ykTile;
+        memNx = Nx + 2;
     }
     catch (MyException1& e) {
         std::cout << e.what() << std::endl;

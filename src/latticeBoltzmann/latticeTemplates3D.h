@@ -51,16 +51,16 @@ static void swapAndStreamCell (
     grid[nX][nY][nZ][iPop]   = fTmp;
 }
 
-static void swapAndStream3D(Cell<T,descriptors::D3Q19Descriptor> ***grid,
-                            plint iX, plint iY, plint iZ, plint Nx_, plint Ny_, plint Nz_)
+static void swapAndStream3D_pillar_mem(Cell<T,descriptors::D3Q19Descriptor> ***grid,
+                            plint iX, plint iY, plint iZ)
 {
     T fTmp;
 
-    plint iX_t = cube_mem_map_iX(iX, iY, iZ, Nx_, Ny_, Nz_);
+    plint iX_t = cube_mem_map_iX(iX, iY, iZ);
     plint iY_t = iY % ykTile;
     plint iZ_t = iZ % ykTile;
 
-    plint iX_minus_1_t = cube_mem_map_iX(iX - 1, iY, iZ, Nx_, Ny_, Nz_);
+    plint iX_minus_1_t = cube_mem_map_iX(iX - 1, iY, iZ);
     plint iY_minus_1_t = (iY - 1) % ykTile;
     plint iZ_minus_1_t = (iZ - 1) % ykTile;
     plint iZ_plus_1_t = (iZ + 1) % ykTile;

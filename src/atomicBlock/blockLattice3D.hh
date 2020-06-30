@@ -455,10 +455,6 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
     // Make sure domain is contained within bound
     PLB_PRECONDITION( contained(domain, bound) );
 
-    plint nx = this->getNx();
-    plint ny = this->getNy();
-    plint nz = this->getNz();
-
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
@@ -467,7 +463,7 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
                     plint nextY = iY + Descriptor<T>::c[iPop][1];
                     plint nextZ = iZ + Descriptor<T>::c[iPop][2];
 
-                    plint iX_t = cube_mem_map_iX(iX, iY, iZ, nx, ny, nz);
+                    plint iX_t = cube_mem_map_iX(iX, iY, iZ);
                     plint iY_t = iY % ykTile;
                     plint iZ_t = iZ % ykTile;
 
@@ -475,7 +471,7 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
                          nextY>=bound.y0 && nextY<=bound.y1 &&
                          nextZ>=bound.z0 && nextZ<=bound.z1 )
                     {
-                        plint nextX_t = cube_mem_map_iX(nextX, nextY, nextZ, nx, ny, nz);
+                        plint nextX_t = cube_mem_map_iX(nextX, nextY, nextZ);
                         plint nextY_t = nextY % ykTile;
                         plint nextZ_t = nextZ % ykTile;
 

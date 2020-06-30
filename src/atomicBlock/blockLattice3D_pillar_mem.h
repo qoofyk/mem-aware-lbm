@@ -10,9 +10,12 @@ namespace plb {
 // End add by Yuankun
 
 extern plint ykTile;
+extern plint NzTiles;
+extern plint NyTiles;
+extern plint memNx;
 
-extern inline plint cube_mem_map_iX (plint iX, plint iY, plint iZ, plint nx, plint ny, plint nz);
-extern inline plint pillar_mem_map_iX (plint iX, plint iY, plint iZ, plint nx, plint ny, plint nz);
+extern inline plint cube_mem_map_iX (plint iX, plint iY, plint iZ);
+extern inline plint pillar_mem_map_iX (plint iX, plint iY, plint iZ);
 }
 
 #endif  // BLOCK_LATTICE_3D_PILLAR_MEM_H

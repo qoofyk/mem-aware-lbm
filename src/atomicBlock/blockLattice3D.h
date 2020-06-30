@@ -132,13 +132,9 @@ public:
 public:
     /// Read/write access to lattice cells
     virtual Cell<T,Descriptor>& get(plint iX, plint iY, plint iZ) {
-        plint nx = this->getNx();
-        plint ny = this->getNy();
-        plint nz = this->getNz();
-
-        PLB_PRECONDITION(iX < nx);
-        PLB_PRECONDITION(iY < ny);
-        PLB_PRECONDITION(iZ < nz);
+        PLB_PRECONDITION(iX < this->getNx());
+        PLB_PRECONDITION(iY < this->getNy());
+        PLB_PRECONDITION(iZ < this->getNz());
 
       #ifndef PILLAR_MEM
         return grid[iX][iY][iZ];
@@ -148,7 +144,7 @@ public:
         // plint iY_t = iY % ykTile;
         // plint iZ_t = iZ % ykTile;
         // return grid[iX_t][iY_t][iZ_t];
-        return grid[cube_mem_map_iX(iX, iY, iZ, nx, ny, nz)][iY % ykTile][iZ % ykTile];
+        return grid[cube_mem_map_iX(iX, iY, iZ)][iY % ykTile][iZ % ykTile];
       #endif
     }
     /// Read only access to lattice cells
@@ -157,17 +153,10 @@ public:
         // PLB_PRECONDITION(iY<this->getNy());
         // PLB_PRECONDITION(iZ<this->getNz());
 
-        plint nx = this->getNx();
-        plint ny = this->getNy();
-        plint nz = this->getNz();
-
-        PLB_PRECONDITION(iX < nx);
-        PLB_PRECONDITION(iY < ny);
-        PLB_PRECONDITION(iZ < nz);
       #ifndef PILLAR_MEM
         return grid[iX][iY][iZ];
       #else
-        return grid[cube_mem_map_iX(iX, iY, iZ, nx, ny, nz)][iY % ykTile][iZ % ykTile];
+        return grid[cube_mem_map_iX(iX, iY, iZ)][iY % ykTile][iZ % ykTile];
       #endif
     }
     /// Specify wheter statistics measurements are done on a rect. domain
