@@ -140,10 +140,20 @@ public:
         return grid[iX][iY][iZ];
       #else
         #ifdef CUBE_MAP
-        return grid[cube_mem_map_iX(iX, iY, iZ)][iY % ykTile][iZ % ykTile];
+        plint iX_t = cube_mem_map_iX(iX, iY, iZ);
         #else
-        return grid[pillar_mem_map_iX(iX, iY, iZ)][iY % ykTile][iZ % ykTile];
+        plint iX_t = pillar_mem_map_iX(iX, iY, iZ);
         #endif
+
+        #ifdef BIT_HACK
+        plint iY_t = iY & (YK_TILE - 1);
+        plint iZ_t = iZ & (YK_TILE - 1);
+        #else
+        plint iY_t = iY % ykTile;
+        plint iZ_t = iZ % ykTile;
+        #endif
+
+        return grid[iX_t][iY_t][iZ_t];
       #endif
     }
     /// Read only access to lattice cells
@@ -156,10 +166,20 @@ public:
         return grid[iX][iY][iZ];
       #else
         #ifdef CUBE_MAP
-        return grid[cube_mem_map_iX(iX, iY, iZ)][iY % ykTile][iZ % ykTile];
+        plint iX_t = cube_mem_map_iX(iX, iY, iZ);
         #else
-        return grid[pillar_mem_map_iX(iX, iY, iZ)][iY % ykTile][iZ % ykTile];
+        plint iX_t = pillar_mem_map_iX(iX, iY, iZ);
         #endif
+
+        #ifdef BIT_HACK
+        plint iY_t = iY & (YK_TILE - 1);
+        plint iZ_t = iZ & (YK_TILE - 1);
+        #else
+        plint iY_t = iY % ykTile;
+        plint iZ_t = iZ % ykTile;
+        #endif
+
+        return grid[iX_t][iY_t][iZ_t];
       #endif
     }
     /// Specify wheter statistics measurements are done on a rect. domain

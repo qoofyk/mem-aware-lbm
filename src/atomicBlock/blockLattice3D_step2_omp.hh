@@ -422,8 +422,14 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
     for (iY = domain.y0; iY <= domain.y1; ++iY) {
       for (iZ = domain.z0; iZ <= domain.z1; ++iZ ){
         plint iX_t = cube_mem_map_iX(iX, iY, iZ);
+        #ifdef BIT_HACK
+        plint iY_t = iY & (YK_TILE - 1);
+        plint iZ_t = iZ & (YK_TILE - 1);
+        #else
         plint iY_t = iY % ykTile;
         plint iZ_t = iZ % ykTile;
+        #endif
+
         grid[iX_t][iY_t][iZ_t].collide(this->getInternalStatistics());
         grid[iX_t][iY_t][iZ_t].revert();
       }
@@ -476,13 +482,23 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
               plint surface_id = innerX % thread_block;
 
               plint innerX_t = cube_mem_map_iX(innerX, innerY, innerZ);
+              plint innerX_minus_1_t = cube_mem_map_iX(innerX - 1, innerY, innerZ);
+
+              #ifdef BIT_HACK
+              plint innerY_t = innerY & (YK_TILE - 1);
+              plint innerZ_t = innerZ & (YK_TILE - 1);
+
+              plint innerY_minus_1_t = (innerY - 1) & (YK_TILE - 1);
+              plint innerZ_minus_1_t = (innerZ - 1) & (YK_TILE - 1);
+              plint innerZ_minus_2_t = (innerZ - 2) & (YK_TILE - 1);
+              #else
               plint innerY_t = innerY % ykTile;
               plint innerZ_t = innerZ % ykTile;
 
-              plint innerX_minus_1_t = cube_mem_map_iX(innerX - 1, innerY, innerZ);
               plint innerY_minus_1_t = (innerY - 1) % ykTile;
               plint innerZ_minus_1_t = (innerZ - 1) % ykTile;
               plint innerZ_minus_2_t = (innerZ - 2) % ykTile;
+              #endif
 
               // Case-0. On x=x0, y=y0, z=z0, except last surface within a thread block
               if (surface_id != 0 && (innerX == domain.x0 || innerY == domain.y0 || innerZ == domain.z0)){
@@ -963,13 +979,23 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
               plint surface_id = innerX % thread_block;
 
               plint innerX_t = pillar_mem_map_iX(innerX, innerY, innerZ);
+              plint innerX_minus_1_t = innerX_t - 1;
+
+              #ifdef BIT_HACK
+              plint innerY_t = innerY & (YK_TILE - 1);
+              plint innerZ_t = innerZ & (YK_TILE - 1);
+
+              plint innerY_minus_1_t = (innerY - 1) & (YK_TILE - 1);
+              plint innerZ_minus_1_t = (innerZ - 1) & (YK_TILE - 1);
+              plint innerZ_minus_2_t = (innerZ - 2) & (YK_TILE - 1);
+              #else
               plint innerY_t = innerY % ykTile;
               plint innerZ_t = innerZ % ykTile;
 
-              plint innerX_minus_1_t = innerX_t - 1;
               plint innerY_minus_1_t = (innerY - 1) % ykTile;
               plint innerZ_minus_1_t = (innerZ - 1) % ykTile;
               plint innerZ_minus_2_t = (innerZ - 2) % ykTile;
+              #endif
 
               // Case-0. On x=x0, y=y0, z=z0, except last surface within a thread block
               if (surface_id != 0 && (innerX == domain.x0 || innerY == domain.y0 || innerZ == domain.z0)){

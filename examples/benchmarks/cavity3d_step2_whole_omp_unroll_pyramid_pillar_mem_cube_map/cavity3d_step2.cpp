@@ -48,6 +48,8 @@ plint ykTile;
 plint NzTiles;
 plint NyTiles;
 plint memNx;
+plint log_NzTiles;
+plint log_NyTiles;
 }
 
 void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
@@ -92,6 +94,21 @@ void test_omp_hello(){
 #else
     printf("Hello from thread %ld of %ld\n", my_rank, thread_count);
 #endif
+}
+
+plint myLog2 (plint x) {
+    int targetlevel = 0;
+    while (x >>= 1) ++targetlevel;
+    return targetlevel;
+}
+
+static inline uint32_t myAsmLog2(const uint32_t x) {
+  uint32_t y;
+  asm ( "\tbsr %1, %0\n"
+      : "=r"(y)
+      : "r" (x)
+  );
+  return y;
 }
 
 struct MyException1 : public exception {
@@ -149,6 +166,8 @@ int main(int argc, char* argv[]) {
         NzTiles = (Nz + 2) / ykTile;
         NyTiles = (Ny + 2) / ykTile;
         memNx = Nx + 2;
+        log_NzTiles = myAsmLog2(NzTiles);
+        log_NyTiles = myAsmLog2(NyTiles);        
     }
     catch (MyException1& e) {
         std::cout << e.what() << std::endl;

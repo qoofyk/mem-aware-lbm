@@ -448,7 +448,6 @@ void BlockLattice3D<T,Descriptor>::resetDynamics(Dynamics<T,Descriptor> const& d
  * \sa stream(int,int,int,int)
  * \sa stream()
  */
-  #ifdef CUBE_MAP
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
     // Make sure bound is contained within current lattice
@@ -459,48 +458,21 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
+                #ifdef CUBE_MAP
                 plint iX_t = cube_mem_map_iX(iX, iY, iZ);
-                plint iY_t = iY % ykTile;
-                plint iZ_t = iZ % ykTile;
-
-                for (plint iPop=1; iPop<=Descriptor<T>::q/2; ++iPop) {
-                    plint nextX = iX + Descriptor<T>::c[iPop][0];
-                    plint nextY = iY + Descriptor<T>::c[iPop][1];
-                    plint nextZ = iZ + Descriptor<T>::c[iPop][2];
-
-                    if ( nextX>=bound.x0 && nextX<=bound.x1 &&
-                         nextY>=bound.y0 && nextY<=bound.y1 &&
-                         nextZ>=bound.z0 && nextZ<=bound.z1 )
-                    {
-                        plint nextX_t = cube_mem_map_iX(nextX, nextY, nextZ);
-                        plint nextY_t = nextY % ykTile;
-                        plint nextZ_t = nextZ % ykTile;
-
-                        std::swap(grid[iX_t][iY_t][iZ_t][iPop + Descriptor<T>::q/2],
-                                  grid[nextX_t][nextY_t][nextZ_t][iPop]);
-                    }
-                }
-            }
-        }
-    }
-}
-  #else
-template<typename T, template<typename U> class Descriptor>
-void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
-    // Make sure bound is contained within current lattice
-    PLB_PRECONDITION( contained(bound, this->getBoundingBox()) );
-    // Make sure domain is contained within bound
-    PLB_PRECONDITION( contained(domain, bound) );
-
-    for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
-        for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
-            for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
+                #else
                 plint iX_t = pillar_mem_map_iX(iX, iY, iZ);
+                #endif
+
+                #ifdef BIT_HACK
+                plint iY_t = iY & (YK_TILE - 1);
+                plint iZ_t = iZ & (YK_TILE - 1);
+                #else
                 plint iY_t = iY % ykTile;
                 plint iZ_t = iZ % ykTile;
+                #endif
 
                 for (plint iPop=1; iPop<=Descriptor<T>::q/2; ++iPop) {
-
                     plint nextX = iX + Descriptor<T>::c[iPop][0];
                     plint nextY = iY + Descriptor<T>::c[iPop][1];
                     plint nextZ = iZ + Descriptor<T>::c[iPop][2];
@@ -509,9 +481,19 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
                          nextY>=bound.y0 && nextY<=bound.y1 &&
                          nextZ>=bound.z0 && nextZ<=bound.z1 )
                     {
+                        #ifdef CUBE_MAP
+                        plint nextX_t = cube_mem_map_iX(nextX, nextY, nextZ);
+                        #else
                         plint nextX_t = iX_t + Descriptor<T>::c[iPop][0];
+                        #endif
+
+                        #ifdef BIT_HACK
+                        plint nextY_t = nextY & (YK_TILE - 1);
+                        plint nextZ_t = nextZ & (YK_TILE - 1);
+                        #else
                         plint nextY_t = nextY % ykTile;
                         plint nextZ_t = nextZ % ykTile;
+                        #endif
 
                         std::swap(grid[iX_t][iY_t][iZ_t][iPop + Descriptor<T>::q/2],
                                   grid[nextX_t][nextY_t][nextZ_t][iPop]);
@@ -521,7 +503,6 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
         }
     }
 }
-  #endif
 #else
 /** This method is slower than bulkStream(int,int,int,int), because it must
  * be verified which distribution functions are to be kept from leaving

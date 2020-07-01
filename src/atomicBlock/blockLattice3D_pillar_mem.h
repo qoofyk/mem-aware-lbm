@@ -3,9 +3,10 @@
 namespace plb {
 
 // Add by Yuankun
-#define YK_PANEL_LEN 32 // 2^5=5
-#define YK_LOG_PANEL_LEN 5 // 2^5=5
-#define YK_LOG_NY 9// 2^9 512
+#define BIT_HACK
+#define YK_TILE 32 // 2^5=5
+#define LOG_YK_TILE 5 // 2^5=5
+// #define YK_LOG_NY 9// 2^9 512
 // #define YK_PANEL_LEN_MASK (~0 << YK_LOG_PANEL_LEN) //0xffffffe0
 // End add by Yuankun
 
@@ -13,6 +14,8 @@ extern plint ykTile;
 extern plint NzTiles;
 extern plint NyTiles;
 extern plint memNx;
+extern plint log_NzTiles;
+extern plint log_NyTiles;
 
 // #define cube_mem_map_iX(iX, iY, iZ) ((iX) % ykTile + ykTile * ((iZ) / ykTile + ((iY) / ykTile) * NzTiles + ((iX) / ykTile) * NzTiles * NyTiles))
 
