@@ -14,9 +14,10 @@ extern plint NzTiles;
 extern plint NyTiles;
 extern plint memNx;
 
-#define cube_mem_map_iX(iX, iY, iZ) ((iX) % ykTile + ykTile * ((iZ) / ykTile + ((iY) / ykTile) * NzTiles + ((iX) / ykTile) * NzTiles * NyTiles))
+// #define cube_mem_map_iX(iX, iY, iZ) ((iX) % ykTile + ykTile * ((iZ) / ykTile + ((iY) / ykTile) * NzTiles + ((iX) / ykTile) * NzTiles * NyTiles))
 
-// extern inline plint cube_mem_map_iX (plint iX, plint iY, plint iZ);
+// #define CUBE_MAP
+extern inline plint cube_mem_map_iX (plint iX, plint iY, plint iZ);
 extern inline plint pillar_mem_map_iX (plint iX, plint iY, plint iZ);
 }
 

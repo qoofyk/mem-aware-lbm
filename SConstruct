@@ -124,7 +124,11 @@ if MPIparallel:
         if step2_omp_Flags:
             if step2_unroll_Flags:
                 if pillar_mem_Flags:
-                    palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_whole_omp_unroll_pyramid_pillar_mem',
+                    if '-DCUBE_MAP' in flags:
+                        palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_whole_omp_unroll_pyramid_pillar_mem_cube_map',
+                                          source  = sourceFiles )
+                    else:
+                        palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_whole_omp_unroll_pyramid_pillar_mem_pillar_map',
                                           source  = sourceFiles )
                 else:
                     palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_whole_omp_unroll_pyramid',

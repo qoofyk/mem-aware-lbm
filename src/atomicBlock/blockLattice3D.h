@@ -139,12 +139,11 @@ public:
       #ifndef PILLAR_MEM
         return grid[iX][iY][iZ];
       #else
-        // plint iX_t = iX % ykTile + ykTile * (iZ / ykTile + (iY / ykTile) * (nz / ykTile) + (iX / ykTile)  * (nz / ykTile)  * (ny / ykTile));
-        // plint iX_t = cube_mem_map_iX(iX, iY, iZ, nx, ny, nz);
-        // plint iY_t = iY % ykTile;
-        // plint iZ_t = iZ % ykTile;
-        // return grid[iX_t][iY_t][iZ_t];
+        #ifdef CUBE_MAP
         return grid[cube_mem_map_iX(iX, iY, iZ)][iY % ykTile][iZ % ykTile];
+        #else
+        return grid[pillar_mem_map_iX(iX, iY, iZ)][iY % ykTile][iZ % ykTile];
+        #endif
       #endif
     }
     /// Read only access to lattice cells
@@ -156,7 +155,11 @@ public:
       #ifndef PILLAR_MEM
         return grid[iX][iY][iZ];
       #else
+        #ifdef CUBE_MAP
         return grid[cube_mem_map_iX(iX, iY, iZ)][iY % ykTile][iZ % ykTile];
+        #else
+        return grid[pillar_mem_map_iX(iX, iY, iZ)][iY % ykTile][iZ % ykTile];
+        #endif
       #endif
     }
     /// Specify wheter statistics measurements are done on a rect. domain
