@@ -139,19 +139,9 @@ public:
       #ifndef PILLAR_MEM
         return grid[iX][iY][iZ];
       #else
-        #ifdef CUBE_MAP
-        plint iX_t = cube_mem_map_iX(iX, iY, iZ);
-        #else
-        plint iX_t = pillar_mem_map_iX(iX, iY, iZ);
-        #endif
-
-        #ifdef BIT_HACK
-        plint iY_t = iY & (YK_TILE - 1);
-        plint iZ_t = iZ & (YK_TILE - 1);
-        #else
-        plint iY_t = iY % ykTile;
-        plint iZ_t = iZ % ykTile;
-        #endif
+        plint iX_t = pillar_map_iX(iX, iY, iZ);
+        plint iY_t = pillar_map(iY);
+        plint iZ_t = pillar_map(iZ);
 
         return grid[iX_t][iY_t][iZ_t];
       #endif
@@ -165,19 +155,9 @@ public:
       #ifndef PILLAR_MEM
         return grid[iX][iY][iZ];
       #else
-        #ifdef CUBE_MAP
-        plint iX_t = cube_mem_map_iX(iX, iY, iZ);
-        #else
-        plint iX_t = pillar_mem_map_iX(iX, iY, iZ);
-        #endif
-
-        #ifdef BIT_HACK
-        plint iY_t = iY & (YK_TILE - 1);
-        plint iZ_t = iZ & (YK_TILE - 1);
-        #else
-        plint iY_t = iY % ykTile;
-        plint iZ_t = iZ % ykTile;
-        #endif
+        plint iX_t = pillar_map_iX(iX, iY, iZ);
+        plint iY_t = pillar_map(iY);
+        plint iZ_t = pillar_map(iZ);
 
         return grid[iX_t][iY_t][iZ_t];
       #endif
@@ -216,15 +196,23 @@ public:
     void bulkStream(Box3D domain);
     /// Apply streaming step to boundary cells
     void boundaryStream(Box3D bound, Box3D domain);
-    void boundSwapStream(Box3D bound, plint iX, plint iY, plint iZ);
-    void swapStream(plint iX, plint iY, plint iZ);
+    
     /// Apply collision and streaming step to bulk (non-boundary) cells
     void bulkCollideAndStream(Box3D domain);
     /// 2 steps // Add by Yuankun
     void collideRevert(Box3D bound, Box3D domain);
     void collideRevertAndBoundSwapStream(Box3D bound, Box3D domain);
+#ifdef PILLAR_MEM
+    void collideRevertAndBoundSwapStream(Box3D domain, plint iX, plint iY, plint iZ, plint iX_t, plint iY_t, plint iZ_t);
+    void step2_2nd_CollideAndStream(Box3D domain, plint iX, plint iY, plint iZ, plint iX_t, plint iY_t, plint iZ_t);
+    void boundSwapStream(Box3D bound, plint iX, plint iY, plint iZ, plint iX_t, plint iY_t, plint iZ_t);
+    void swapStream(plint iX, plint iY, plint iZ, plint iX_t, plint iY_t, plint iZ_t);
+#else
     void collideRevertAndBoundSwapStream(Box3D domain, plint iX, plint iY, plint iZ);
     void step2_2nd_CollideAndStream(Box3D domain, plint iX, plint iY, plint iZ);
+    void boundSwapStream(Box3D bound, plint iX, plint iY, plint iZ);
+    void swapStream(plint iX, plint iY, plint iZ);
+#endif
     void step2CollideAndStream(Box3D domain);
     void step2CollideAndStream_init(Box3D domain);
     void step2CollideAndStream_bulk(Box3D domain);

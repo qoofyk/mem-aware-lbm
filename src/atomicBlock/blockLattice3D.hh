@@ -458,19 +458,9 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
-                #ifdef CUBE_MAP
-                plint iX_t = cube_mem_map_iX(iX, iY, iZ);
-                #else
-                plint iX_t = pillar_mem_map_iX(iX, iY, iZ);
-                #endif
-
-                #ifdef BIT_HACK
-                plint iY_t = iY & (YK_TILE - 1);
-                plint iZ_t = iZ & (YK_TILE - 1);
-                #else
-                plint iY_t = iY % ykTile;
-                plint iZ_t = iZ % ykTile;
-                #endif
+                plint iX_t = pillar_map_iX(iX, iY, iZ);
+                plint iY_t = pillar_map(iY);
+                plint iZ_t = pillar_map(iZ);
 
                 for (plint iPop=1; iPop<=Descriptor<T>::q/2; ++iPop) {
                     plint nextX = iX + Descriptor<T>::c[iPop][0];
@@ -482,18 +472,13 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
                          nextZ>=bound.z0 && nextZ<=bound.z1 )
                     {
                         #ifdef CUBE_MAP
-                        plint nextX_t = cube_mem_map_iX(nextX, nextY, nextZ);
+                        plint nextX_t = pillar_map_iX(nextX, nextY, nextZ);
                         #else
                         plint nextX_t = iX_t + Descriptor<T>::c[iPop][0];
                         #endif
 
-                        #ifdef BIT_HACK
-                        plint nextY_t = nextY & (YK_TILE - 1);
-                        plint nextZ_t = nextZ & (YK_TILE - 1);
-                        #else
-                        plint nextY_t = nextY % ykTile;
-                        plint nextZ_t = nextZ % ykTile;
-                        #endif
+                        plint nextY_t = pillar_map(nextY);
+                        plint nextZ_t = pillar_map(nextZ);
 
                         std::swap(grid[iX_t][iY_t][iZ_t][iPop + Descriptor<T>::q/2],
                                   grid[nextX_t][nextY_t][nextZ_t][iPop]);

@@ -51,33 +51,15 @@ static void swapAndStreamCell (
     grid[nX][nY][nZ][iPop]   = fTmp;
 }
 
-#ifdef CUBE_MEM
-static void swapAndStream3D_pillar_mem(Cell<T,descriptors::D3Q19Descriptor> ***grid,
-                            plint iX, plint iY, plint iZ)
+static void swapAndStream3D_pillar_map(Cell<T,descriptors::D3Q19Descriptor> ***grid,
+            plint iX, plint iY, plint iZ, plint iX_t, plint iY_t, plint iZ_t, plint iX_minus_1_t)
 {
     T fTmp;
 
-    plint iX_t = cube_mem_map_iX(iX, iY, iZ);
-    #ifdef BIT_HACK
-    plint iY_t = iY & (YK_TILE - 1);
-    plint iZ_t = iZ & (YK_TILE - 1);
-    #else
-    plint iY_t = iY % ykTile;
-    plint iZ_t = iZ % ykTile;
-    #endif
-
-    plint iX_minus_1_t = cube_mem_map_iX(iX - 1, iY, iZ);
-    #ifdef BIT_HACK
-    plint iY_minus_1_t = (iY - 1) & (YK_TILE - 1);
-    plint iY_plus_1_t  = (iY + 1) & (YK_TILE - 1);
-    plint iZ_minus_1_t = (iZ - 1) & (YK_TILE - 1);
-    plint iZ_plus_1_t  = (iZ + 1) & (YK_TILE - 1);
-    #else
-    plint iY_minus_1_t = (iY - 1) % ykTile;
-    plint iY_plus_1_t  = (iY + 1) % ykTile;
-    plint iZ_minus_1_t = (iZ - 1) % ykTile;
-    plint iZ_plus_1_t  = (iZ + 1) % ykTile;
-    #endif
+    plint iY_minus_1_t = pillar_map(iY - 1);
+    plint iY_plus_1_t  = pillar_map(iY + 1);
+    plint iZ_minus_1_t = pillar_map(iZ - 1);
+    plint iZ_plus_1_t  = pillar_map(iZ + 1);
 
     swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_minus_1_t, iY_t,         iZ_t,         1, fTmp);
     swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,         iY_minus_1_t, iZ_t,         2, fTmp);
@@ -89,43 +71,6 @@ static void swapAndStream3D_pillar_mem(Cell<T,descriptors::D3Q19Descriptor> ***g
     swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,         iY_minus_1_t, iZ_minus_1_t, 8, fTmp);
     swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,         iY_minus_1_t, iZ_plus_1_t,  9, fTmp);
 }
-#else
-static void swapAndStream3D_pillar_mem(Cell<T,descriptors::D3Q19Descriptor> ***grid,
-                            plint iX_t, plint iY, plint iZ)
-{
-    T fTmp;
-
-    #ifdef BIT_HACK
-    plint iY_t = iY & (YK_TILE - 1);
-    plint iZ_t = iZ & (YK_TILE - 1);
-    #else
-    plint iY_t = iY % ykTile;
-    plint iZ_t = iZ % ykTile;
-    #endif
-
-    #ifdef BIT_HACK
-    plint iY_minus_1_t = (iY - 1) & (YK_TILE - 1);
-    plint iY_plus_1_t  = (iY + 1) & (YK_TILE - 1);
-    plint iZ_minus_1_t = (iZ - 1) & (YK_TILE - 1);
-    plint iZ_plus_1_t  = (iZ + 1) & (YK_TILE - 1);
-    #else
-    plint iY_minus_1_t = (iY - 1) % ykTile;
-    plint iY_plus_1_t  = (iY + 1) % ykTile;
-    plint iZ_minus_1_t = (iZ - 1) % ykTile;
-    plint iZ_plus_1_t  = (iZ + 1) % ykTile;
-    #endif
-
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t - 1, iY_t,         iZ_t,         1, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,     iY_minus_1_t, iZ_t,         2, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,     iY_t,         iZ_minus_1_t, 3, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t - 1, iY_minus_1_t, iZ_t,         4, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t - 1, iY_plus_1_t,  iZ_t,         5, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t - 1, iY_t,         iZ_minus_1_t, 6, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t - 1, iY_t,         iZ_plus_1_t,  7, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,     iY_minus_1_t, iZ_minus_1_t, 8, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,     iY_minus_1_t, iZ_plus_1_t,  9, fTmp);
-}
-#endif
 
 static void swapAndStream3D(Cell<T,descriptors::D3Q19Descriptor> ***grid,
                             plint iX, plint iY, plint iZ)
