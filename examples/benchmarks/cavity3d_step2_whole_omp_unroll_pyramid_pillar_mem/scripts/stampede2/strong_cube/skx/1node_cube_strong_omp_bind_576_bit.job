@@ -1,0 +1,176 @@
+#!/bin/bash
+#SBATCH --job-name="step2.1node.cube.strong.whole-omp-unroll-pymd.pillar-mem.bind.576"
+#SBATCH --output="results/strong_cube/skx/step2.1node.cube.strong.whole-omp-unroll-pymd.pillar-mem.bind.576.bit.%j.out"
+#SBATCH --partition=skx-dev
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=48
+#SBATCH -t 2:00:00
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+# send mail to this address
+#SBATCH --mail-user=qoofyk@gmail.com
+
+module list
+mkdir -p results
+PBS_O_HOME=$HOME
+PBS_O_WORKDIR=$(dirname "$PWD") #dirname - strip last component from file name || dir="$PWD/.." || dir=".."
+export SCRATCH_DIR=${SCRATCH}/mem-aware-lbm/${SLURM_JOBID}
+
+# bridges
+groupname=$(id -Gn)
+EMPTY_DIR=${SCRATCH}/empty/
+
+BIN1=${PBS_O_WORKDIR}/cavity3d_step2_whole_omp_unroll_pyramid/cavity3d_step2
+BIN2=${PBS_O_WORKDIR}/cavity3d_pymd/cavity3d
+
+BIN3=${PBS_O_WORKDIR}/cavity3d_step2_3parts_omp_line/cavity3d_step2
+BIN4=${PBS_O_WORKDIR}/cavity3d/cavity3d
+
+BIN5=${PBS_O_WORKDIR}/cavity3d_step2_whole_omp_unroll_pyramid_pillar_mem/cavity3d_step2
+BIN6=${PBS_O_WORKDIR}/cavity3d_step2_whole_omp_unroll_pyramid_pillar_mem_cube_map/cavity3d_step2
+max_cores=48
+
+cube_step2_whole_pillar_strong_perf () {
+  N=$dim
+  
+  # for ((k=0; k<${#threads[@]}; k++)); do
+  for ((k=${#threads[@]}-1; k>=0; k--)); do
+    export OMP_NUM_THREADS=${threads[k]}
+    export OMP_PROC_BIND=spread
+    # export KMP_AFFINITY=verbose
+    
+    # tile=$((Nx / threads[k]))
+    # while [ $tile -ge 48 ]
+    # do
+    #   tile=$((tile / 2))
+    # done
+
+    echo "KMP_AFFINITY = $KMP_AFFINITY, OMP_PROC_BIND=${OMP_PROC_BIND}"
+    echo " $BIN5 $N $steps $tile ${warmup_steps} $Nx $Ny $Nz"
+
+    for i in `seq 1`
+    do
+      mpirun -n 1 $BIN5 $N $steps $tile $warmup_steps $Nx $Ny $Nz ${pillar_tile[k]}
+    done
+    echo "---------------------------------------------------------------------"
+
+    # echo "KMP_AFFINITY = $KMP_AFFINITY, OMP_PROC_BIND=${OMP_PROC_BIND}"
+    # echo " $BIN6 $N $steps $tile ${warmup_steps} $Nx $Ny $Nz"
+
+    # for i in `seq 1`
+    # do
+    #   mpirun -n 1 $BIN6 $N $steps $tile $warmup_steps $Nx $Ny $Nz ${pillar_tile[k]}
+    # done
+    echo "---------------------------------------------------------------------"
+  done
+}
+
+cube_step2_whole_strong_perf () {
+  N=$dim
+  
+  # for ((k=0; k<${#threads[@]}; k++)); do
+  for ((k=${#threads[@]}-1; k>=0; k--)); do
+    export OMP_NUM_THREADS=${threads[k]}
+    export OMP_PROC_BIND=spread
+    # export KMP_AFFINITY=verbose
+    
+    # tile=$((Nx / threads[k]))
+    # while [ $tile -ge 48 ]
+    # do
+    #   tile=$((tile / 2))
+    # done
+
+    echo "KMP_AFFINITY = $KMP_AFFINITY, OMP_PROC_BIND=${OMP_PROC_BIND}"
+    echo " $BIN1 $N $steps $tile ${warmup_steps} $Nx $Ny $Nz"
+
+    for i in `seq 1`
+    do
+      mpirun -n 1 $BIN1 $N $steps $tile $warmup_steps $Nx $Ny $Nz
+    done
+    echo "---------------------------------------------------------------------"
+  done
+}
+
+dim=$((max_cores * 12)) #576
+Nx=576
+Ny=510
+Nz=510
+tile=12
+steps=100
+# tile=(112 84 84 84 48 42 24)
+warmup_steps=100
+# threads=(1 2 4 6 8 12 16 18 24 32 36 48)
+threads=(48)
+pillar_tile=(32)
+cube_step2_whole_pillar_strong_perf
+
+echo "========================================================================================="
+
+dim=$((max_cores * 12)) #576
+Nx=576
+Ny=510
+Nz=510
+steps=100
+warmup_steps=100
+tile=12
+# threads=(1 2 4 6 8 12 16 18 24 32 36 48)
+threads=(48)
+cube_step2_whole_strong_perf
+
+echo "========================================================================================="
+
+dim=$((max_cores * 12)) #576
+Nx=129600
+Ny=34
+Nz=34
+steps=100
+warmup_steps=100
+tile=12
+# threads=(1 2 4 6 8 12 16 18 24 32 36 48)
+threads=(48)
+cube_step2_whole_strong_perf
+
+echo "========================================================================================="
+echo "========================================================================================="
+
+dim=$((max_cores * 12)) #576
+Nx=2304
+Ny=510
+Nz=510
+tile=48
+steps=100
+# tile=(112 84 84 84 48 42 24)
+warmup_steps=100
+# threads=(1 2 4 6 8 12 16 18 24 32 36 48)
+threads=(48)
+pillar_tile=(32)
+cube_step2_whole_pillar_strong_perf
+
+echo "========================================================================================="
+
+dim=$((max_cores * 12)) #576
+Nx=2304
+Ny=510
+Nz=510
+steps=100
+warmup_steps=100
+tile=48
+# threads=(1 2 4 6 8 12 16 18 24 32 36 48)
+threads=(48)
+cube_step2_whole_strong_perf
+
+echo "========================================================================================="
+
+dim=$((max_cores * 12)) #576
+Nx=518400
+Ny=34
+Nz=34
+steps=100
+warmup_steps=100
+tile=48
+# threads=(1 2 4 6 8 12 16 18 24 32 36 48)
+threads=(48)
+cube_step2_whole_strong_perf
+
+echo "========================================================================================="
