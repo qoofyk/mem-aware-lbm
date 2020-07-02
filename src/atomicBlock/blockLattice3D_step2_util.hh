@@ -57,30 +57,30 @@ namespace plb {
 plint thread_block;
 // End add by Yuankun
 
-// inline plint pillar_map_iX(plint iX, plint iY, plint iZ) {
-// #ifdef CUBE_MAP
-//   #ifdef BIT_HACK
-//     return (iX & (YK_TILE - 1)) + ((iZ >> LOG_YK_TILE) << LOG_YK_TILE) + ((iY >> LOG_YK_TILE) << (log_NzTiles + LOG_YK_TILE)) + ( (iX >> LOG_YK_TILE) << (log_NzTiles + log_NyTiles + LOG_YK_TILE) );
-//   #else
-//     // return iX % ykTile + ykTile * (iZ / ykTile + (iY / ykTile) * (nz_ / ykTile) + (iX / ykTile)  * (nz_ / ykTile)  * (ny_ / ykTile));
-//     return iX % ykTile + ykTile * (iZ / ykTile + (iY / ykTile) * NzTiles + (iX / ykTile)  * NzTiles  * NyTiles);
-//   #endif
-// #else // PILLAR_MAP
-//   #ifdef BIT_HACK
-//     return iX + memNx * ( (iZ >> LOG_YK_TILE) + ( (iY >> LOG_YK_TILE) << log_NzTiles) );  
-//   #else   
-//     return iX + memNx * (iZ / ykTile + (iY / ykTile) * NzTiles);
-//   #endif
-// #endif  
-// }
+inline plint pillar_map_iX(plint iX, plint iY, plint iZ) {
+#ifdef CUBE_MAP
+  #ifdef BIT_HACK
+    return (iX & (YK_TILE - 1)) + ((iZ >> LOG_YK_TILE) << LOG_YK_TILE) + ((iY >> LOG_YK_TILE) << (log_NzTiles + LOG_YK_TILE)) + ( (iX >> LOG_YK_TILE) << (log_NzTiles + log_NyTiles + LOG_YK_TILE) );
+  #else
+    // return iX % ykTile + ykTile * (iZ / ykTile + (iY / ykTile) * (nz_ / ykTile) + (iX / ykTile)  * (nz_ / ykTile)  * (ny_ / ykTile));
+    return iX % ykTile + ykTile * (iZ / ykTile + (iY / ykTile) * NzTiles + (iX / ykTile)  * NzTiles  * NyTiles);
+  #endif
+#else // PILLAR_MAP
+  #ifdef BIT_HACK
+    return iX + memNx * ( (iZ >> LOG_YK_TILE) + ( (iY >> LOG_YK_TILE) << log_NzTiles) );
+  #else   
+    return iX + memNx * (iZ / ykTile + (iY / ykTile) * NzTiles);
+  #endif
+#endif
+}
 
-// inline plint pillar_map(plint iZ) {
-//   #ifdef BIT_HACK 
-//     return iZ & (YK_TILE - 1);
-//   #else
-//     return iZ % ykTile;
-//   #endif
-// }
+inline plint pillar_map(plint iZ) {
+  #ifdef BIT_HACK 
+    return iZ & (YK_TILE - 1);
+  #else
+    return iZ % ykTile;
+  #endif
+}
 
 #ifdef STEP2_OMP
 /** \param nx_ lattice width (first index)
@@ -261,10 +261,13 @@ void BlockLattice3D<T,Descriptor>::collideRevertAndBoundSwapStream(Box3D bound, 
 }
 
 template<typename T, template<typename U> class Descriptor>
-void BlockLattice3D<T,Descriptor>::collideRevertAndBoundSwapStream(Box3D bound, plint iX, plint iY, plint iZ,
-                                                                    plint iX_t, plint iY_t, plint iZ_t) {
+void BlockLattice3D<T,Descriptor>::collideRevertAndBoundSwapStream(Box3D bound, plint iX, plint iY, plint iZ) {
     // Make sure domain is contained within current lattice
     // PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
+
+    plint iX_t = pillar_map_iX(iX, iY, iZ);
+    plint iY_t = pillar_map(iY);
+    plint iZ_t = pillar_map(iZ);
 
     grid[iX_t][iY_t][iZ_t].collide(this->getInternalStatistics());
     grid[iX_t][iY_t][iZ_t].revert();
@@ -293,10 +296,13 @@ void BlockLattice3D<T,Descriptor>::collideRevertAndBoundSwapStream(Box3D bound, 
 }
 
 template<typename T, template<typename U> class Descriptor>
-void BlockLattice3D<T,Descriptor>::boundSwapStream(Box3D bound, plint iX, plint iY, plint iZ,
-                                                    plint iX_t, plint iY_t, plint iZ_t) {
+void BlockLattice3D<T,Descriptor>::boundSwapStream(Box3D bound, plint iX, plint iY, plint iZ) {
     // Make sure domain is contained within current lattice
     // PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
+
+    plint iX_t = pillar_map_iX(iX, iY, iZ);
+    plint iY_t = pillar_map(iY);
+    plint iZ_t = pillar_map(iZ);
 
     for (plint iPop=1; iPop<=Descriptor<T>::q/2; ++iPop) {
         plint nextX = iX + Descriptor<T>::c[iPop][0];
@@ -323,12 +329,14 @@ void BlockLattice3D<T,Descriptor>::boundSwapStream(Box3D bound, plint iX, plint 
 
 
 template<typename T, template<typename U> class Descriptor>
-void BlockLattice3D<T,Descriptor>::step2_2nd_CollideAndStream(Box3D domain, plint iX, plint iY, plint iZ,
-                                                              plint iX_t, plint iY_t, plint iZ_t){
+void BlockLattice3D<T,Descriptor>::step2_2nd_CollideAndStream(Box3D domain, plint iX, plint iY, plint iZ){
   if (iY == domain.y0 || iZ == domain.z0){
     collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
   }
   else{
+    plint iX_t = pillar_map_iX(iX, iY, iZ);
+    plint iY_t = pillar_map(iY);
+    plint iZ_t = pillar_map(iZ);
     grid[iX_t][iY_t][iZ_t].collide(this->getInternalStatistics());
 
     latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_mem(grid, iX, iY, iZ);
@@ -337,10 +345,13 @@ void BlockLattice3D<T,Descriptor>::step2_2nd_CollideAndStream(Box3D domain, plin
 
     
 template<typename T, template<typename U> class Descriptor>
-void BlockLattice3D<T,Descriptor>::swapStream(plint iX, plint iY, plint iZ,
-                                             plint iX_t, plint iY_t, plint iZ_t) {
+void BlockLattice3D<T,Descriptor>::swapStream(plint iX, plint iY, plint iZ) {
     // Make sure domain is contained within current lattice
     // PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
+
+    plint iX_t = pillar_map_iX(iX, iY, iZ);
+    plint iY_t = pillar_map(iY);
+    plint iZ_t = pillar_map(iZ);
 
     for (plint iPop=1; iPop<=Descriptor<T>::q/2; ++iPop) {
         plint nextX = iX + Descriptor<T>::c[iPop][0];

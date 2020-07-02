@@ -19,12 +19,12 @@ extern plint log_NyTiles;
 
 // #define cube_mem_map_iX(iX, iY, iZ) ((iX) % ykTile + ykTile * ((iZ) / ykTile + ((iY) / ykTile) * NzTiles + ((iX) / ykTile) * NzTiles * NyTiles))
 
-// extern inline plint pillar_map_iX (plint iX, plint iY, plint iZ);
+extern inline plint pillar_map_iX (plint iX, plint iY, plint iZ);
 // #define pillar_map_iX(iX, iY, iZ) ((iX) + memNx * ( ((iZ) >> LOG_YK_TILE) + ( ((iY) >> LOG_YK_TILE) << log_NzTiles) ))
-#define pillar_map_iX(iX, iY, iZ) ((iX) + memNx * ( ((iZ) >> LOG_YK_TILE) + ( ((iY) >> LOG_YK_TILE) << LOG_NZ_TILES) ))
+// #define pillar_map_iX(iX, iY, iZ) ((iX) + memNx * ( ((iZ) >> LOG_YK_TILE) + ( ((iY) >> LOG_YK_TILE) << LOG_NZ_TILES) ))
 
-// extern inline plint pillar_map (plint iZ);
-#define pillar_map(iZ) ((iZ) & (YK_TILE - 1))
+extern inline plint pillar_map (plint iZ);
+// #define pillar_map(iZ) ((iZ) & (YK_TILE - 1))
 
 }
 
