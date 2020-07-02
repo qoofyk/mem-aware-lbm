@@ -959,6 +959,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
         for (plint innerX = outerX; innerX <= std::min(outerX+blockSize-1, domain.x1);
           ++innerX, ++dx)
         {
+          plint surface_id = innerX % thread_block;
           // Y-index is shifted in negative direction at each x-increment. to ensure
           //   that only post-collision cells are accessed during the swap-operation
           //   of the streaming.
@@ -985,7 +986,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
               ++innerZ)
             {
               // printf("tid%ld: inner(%ld, %ld, %ld)\n", tid, innerX, innerY, innerZ);
-              int surface_id = innerX % thread_block;
+
               // Case-0. On x=x0, y=y0, z=z0, except last surface within a thread block
               if (surface_id != 0 && (innerX == domain.x0 || innerY == domain.y0 || innerZ == domain.z0)){
                 // printf("case-0 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
