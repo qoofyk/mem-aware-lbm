@@ -573,8 +573,10 @@ void BlockLattice3D<T,Descriptor>::allocateAndInitialize() {
     rawData = new Cell<T,Descriptor> [nx*ny*nz];
     grid    = new Cell<T,Descriptor>** [nx];
 
-    pcout << "PILLAR_MEM: allocateAndInitialize:" << nx << 'x' << ny << 'x' << nz << '\n'; 
-
+    #ifdef DEBUG_PRINT
+    pcout << "Org_Mem: allocateAndInitialize:" << nx << 'x' << ny << 'x' << nz << '\n'; 
+    #endif
+    
     // Before: access grid[iX][iY][iZ]
     #pragma omp parallel for default(shared) schedule(static, thread_block)
     for (plint iX=0; iX<nx; ++iX) {

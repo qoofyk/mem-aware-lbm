@@ -11,7 +11,6 @@ python3 setup.py install --prefix=./build/
 source ~/intel/compilers_and_libraries/linux/bin/compilervars.sh -arch intel64 -platform linux
 ```
 
-
 ## Benchmark
 ```bash
 cd ./examples/benchmarks/cavity3d
@@ -21,6 +20,15 @@ mpirun -n 3 ./cavity3d 100
 ./cavity3d N
 where N is the resolution. The benchmark cases published 
 on the Palabos Wiki use N=100, N=400, N=1000, or N=4000.
+
+## Verification
+```bash
+mpirun -n 1 ./cavity3d_step2 31 10 4 0 32 32 32 > tmp_32_10
+mpirun -n 1 ./cavity3d 31 10 4 0 32 32 32 > tmp_32_10
+cd ~/Workspace/Palabos/palabos-v2.0r0/examples/benchmarks/cavity3d/
+mpirun -n 1 ./cavity3d 31 10
+diff tmp_32_10 ~/Workspace/Palabos/palabos-v2.0r0/examples/benchmarks/cavity3d/tmp_32_10
+```
 
 ### Sample output
 
