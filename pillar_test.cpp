@@ -445,7 +445,7 @@ int main(int argc, char** argv)
     orginal_access_pattern(pillar_grid, Nx, Ny, Nz);
     pillar_access_pattern(pillar_grid, Nx, Ny, Nz);
 
-    // original_parallelepiped_access_pattern(Nx, Ny, Nz);
+    original_parallelepiped_access_pattern(pillar_grid, Nx, Ny, Nz);
 
     #ifdef PILLAR_PYMD
     pillar_access_pymd_pattern(Nx, Ny, Nz);

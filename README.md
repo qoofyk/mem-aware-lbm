@@ -76,5 +76,8 @@ domain-(1, 1) (1, 11) (1, 11), Test
 mpirun -n 1 ./cavity3d_step2 10 0 0 2 4
 ```
 
-### Post-operationi on script
+### Post-operation on script
 `less 1node.6473699.out | grep 'Mega' | cut -d ":" -f 2 | cut -d " " -f 2`
+
+### Pillar_test
+`.\pillar_test 16 8 16 8 4 > tmp`
