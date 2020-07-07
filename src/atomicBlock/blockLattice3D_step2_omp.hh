@@ -1559,7 +1559,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
 {
   plint tid = omp_get_thread_num();
   plint tid_Z = tid % Tz;
-  plint tid_Y = tid / Ty;
+  plint tid_Y = tid / Tz;
   plint my_y0 = tid_Y * NyT + 1;
   plint my_y1 = my_y0 + NyT - 1;
   plint my_z0 = tid_Z * NzT + 1;
