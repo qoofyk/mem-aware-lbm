@@ -1586,11 +1586,17 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                 my_y0 + 1, my_y1 - 1,
                 my_z1, my_z1) );
 
-  // ---------------II compute iX = 1 bottom ---------------------
+  // ---------------I-2. compute iX = 1 bottom ---------------------
   iX = domain.x0;
+  for (iY = my_y0; iY <= my_y1; ++iY) {
+    for (iZ = my_z0; iZ <= my_z1; ++iZ) {
+      // collide & revert on row my_y0 || first || last point 
+      if (iY == my_y0 || iZ == my_z0 || iZ == my_z1) {
+        grid[iX][iY][iZ].collide(this->getInternalStatistics());
+        grid[iX][iY][iZ].revert();
+        continue;
+      }
 
-  for (iY = my_y0 + 1; iY < my_y1; ++iY) {
-    for (iZ = my_z0 + 1; iZ < my_z1; ++iZ) {
       collideRevertAndBoundSwapStream(domain, iX, iY, iZ);
     }
   }
@@ -1602,34 +1608,90 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
 #if 1
   // ---------------II compute iX = 2 ---------------------
   iX = domain.x0 + 1;
-
   for (iY = my_y0 + 1; iY < my_y1; ++iY) {
     for (iZ = my_z0 + 1; iZ < my_z1; ++iZ) {
       grid[iX][iY][iZ].collide(this->getInternalStatistics());
       latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
-      if (iY > my_y0 + 2 && iZ > my_z0 + 2) {
+
+      if (iY >= my_y0 + 4 && iY <= my_y1 - 2 && iZ >= my_z0 + 3 && iZ <= my_z1 - 3){
         collideRevertAndBoundSwapStream(domain, iX-1, iY-1, iZ);
-      } 
+      }
+      else {
+        grid[iX-1][iY-1][iZ].collide(this->getInternalStatistics());
+        grid[iX-1][iY-1][iZ].revert();
+      }
+
     }
   }
-  
+
+#if 0
+  // my_y0 + 1 && my_y0 + 2
+  for (iY = my_y0 + 1; iY <= my_y0 + 2; ++iY) {
+    for (iZ = my_z0 + 1; iZ < my_z1; ++iZ) {
+      grid[iX][iY][iZ].collide(this->getInternalStatistics());
+      latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+    }
+  }
+
+  // iY = my_y0 + 3
+  iZ = my_z0 + 1;
+  grid[iX][iY][iZ].collide(this->getInternalStatistics());
+  latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+
+  for (iZ = my_z0 + 2; iZ < my_z1 - 1; ++iZ) {
+    grid[iX][iY][iZ].collide(this->getInternalStatistics());
+    latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+
+    grid[iX-1][iY-1][iZ].collide(this->getInternalStatistics());
+    grid[iX-1][iY-1][iZ].revert();
+  }
+
+  // iZ = my_z1 - 1
+  grid[iX][iY][iZ].collide(this->getInternalStatistics());
+  latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);  
+
+  // iY = my_y0 + 4
+  for (iY = my_y0 + 3; iY < my_y1; ++iY) {
+    iZ = my_z0 + 1;
+    grid[iX][iY][iZ].collide(this->getInternalStatistics());
+    latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+
+    for (iZ = my_z0 + 2; iZ < my_z1; ++iZ) {
+      grid[iX][iY][iZ].collide(this->getInternalStatistics());
+      latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+      if (iY > my_y0 + 2 && iZ >= my_z0 + 2) {
+        grid[iX][iY][iZ].collide(this->getInternalStatistics());
+        grid[iX][iY][iZ].revert();
+      }
+
+      if (iZ >=)
+    }
+
+  }
+#endif
+
   // ---------------III compute iX = 3 ---------------------
   iX = domain.x0 + 2;
-
   for (iY = my_y0 + 1; iY < my_y1; ++iY) {
     for (iZ = my_z0 + 1; iZ < my_z1; ++iZ) {
       grid[iX][iY][iZ].collide(this->getInternalStatistics());
       latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
-      if (iY > my_y0 + 2 && iZ > my_z0 + 2 && iZ < my_z1 - 1) {
-        grid[iX-1][iY-1][iZ].collide(this->getInternalStatistics());
-        latticeTemplates<T,Descriptor>::swapAndStream3D(
-                      grid, iX-1, iY-1, iZ);
-      } 
+
+      if (iY ==  my_y0 + 1 || iY == my_y0 + 2 || iZ == my_z0 + 1 || iZ == my_z0 - 1) continue;
+
+      grid[iX-1][iY-1][iZ].collide(this->getInternalStatistics());
+      if (iY >= my_y0 + 4 && iY <= my_y1 - 2 && iZ >= my_z0 + 3 && iZ <= my_z1 - 3){
+        latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+      }
+      else {
+        grid[iX-1][iY-1][iZ].revert();
+      }
+
     }
   }
 
   // ---------------IV compute bulk ---------------------
-  for (plint outerX = domain.x0 + 3; outerX <= domain.x1 - 2; outerX += blockSize) {
+  for (plint outerX = domain.x0 + 3; outerX <= domain.x1 - 1; outerX += blockSize) {
     // printf("tid: %ld, outerX=%ld\n", tid, outerX);
     for (plint outerY = my_y0 + 1; outerY <= my_y1 - 1 + blockSize-1; outerY += blockSize) {
       // printf("outerY=%ld\n", outerY);
@@ -1637,7 +1699,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
         // printf("outerZ=%ld\n", outerZ);
         // Inner loops.
         plint dx = 0;
-        for (plint innerX = outerX; innerX <= std::min(outerX+blockSize-1, domain.x1 - 2);
+        for (plint innerX = outerX; innerX <= std::min(outerX+blockSize-1, domain.x1 - 1);
           ++innerX, ++dx)
         {
           // Y-index is shifted in negative direction at each x-increment. to ensure
@@ -1677,13 +1739,16 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
               //   neighboring cell, to perform the streaming step.
               latticeTemplates<T,Descriptor>::swapAndStream3D (
                       grid, innerX, innerY, innerZ );
-              
 
-              // second collide
-              if (innerX > 2 && innerY > my_y0 + 2 && innerZ > my_z0 + 2 && innerZ < my_z0 - 1) {
-                grid[innerX-1][innerY-1][innerZ].collide(this->getInternalStatistics());
-                latticeTemplates<T,Descriptor>::swapAndStream3D(
-                      grid, innerX-1, innerY-1, innerZ);
+              // second collide swap stream
+              if (innerY ==  my_y0 + 1 || innerY == my_y0 + 2 || innerZ == my_z0 + 1 || innerZ == my_z0 - 1) continue;
+
+              grid[innerX-1][innerY-1][innerZ].collide(this->getInternalStatistics());
+              if (innerY >= my_y0 + 4 && innerY <= my_y1 - 2 && innerZ >= my_z0 + 3 && innerZ <= my_z1 - 3){
+                latticeTemplates<T,Descriptor>::swapAndStream3D(grid, innerX-1, innerY-1, innerZ);
+              }
+              else {
+                grid[innerX-1][innerY-1][innerZ].revert();
               }
             } // end innerZ
           } // end innerY
@@ -1700,11 +1765,15 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
     for (iZ = my_z0; iZ <= my_z0; ++iZ) {
       grid[iX][iY][iZ].collide(this->getInternalStatistics());
       grid[iX][iY][iZ].revert();
-      if (iY > my_y0 + 2 && iZ > my_z0 + 2 && iZ < my_z1 - 1) {
-        grid[iX-1][iY-1][iZ].collide(this->getInternalStatistics());
-        latticeTemplates<T,Descriptor>::swapAndStream3D(
-                      grid, iX-1, iY-1, iZ);
-      } 
+      if (iY ==  my_y0 + 1 || iY == my_y0 + 2 || iZ == my_z0 + 1 || iZ == my_z0 - 1) continue;
+
+      grid[iX-1][iY-1][iZ].collide(this->getInternalStatistics());
+      if (iY >= my_y0 + 4 && iY <= my_y1 - 2 && iZ >= my_z0 + 3 && iZ <= my_z1 - 3){
+        latticeTemplates<T,Descriptor>::swapAndStream3D(grid, iX, iY, iZ);
+      }
+      else {
+        grid[iX-1][iY-1][iZ].revert();
+      }
     }
   }
 
