@@ -212,7 +212,8 @@ public:
     void step2CollideAndStream_bulk_blockwise(Box3D domain);
     void step2CollideAndStream_end(Box3D domain);
     #ifdef PILLAR_MEM
-    void pillarStep2CollideAndStream(Box3D bound, Box3D domain);
+    void pillarStep2CollideAndStream_omp(Box3D bound, Box3D domain);
+    void pillarStep2CollideAndStream_seq(Box3D bound, Box3D domain);
     #endif
     // End add by Yuankun
 private:
