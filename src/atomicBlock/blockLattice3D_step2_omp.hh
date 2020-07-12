@@ -387,26 +387,24 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk_omp(Box3D domain){
   #ifdef STEP2_OMP
     #ifdef STEP2_UNROLL
       #ifdef PILLAR_MEM
-
 template<typename T, template<typename U> class Descriptor>
-void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
+void BlockLattice3D<T,Descriptor>::pillarStep2CollideAndStream(Box3D bound, Box3D domain) {
   // global::profiler().start("collStream");
   // global::profiler().increment("collStreamCells", domain.nCells());
 
   // Make sure domain is contained within current lattice
-  PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
+  PLB_PRECONDITION( contained(domain, bound) );
 
   // For cache efficiency, memory is traversed block-wise. The three outer loops enumerate
   //   the blocks, whereas the three inner loops enumerate the cells inside each block.
   const plint blockSize = cachePolicy().getBlockSize();
 
-#ifdef DEBUG_PRINT
-  printf("Here! I am step2_whole_omp_unroll_pyramid_panel_mem, blockSize=%ld, domain-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+#if 0
+  printf("Here! I am step2_whole_omp_unroll_pyramid, blockSize=%ld, domain-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
     blockSize, domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
 #endif
 
   plint iX, iY, iZ;
-  plint innerX_t, innerY_t, innerZ_t, innerX_minus_1_t, innerY_minus_1_t, innerZ_minus_1_t;
 #ifdef _OPENMP
 #pragma omp parallel default(shared)
 {
@@ -421,23 +419,15 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
     //   tid, thread_block, iX, domain.y0, domain.y1, domain.z0, domain.z1);
     for (iY = domain.y0; iY <= domain.y1; ++iY) {
       for (iZ = domain.z0; iZ <= domain.z1; ++iZ ){
-        plint iX_t = pillar_map_iX(iX, iY, iZ);
-        plint iY_t = pillar_map(iY);
-        plint iZ_t = pillar_map(iZ);
-
-        grid[iX_t][iY_t][iZ_t].collide(this->getInternalStatistics());
-        grid[iX_t][iY_t][iZ_t].revert();
+        grid[iX][iY][iZ].collide(this->getInternalStatistics());
+        grid[iX][iY][iZ].revert();
       }
     }
   }
 #endif
-  #ifdef DEBUG_PRINT
-  pcout << "End step I\n";
-  #endif
 #if 1
   // ---------------2. compute bulk ---------------------
-
-  #pragma omp for private(innerX_t, innerY_t, innerZ_t, innerX_minus_1_t, innerY_minus_1_t, innerZ_minus_1_t) schedule(static, thread_block / blockSize)
+  #pragma omp for private(iX, iY, iZ) schedule(static, thread_block / blockSize)
   for (plint outerX = domain.x0; outerX <= domain.x1; outerX += blockSize) {
     // printf("tid: %ld, outerX=%ld\n", tid, outerX);
     for (plint outerY = domain.y0; outerY <= domain.y1+blockSize-1; outerY += blockSize) {
@@ -449,6 +439,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
         for (plint innerX = outerX; innerX <= std::min(outerX+blockSize-1, domain.x1);
           ++innerX, ++dx)
         {
+          plint surface_id = innerX % thread_block;
           // Y-index is shifted in negative direction at each x-increment. to ensure
           //   that only post-collision cells are accessed during the swap-operation
           //   of the streaming.
@@ -475,13 +466,10 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
               ++innerZ)
             {
               // printf("tid%ld: inner(%ld, %ld, %ld)\n", tid, innerX, innerY, innerZ);
-              plint surface_id = innerX % thread_block;
 
               // Case-0. On x=x0, y=y0, z=z0, except last surface within a thread block
               if (surface_id != 0 && (innerX == domain.x0 || innerY == domain.y0 || innerZ == domain.z0)){
-                #ifdef DEBUG_PRINT
-                printf("case-0 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                #endif
+                // printf("case-0 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                 collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
                 continue;
               }
@@ -490,87 +478,65 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
               if (surface_id == 1) {
                 // 2.1 On x=x0, Or boundary y=y0,y1, z=z0, z1
                 if (innerY == domain.y1 || innerZ == domain.z1){
-                  #ifdef DEBUG_PRINT
-                  printf("case-1.1 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                  #endif
+                  // printf("case-1.1 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                   collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
                 }
                 else {
-                  innerX_t = pillar_map_iX(innerX, innerY, innerZ);
-                  innerY_t = pillar_map(innerY);
-                  innerZ_t = pillar_map(innerZ);
                   // printf("case-1.2 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-
-                  grid[pillar_map_iX(innerX, innerY, innerZ)][pillar_map(innerY)][pillar_map(innerZ)].collide (this->getInternalStatistics());
-                  latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX, innerY, innerZ);
+                  grid[innerX][innerY][innerZ].collide (
+                        this->getInternalStatistics() );
+                  latticeTemplates<T,Descriptor>::swapAndStream3D (
+                          grid, innerX, innerY, innerZ );
                 }
               }
               // Case-2. On 2nd surface, innerX = domain.x0 + thread_block * n + 2
               else if (surface_id == 2) {
-                innerX_t = pillar_map_iX(innerX, innerY, innerZ);
-                innerY_t = pillar_map(innerY);
-                innerZ_t = pillar_map(innerZ);
-
-                #ifdef CUBE_MAP
-                innerX_minus_1_t = pillar_map_iX(innerX - 1, innerY, innerZ);
-                #else
-                innerX_minus_1_t = innerX_t - 1;
-                #endif
-
-                innerY_minus_1_t = pillar_map(innerY - 1);
-                innerZ_minus_1_t = pillar_map(innerZ - 1);
-
                 // 2.1. On y=y0+1
                 if (innerY == domain.y0+1){
-                  #ifdef DEBUG_PRINT
-                  printf("case-2.1 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                  #endif
-
+                  // printf("case-2.1 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                   if (innerZ == domain.z1) {
                     // first
                     collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
                     // second collide & revert on (innerX-1, innerY-1, innerZ-1)
-                    grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                    grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].revert();
+                    grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                    grid[innerX-1][innerY-1][innerZ-1].revert();
                     // second collide & revert on (innerX-1, innerY-1, innerZ)
-                    grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_t].collide(this->getInternalStatistics());
-                    grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_t].revert();
+                    grid[innerX-1][innerY-1][innerZ].collide(this->getInternalStatistics());
+                    grid[innerX-1][innerY-1][innerZ].revert();
                   }
                   else {
-                      grid[innerX_t][innerY_t][innerZ_t].collide(this->getInternalStatistics());
-                      latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX, innerY, innerZ);
+                      grid[innerX][innerY][innerZ].collide(this->getInternalStatistics());
+                      latticeTemplates<T,Descriptor>::swapAndStream3D(grid, innerX, innerY, innerZ);
                       
                       // second collide & revert on (innerX-1, innerY-1, innerZ-1)
-                      grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                      grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].revert();
-                  }
+                      grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                      grid[innerX-1][innerY-1][innerZ-1].revert();
+                    }
                   continue;
                 }
 
                 // 2.2. On y=y1
                 if (innerY == domain.y1){
                   // first
-                  #ifdef DEBUG_PRINT
-                  printf("case-2.2 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                  #endif
+                  // printf("case-2.2 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                   collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
 
                   // second
                   if (innerZ == domain.z0+1){
                     // printf("case-2.2.1 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                     // second collide & revert on (innerX-1, innerY-1, innerZ-1)
-                    grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                    grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].revert();
+                    grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                    grid[innerX-1][innerY-1][innerZ-1].revert();
                     continue;
                   }
                   else{
                     // printf("case-2.2.2 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                    grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                    grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].revert();
+                    grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                    grid[innerX-1][innerY-1][innerZ-1].revert();
 
                     // second collide & revert on innerX-1, innerY, innerZ-2
-                    grid[innerX_minus_1_t][innerY_t][pillar_map(innerZ - 2)].collide(this->getInternalStatistics());
-                    grid[innerX_minus_1_t][innerY_t][pillar_map(innerZ - 2)].revert();
+                    grid[innerX-1][innerY][innerZ-2].collide(this->getInternalStatistics());
+                    grid[innerX-1][innerY][innerZ-2].revert();
                   }
 
                   // z=z1, more things to do for second
@@ -579,12 +545,12 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                     // second collide & revert on innerX-1, innerY-1, innerZ
                     // second collide & revert on innerX-1, innerY, innerZ-1
                     // second collide & revert on innerX-1, innerY, innerZ
-                    grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_t].collide(this->getInternalStatistics());
-                    grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_t].revert();
-                    grid[innerX_minus_1_t][innerY_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                    grid[innerX_minus_1_t][innerY_t][innerZ_minus_1_t].revert();
-                    grid[innerX_minus_1_t][innerY_t][innerZ_t].collide(this->getInternalStatistics());
-                    grid[innerX_minus_1_t][innerY_t][innerZ_t].revert();
+                    grid[innerX-1][innerY-1][innerZ].collide(this->getInternalStatistics());
+                    grid[innerX-1][innerY-1][innerZ].revert();
+                    grid[innerX-1][innerY][innerZ-1].collide(this->getInternalStatistics());
+                    grid[innerX-1][innerY][innerZ-1].revert();
+                    grid[innerX-1][innerY][innerZ].collide(this->getInternalStatistics());
+                    grid[innerX-1][innerY][innerZ].revert();
                   }
 
                   continue;
@@ -593,45 +559,44 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                 // 2.3. On z = z0+1
                 if (innerZ == domain.z0+1){
                   // first
-                  #ifdef DEBUG_PRINT
-                  printf("case-2.3 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                  #endif
-                  grid[innerX_t][innerY_t][innerZ_t].collide (this->getInternalStatistics() );
-                  latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX, innerY, innerZ);
+                  // printf("case-2.3 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                  grid[innerX][innerY][innerZ].collide (
+                        this->getInternalStatistics() );
+                  latticeTemplates<T,Descriptor>::swapAndStream3D (
+                        grid, innerX, innerY, innerZ );
 
                   // second collide & revert on (innerX-1, innerY-1, innerZ-1)
-                  grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                  grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].revert();
+                  grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                  grid[innerX-1][innerY-1][innerZ-1].revert();
                   continue;
                 }
 
                 // 2.4. On z = z1
                 if (innerZ == domain.z1){
-                  #ifdef DEBUG_PRINT
-                  printf("case-2.4 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                  #endif
+                  // printf("case-2.4 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                   collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
 
                   // second collide & revert on (innerX-1, innerY-1, innerZ-1)
-                  grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                  grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].revert();
+                  grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                  grid[innerX-1][innerY-1][innerZ-1].revert();
                   // second collide & revert on (innerX-1, innerY-1, innerZ)
-                  grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_t].collide(this->getInternalStatistics());
-                  grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_t].revert();
+                  grid[innerX-1][innerY-1][innerZ].collide(this->getInternalStatistics());
+                  grid[innerX-1][innerY-1][innerZ].revert();
                   continue;
                 }
 
                 // Other cases
-                #ifdef DEBUG_PRINT
-                printf("case-2.5 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                #endif
+                // printf("case-2.5 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                 // first Collide & swapStream the cell.
-                grid[innerX_t][innerY_t][innerZ_t].collide (this->getInternalStatistics());
-                latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX, innerY, innerZ);
+                grid[innerX][innerY][innerZ].collide (
+                      this->getInternalStatistics() );
+                latticeTemplates<T,Descriptor>::swapAndStream3D (
+                      grid, innerX, innerY, innerZ );
+                
 
                 // second collide & revert on (innerX-1, innerY-1, innerZ-1)
-                grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].revert();
+                grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                grid[innerX-1][innerY-1][innerZ-1].revert();
               }
               // Case-3 last surface (thread boundaries surface), case-3
               else if (surface_id == 0) {
@@ -644,10 +609,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
 
                 // 3.1 On y=y0+1
                 if (innerY == domain.y0+1){
-                  #ifdef DEBUG_PRINT
-                  printf("case-3.1 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                  #endif
-
+                  // printf("case-3.1 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                   if (innerZ == domain.z1) {
                     // first
                     boundSwapStream(domain, innerX, innerY, innerZ);
@@ -664,37 +626,33 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                     
                     // second
                     collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
-                  }
+                    }
                   continue;
                 }
 
                 // 3.2 On y=y1
                 if (innerY == domain.y1){
                   // first
-                  #ifdef DEBUG_PRINT
-                  printf("case-3.2 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                  #endif
+                  // printf("case-3.2 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                   boundSwapStream(domain, innerX, innerY, innerZ);
 
                   // second
                   if (innerZ == domain.z0+1){
-                    // printf("case-3.2.1 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                    // printf("case-3.1 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                     collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
                     continue;
                   }
                   else{
-                    innerX_minus_1_t = pillar_map_iX(innerX - 1, innerY, innerZ);
-                    innerY_minus_1_t = pillar_map(innerY - 1);
-                    innerZ_minus_1_t = pillar_map(innerZ - 1);
-                    // printf("case-3.2.2 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                    grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                    latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX-1, innerY-1, innerZ-1);
+                    // printf("case-3.2 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                    grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                    latticeTemplates<T,Descriptor>::swapAndStream3D(grid, innerX-1, innerY-1, innerZ-1);
+
                     collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ-2);
                   }
 
                   // z=z1, more things to do for second
                   if (innerZ == domain.z1){
-                    // printf("case-3.2.3 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                    // printf("case-3.3 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                     collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ);
                     collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ-1);
                     collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ);
@@ -706,10 +664,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                 // 3.3. On z = z0+1
                 if (innerZ == domain.z0+1){
                   // first
-                  #ifdef DEBUG_PRINT
-                  printf("case-3.3 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                  #endif
-
+                  // printf("case-3.3 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                   if (innerX != domain.x1)
                     swapStream(innerX, innerY, innerZ);
                   else
@@ -722,26 +677,20 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
 
                 // 3.4. On z = z1
                 if (innerZ == domain.z1){
-                  #ifdef DEBUG_PRINT
-                  printf("case-3.4 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                  #endif
+                  // printf("case-3.4 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                   boundSwapStream(domain, innerX, innerY, innerZ);
 
                   // second
-                  innerX_minus_1_t = pillar_map_iX(innerX - 1, innerY, innerZ);
-                  innerY_minus_1_t = pillar_map(innerY - 1);
-                  innerZ_minus_1_t = pillar_map(innerZ - 1);
-                  grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                  latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX-1, innerY-1, innerZ-1);
+                  grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                  latticeTemplates<T,Descriptor>::swapAndStream3D(
+                      grid, innerX-1, innerY-1, innerZ-1);
                   
                   collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ);
                   continue;
                 }
 
                 // Other cases
-                #ifdef DEBUG_PRINT
-                printf("case-3.5 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                #endif
+                // printf("case-3.5 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                 // first Collide the cell.
                 if (innerX != domain.x1)
                   swapStream(innerX, innerY, innerZ);
@@ -749,20 +698,15 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                   boundSwapStream(domain, innerX, innerY, innerZ);
 
                 // second collide
-                innerX_minus_1_t = pillar_map_iX(innerX - 1, innerY, innerZ);
-                innerY_minus_1_t = pillar_map(innerY - 1);
-                innerZ_minus_1_t = pillar_map(innerZ - 1);
-                grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX-1, innerY-1, innerZ-1);
+                grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                latticeTemplates<T,Descriptor>::swapAndStream3D(
+                        grid, innerX-1, innerY-1, innerZ-1);
               }
               // Case 4
               else {
                 // 4.1 On y=y0+1
                 if (innerY == domain.y0+1){
-                  #ifdef DEBUG_PRINT
-                  printf("case-4.1 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                  #endif
-
+                  // printf("case-4.1 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                   if (innerZ == domain.z1) {
                     // first
                     collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
@@ -772,11 +716,8 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                   }
                   else {
                     // first
-                    innerX_t = pillar_map_iX(innerX, innerY, innerZ);
-                    innerY_t = pillar_map(innerY);
-                    innerZ_t = pillar_map(innerZ);
-                    grid[innerX_t][innerY_t][innerZ_t].collide(this->getInternalStatistics());
-                    latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX, innerY, innerZ);
+                    grid[innerX][innerY][innerZ].collide(this->getInternalStatistics());
+                    latticeTemplates<T,Descriptor>::swapAndStream3D(grid, innerX, innerY, innerZ);
 
                     // second
                     collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
@@ -787,9 +728,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                 // 4.2. On y=y1
                 if (innerY == domain.y1){
                   // first
-                  #ifdef DEBUG_PRINT
-                  printf("case-4.2 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                  #endif
+                  // printf("case-4.2 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                   collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
 
                   // second
@@ -800,11 +739,8 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                   }
                   else{
                     // printf("case-4.2.2 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                    innerX_minus_1_t = pillar_map_iX(innerX - 1, innerY, innerZ);
-                    innerY_minus_1_t = pillar_map(innerY - 1);
-                    innerZ_minus_1_t = pillar_map(innerZ - 1);
-                    grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                    latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX-1, innerY-1, innerZ-1);
+                    grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                    latticeTemplates<T,Descriptor>::swapAndStream3D(grid, innerX-1, innerY-1, innerZ-1);
 
                     collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ-2);
                   }
@@ -823,55 +759,47 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
                 // 4.3. On z = z0+1
                 if (innerZ == domain.z0+1){
                   // first
-                  #ifdef DEBUG_PRINT
-                  printf("case-4.3 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                  #endif
-                  innerX_t = pillar_map_iX(innerX, innerY, innerZ);
-                  innerY_t = pillar_map(innerY);
-                  innerZ_t = pillar_map(innerZ);
-                  grid[innerX_t][innerY_t][innerZ_t].collide(this->getInternalStatistics() );
-                  latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX, innerY, innerZ);
+                  // printf("case-4.3 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                  grid[innerX][innerY][innerZ].collide (
+                        this->getInternalStatistics() );
+                  latticeTemplates<T,Descriptor>::swapAndStream3D (
+                        grid, innerX, innerY, innerZ );
                   
                   // second
                   collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
                   continue;
                 }
 
-                // 4.4. On z = z1
+                // 2.4.4. On z = z1
                 if (innerZ == domain.z1){
                   // printf("case-4.4 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                   collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
 
                   // second collide
-                  innerX_minus_1_t = pillar_map_iX(innerX - 1, innerY, innerZ);
-                  innerY_minus_1_t = pillar_map(innerY - 1);
-                  innerZ_minus_1_t = pillar_map(innerZ - 1);
-                  grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                  latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX-1, innerY-1, innerZ-1);
+                  grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                  latticeTemplates<T,Descriptor>::swapAndStream3D(
+                      grid, innerX-1, innerY-1, innerZ-1);
                   
                   collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ);
                   continue;
                 }
 
                 // Other cases
-                #ifdef DEBUG_PRINT
-                printf("case-4.5 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
-                #endif
+                // printf("case-4.5 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
                 // first Collide the cell.
-                innerX_t = pillar_map_iX(innerX, innerY, innerZ);
-                innerY_t = pillar_map(innerY);
-                innerZ_t = pillar_map(innerZ);
-                grid[innerX_t][innerY_t][innerZ_t].collide (this->getInternalStatistics() );
+                
+                grid[innerX][innerY][innerZ].collide (
+                        this->getInternalStatistics() );
                 // Swap the populations on the cell, and then with post-collision
                 //   neighboring cell, to perform the streaming step.
-                latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX, innerY, innerZ);
+                latticeTemplates<T,Descriptor>::swapAndStream3D (
+                        grid, innerX, innerY, innerZ );
+                
 
                 // second collide
-                innerX_minus_1_t = pillar_map_iX(innerX - 1, innerY, innerZ);
-                innerY_minus_1_t = pillar_map(innerY - 1);
-                innerZ_minus_1_t = pillar_map(innerZ - 1);
-                grid[innerX_minus_1_t][innerY_minus_1_t][innerZ_minus_1_t].collide(this->getInternalStatistics());
-                latticeTemplates<T,Descriptor>::swapAndStream3D_pillar_map(grid, innerX-1, innerY-1, innerZ-1);
+                grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                latticeTemplates<T,Descriptor>::swapAndStream3D(
+                        grid, innerX-1, innerY-1, innerZ-1);
               }
             } // end innerZ
           } // end innerY
@@ -880,16 +808,13 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
     } // end outerY
   } // end outerX
 #endif // end step II
-    // pcout << "End step II\n";
 #if 1
   // ---------------3. compute 2nd on rest surface---------------------
-  /* 2nd collide Stream on thread_boundaries, case 3.1 */
+  /* 2nd collide Stream on thread_boundaries, case 3.1 */ // can be optimized
   #pragma omp for private(iX, iY, iZ) schedule(static)
   for (iX = domain.x0 + thread_block - 1; iX <= domain.x1; iX += thread_block){
     collideRevertAndBoundSwapStream(domain, Box3D(iX, iX, domain.y0, domain.y1, domain.z0, domain.z1) );
   }
-
-  // pcout << "End collideRevertAndBoundSwapStream surface iX\n";
 
   // 2nd swap Stream on 1st surface of every thread block, e.g. x0, x0 + thread_block, case-3.2
   // iX = 1, 5, ... when thread_block = 4
@@ -897,13 +822,32 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
   for (iX = domain.x0; iX < domain.x1; iX += thread_block){
     boundaryStream(domain, Box3D(iX, iX, domain.y0, domain.y1, domain.z0, domain.z1) );
   }
-
-  // pcout << "End boundaryStream surface iX\n";
   /*-------------------------- Finish 3 -------------------------*/
 #endif // end step III
 }
 #endif // end _OPENMP
     // global::profiler().stop("collStream");
+}
+
+
+template<typename T, template<typename U> class Descriptor>
+void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
+  // global::profiler().start("collStream");
+  // global::profiler().increment("collStreamCells", domain.nCells());
+
+  // Make sure domain is contained within current lattice
+  PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
+
+  plint pillar_x0 = domain.x0;
+
+  for (plint iY=domain.y0; iY<=domain.y1; iY += ykTile) {
+    for (plint iZ=domain.z0; iZ<=domain.z1; iZ += ykTile, pillar_x0 += Nx) {
+      plint pillar_x1 = pillar_x0 + Nx - 1;
+      pillarStep2CollideAndStream(domain , Box3D(pillar_x0, pillar_x1, 1, ykTile, 1, ykTile));
+    }
+  }
+
+  // global::profiler().stop("collStream");
 }
       /******************************End of STEP2_WHOLE + STEP2_UNROLL + PILLAR_MEM*******************************************/
       #else // use STEP2_UNROLL but NOT using PILLAR_MEM

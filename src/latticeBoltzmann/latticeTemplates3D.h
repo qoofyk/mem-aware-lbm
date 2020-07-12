@@ -51,36 +51,6 @@ static void swapAndStreamCell (
     grid[nX][nY][nZ][iPop]   = fTmp;
 }
 
-static void swapAndStream3D_pillar_map(Cell<T,descriptors::D3Q19Descriptor> ***grid, plint iX, plint iY, plint iZ)
-{
-    T fTmp;
-
-    plint iX_t = pillar_map_iX(iX, iY, iZ);
-    plint iY_t = pillar_map(iY);
-    plint iZ_t = pillar_map(iZ);
-
-    #ifdef CUBE_MAP
-    plint iX_minus_1_t = pillar_map_iX(iX - 1, iY, iZ);
-    #else
-    plint iX_minus_1_t = iX_t - 1;
-    #endif
-
-    plint iY_minus_1_t = pillar_map(iY - 1);
-    plint iY_plus_1_t  = pillar_map(iY + 1);
-    plint iZ_minus_1_t = pillar_map(iZ - 1);
-    plint iZ_plus_1_t  = pillar_map(iZ + 1);
-
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_minus_1_t, iY_t,         iZ_t,         1, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,         iY_minus_1_t, iZ_t,         2, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,         iY_t,         iZ_minus_1_t, 3, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_minus_1_t, iY_minus_1_t, iZ_t,         4, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_minus_1_t, iY_plus_1_t,  iZ_t,         5, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_minus_1_t, iY_t,         iZ_minus_1_t, 6, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_minus_1_t, iY_t,         iZ_plus_1_t,  7, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,         iY_minus_1_t, iZ_minus_1_t, 8, fTmp);
-    swapAndStreamCell(grid, iX_t, iY_t, iZ_t, iX_t,         iY_minus_1_t, iZ_plus_1_t,  9, fTmp);
-}
-
 static void swapAndStream3D(Cell<T,descriptors::D3Q19Descriptor> ***grid,
                             plint iX, plint iY, plint iZ)
 {

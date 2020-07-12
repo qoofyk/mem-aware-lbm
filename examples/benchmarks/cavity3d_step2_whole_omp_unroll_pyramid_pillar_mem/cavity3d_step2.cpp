@@ -45,12 +45,10 @@ typedef double T;
 #define DESCRIPTOR descriptors::D3Q19Descriptor
 
 namespace plb {
-plint ykTile;
-plint NzTiles;
-plint NyTiles;
-plint memNx;
-plint log_NzTiles;
-plint log_NyTiles;
+    plint Nx, newNx; // Nx: Computation domain; newNx: Pillar Computation domain
+    plint ykTile;  /* pillarTile. The assumed size, while "actual" memory layout on Length & Width are (ykTile + 2). E.g. Given computation domain 16*8*16, palabos actual allocated memory is (16+2) * (8+2) * (16+2) --> Let pillarTile=8, thus Equivalant pillar computation domain is 32 * 8 * 8. Actual allocated memory is (32+2) * (8+2) * (8+2). */
+    plint NzTiles; // number of pillarTiles along Length (Z-direction)
+    plint NyTiles; // number of pillarTiles along Width (Y-direction)
 }
 
 void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
@@ -97,21 +95,6 @@ void test_omp_hello(){
 #endif
 }
 
-plint myLog2 (plint x) {
-    int targetlevel = 0;
-    while (x >>= 1) ++targetlevel;
-    return targetlevel;
-}
-
-static inline uint32_t myAsmLog2(const uint32_t x) {
-  uint32_t y;
-  asm ( "\tbsr %1, %0\n"
-      : "=r"(y)
-      : "r" (x)
-  );
-  return y;
-}
-
 struct MyException1 : public exception {
   const char * what () const throw () {
     return "N % OMP_NUM_THREADS != 0, Not Divisible";
@@ -126,7 +109,7 @@ struct MyException2 : public exception {
 
 struct MyException3 : public exception {
   const char * what () const throw () {
-    return "(Nz+2) % ykTile != 0 && (Ny+2) % ykTile != 0, Not Divisible";
+    return "Nz % ykTile != 0 && Ny % ykTile != 0, Not Divisible";
   }
 };
 
@@ -137,7 +120,7 @@ int main(int argc, char* argv[]) {
     //defaultMultiBlockPolicy3D().toggleBlockingCommunication(true);
 
     plint N;
-    plint Nx, Ny, Nz;
+    plint Ny, Nz;
     plint numIter;
     plint warmUpIter;
     plint NUM_THREADS = 1;
@@ -163,12 +146,10 @@ int main(int argc, char* argv[]) {
         if (Nx % NUM_THREADS != 0) throw MyException1();
         thread_block = Nx / NUM_THREADS;
         if (thread_block % ykBlockSize != 0) throw MyException2();
-        if ((Nz + 2) % ykTile != 0 && (Ny + 2) % ykTile != 0)  throw MyException3();
-        NzTiles = (Nz + 2) / ykTile;
-        NyTiles = (Ny + 2) / ykTile;
-        memNx = Nx + 2;
-        log_NzTiles = myAsmLog2(NzTiles);
-        log_NyTiles = myAsmLog2(NyTiles);
+        if (Nz % ykTile != 0 && Ny % ykTile != 0)  throw MyException3();
+        NzTiles = Nz / ykTile;
+        NyTiles = Ny / ykTile;
+        newNx = Nx * NyTiles * NzTiles;
     }
     catch (MyException1& e) {
         std::cout << e.what() << std::endl;
@@ -199,9 +180,9 @@ int main(int argc, char* argv[]) {
             1.         // lz
     );
 
-    pcout << "Starting benchmark with " << Nx << "x" << Ny << "x" << Nz << " grid points "
-          << " Estimated memory occupied " << Nx * Ny * Nz * 168 / (1024*1024) << " MB "
-          << " (approx. 2 minutes on modern processors).\n";
+    pcout << "Starting 3D cavity benchmark with " << Nx << "x" << Ny << "x" << Nz << " grid points (Computation domain: Nx x Ny x Nz)"
+          << " Estimated memory occupied " << Nx * Ny * Nz * 168 / (1024*1024) << " MB."
+          << " .\n";
 
     // MultiBlockLattice3D<T, DESCRIPTOR> lattice (
     //         parameters.getNx(), parameters.getNy(), parameters.getNz(),
@@ -211,8 +192,11 @@ int main(int argc, char* argv[]) {
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
 
     plint numProcs = global::mpi().getSize();
-    pcout << "Number of MPI threads: " << numProcs << " Num of OpenMP threads: " << NUM_THREADS
-            << " thread_block: " << thread_block << " ykBlockSize: " << ykBlockSize << " ykTile: " << ykTile << std::endl;
+    pcout << "Num of MPI Procs: " << numProcs << " Num of OpenMP threads: " << NUM_THREADS
+          << "\nthread_block: " << thread_block << ", Parallelpiped ykBlockSize: " << ykBlockSize 
+          << "\nPalabos Memory allocation domain: (Nx+2) x (Ny+2) x (Nz+2): " << Nx + 2 << 'x' << Ny + 2 << 'x' << Nz + 2 
+          << "\npillarTile=" << ykTile << ", newNx=" << newNx << ", NzTiles=" << NzTiles << ',' << ", NyTiles=" << NyTiles 
+          << "\nPillar Memory allocation domain: (newNx+2) x (pillarTile+2) x (pillarTile+2): " << newNx + 2 << 'x' << ykTile + 2 << 'x' << ykTile + 2 << '\n';
     // Current cores run approximately at 5 Mega Sus.
     T estimateSus= 5.e6 * numProcs;
     // The benchmark should run for approximately two minutes

@@ -211,6 +211,9 @@ public:
     void step2CollideAndStream_bulk_omp(Box3D domain);
     void step2CollideAndStream_bulk_blockwise(Box3D domain);
     void step2CollideAndStream_end(Box3D domain);
+    #ifdef PILLAR_MEM
+    void pillarStep2CollideAndStream(Box3D bound, Box3D domain);
+    #endif
     // End add by Yuankun
 private:
     /// Generic implementation of bulkCollideAndStream(domain).
