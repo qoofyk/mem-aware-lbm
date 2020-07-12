@@ -143,9 +143,9 @@ int main(int argc, char* argv[]) {
         global::argv(8).read(ykTile);
 
         // check Nx % NUM_THREADS == 0
-        if (Nx % NUM_THREADS != 0) throw MyException1();
+        // if (Nx % NUM_THREADS != 0) throw MyException1();
         thread_block = Nx / NUM_THREADS;
-        if (thread_block % ykBlockSize != 0) throw MyException2();
+        // if (thread_block % ykBlockSize != 0) throw MyException2();
         if (Nz % ykTile != 0 && Ny % ykTile != 0)  throw MyException3();
         NzTiles = Nz / ykTile;
         NyTiles = Ny / ykTile;
