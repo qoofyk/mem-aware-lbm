@@ -843,7 +843,7 @@ void BlockLattice3D<T,Descriptor>::pillarStep2CollideAndStream_seq(Box3D bound, 
     //   the blocks, whereas the three inner loops enumerate the cells inside each block.
     const plint blockSize = cachePolicy().getBlockSize();
     int tid = omp_get_thread_num();
-    #if 0
+    #if 1
     printf("Tid%d: blockSize=%ld, domain(%ld, %ld, %ld, %ld, %ld, %ld)\n",
         tid, blockSize, domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
     #endif
@@ -1050,12 +1050,11 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
   #pragma omp parallel default(shared)
 {
   plint tid = omp_get_thread_num();
-  plint tid_Z = tid % Tz;
-  plint tid_Y = tid / Tz;
+  plint num_threads = omp_get_num_threads();
 
-  plint pillar_x0 = domain.x0 + Nx * (tid_Z + tid_Y * NzTiles);
+  plint pillar_x0 = domain.x0 + tid * (newNx / num_threads);
 
-  pillarStep2CollideAndStream_seq(domain , Box3D(pillar_x0, pillar_x0 + Nx - 1, 1, ykTile, 1, ykTile));
+  pillarStep2CollideAndStream_seq(domain , Box3D(pillar_x0, pillar_x0 + newNx / num_threads - 1, 1, ykTile, 1, ykTile));
 }
 
   // global::profiler().stop("collStream");

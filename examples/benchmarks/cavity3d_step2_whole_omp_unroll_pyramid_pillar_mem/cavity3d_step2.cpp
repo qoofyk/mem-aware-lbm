@@ -49,7 +49,7 @@ namespace plb {
     plint ykTile;  /* pillarTile. The assumed size, while "actual" memory layout on Length & Width are (ykTile + 2). E.g. Given computation domain 16*8*16, palabos actual allocated memory is (16+2) * (8+2) * (16+2) --> Let pillarTile=8, thus Equivalant pillar computation domain is 32 * 8 * 8. Actual allocated memory is (32+2) * (8+2) * (8+2). */
     plint NzTiles; // number of pillarTiles along Length (Z-direction)
     plint NyTiles; // number of pillarTiles along Width (Y-direction)
-    plint Tz;
+    plint Tz, Ty;
 }
 
 void cavitySetup( MultiBlockLattice3D<T,DESCRIPTOR>& lattice,
@@ -114,6 +114,12 @@ struct MyException3 : public exception {
   }
 };
 
+struct MyException4 : public exception {
+  const char * what () const throw () {
+    return "NzTiles % Tz != 0 && NyTiles % Ty, Not Divisible";
+  }
+};
+
 int main(int argc, char* argv[]) {
 
     __itt_pause();
@@ -142,15 +148,17 @@ int main(int argc, char* argv[]) {
         global::argv(6).read(Ny);
         global::argv(7).read(Nz);
         global::argv(8).read(ykTile);
-        global::argv(9).read(Tz);
+        global::argv(9).read(Ty);
+        global::argv(10).read(Tz);
 
         // check Nx % NUM_THREADS == 0
         // if (Nx % NUM_THREADS != 0) throw MyException1();
         thread_block = Nx / NUM_THREADS;
         // if (thread_block % ykBlockSize != 0) throw MyException2();
-        if (Nz % ykTile != 0 && Ny % ykTile != 0)  throw MyException3();
+        if (Nz % ykTile != 0 && Ny % ykTile != 0) throw MyException3();
         NzTiles = Nz / ykTile;
         NyTiles = Ny / ykTile;
+        if (NzTiles % Tz != 0 && NyTiles % Ty != 0) throw MyException4();
         newNx = Nx * NyTiles * NzTiles;
     }
     catch (MyException1& e) {
