@@ -14,6 +14,7 @@ extern plint ykTile;
 extern plint NzTiles;
 extern plint NyTiles;
 extern plint Nx, newNx;
+extern plint Tz;
 
 // #define cube_mem_map_iX(iX, iY, iZ) ((iX) % ykTile + ykTile * ((iZ) / ykTile + ((iY) / ykTile) * NzTiles + ((iX) / ykTile) * NzTiles * NyTiles))
 

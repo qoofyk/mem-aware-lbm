@@ -842,8 +842,11 @@ void BlockLattice3D<T,Descriptor>::pillarStep2CollideAndStream_seq(Box3D bound, 
     // For cache efficiency, memory is traversed block-wise. The three outer loops enumerate
     //   the blocks, whereas the three inner loops enumerate the cells inside each block.
     const plint blockSize = cachePolicy().getBlockSize();
-    printf("blockSize=%ld, domain(%ld, %ld, %ld, %ld, %ld, %ld)\n",
-        blockSize, domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
+    int tid = omp_get_thread_num();
+    #if 0
+    printf("Tid%d: blockSize=%ld, domain(%ld, %ld, %ld, %ld, %ld, %ld)\n",
+        tid, blockSize, domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
+    #endif
 
     for (plint outerX = domain.x0; outerX <= domain.x1; outerX += blockSize) {
       // printf("outerX=%ld\n", outerX);
@@ -1033,7 +1036,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
   // Make sure domain is contained within current lattice
   PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
-  plint pillar_x0 = domain.x0;
+  
 
 #if 0
   for (plint iY=domain.y0; iY<=domain.y1; iY += ykTile) {
@@ -1044,13 +1047,16 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
   }
 #endif
 
-  #pragma omp parallel for collapse(2) default(shared) schedule(static)
-  for (plint iY=domain.y0; iY<=domain.y1; iY += ykTile) {
-    for (plint iZ=domain.z0; iZ<=domain.z1; iZ += ykTile, pillar_x0 += Nx) {
-      plint pillar_x1 = pillar_x0 + Nx - 1;
-      pillarStep2CollideAndStream_seq(domain , Box3D(pillar_x0, pillar_x1, 1, ykTile, 1, ykTile));
-    }
-  }
+  #pragma omp parallel default(shared)
+{
+  plint tid = omp_get_thread_num();
+  plint tid_Z = tid % Tz;
+  plint tid_Y = tid / Tz;
+
+  plint pillar_x0 = domain.x0 + Nx * (tid_Z + tid_Y * NzTiles);
+
+  pillarStep2CollideAndStream_seq(domain , Box3D(pillar_x0, pillar_x0 + Nx - 1, 1, ykTile, 1, ykTile));
+}
 
   // global::profiler().stop("collStream");
 }
