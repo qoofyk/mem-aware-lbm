@@ -843,7 +843,7 @@ void BlockLattice3D<T,Descriptor>::pillarStep2CollideAndStream_seq(Box3D bound, 
     //   the blocks, whereas the three inner loops enumerate the cells inside each block.
     const plint blockSize = cachePolicy().getBlockSize();
     int tid = omp_get_thread_num();
-    #if 1
+    #if 0
     printf("Tid%d: blockSize=%ld, domain(%ld, %ld, %ld, %ld, %ld, %ld)\n",
         tid, blockSize, domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
     #endif
