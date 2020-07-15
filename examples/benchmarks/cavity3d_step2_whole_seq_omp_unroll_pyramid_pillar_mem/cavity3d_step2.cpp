@@ -118,6 +118,8 @@ struct MyException3 : public exception {
 
 struct MyException4 : public exception {
   const char * what () const throw () {
+    pcout << "NzTiles=" << NzTiles << ", Tz=" << Tz <<
+             ", NyTiles=" << NyTiles << ", Ty=" << Ty << '\n';
     return "NzTiles % Tz != 0 && NyTiles % Ty, Not Divisible";
   }
 };
@@ -167,15 +169,19 @@ int main(int argc, char* argv[]) {
         newNx = Nx * NyTiles * NzTiles;
     }
     catch (MyException1& e) {
-        std::cout << e.what() << std::endl;
+        pcout << e.what() << '\n';
         exit(1);
     }
     catch (MyException2& e) {
-        std::cout << e.what() << std::endl;
+        pcout << e.what() << '\n';
         exit(1);
     }
-     catch (MyException3& e) {
-        std::cout << e.what() << std::endl;
+    catch (MyException3& e) {
+        pcout << e.what() << '\n';
+        exit(1);
+    }
+    catch (MyException4& e) {
+        pcout << e.what() << '\n';
         exit(1);
     }
     catch (...) {

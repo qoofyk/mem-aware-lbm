@@ -118,6 +118,8 @@ struct MyException3 : public exception {
 
 struct MyException4 : public exception {
   const char * what () const throw () {
+    pcout << "NzTiles=" << NzTiles << ", Tz=" << Tz <<
+             ", NyTiles=" << NyTiles << ", Ty=" << Ty << '\n';
     return "NzTiles % Tz != 0 && NyTiles % Ty, Not Divisible";
   }
 };
@@ -154,9 +156,12 @@ int main(int argc, char* argv[]) {
         global::argv(10).read(Tz);
 
         // check Nx % NUM_THREADS == 0
-        // if (Nx % NUM_THREADS != 0) throw MyException1();
+        #ifdef PILLAR_SEQ_OMP
+        if (Nx % NUM_THREADS != 0) throw MyException1();
         thread_block = Nx / NUM_THREADS;
-        // if (thread_block % ykBlockSize != 0) throw MyException2();
+        if (thread_block % ykBlockSize != 0) throw MyException2();
+        #endif
+
         if (Nz % ykTile != 0 && Ny % ykTile != 0) throw MyException3();
         NzTiles = Nz / ykTile;
         NyTiles = Ny / ykTile;
@@ -164,15 +169,19 @@ int main(int argc, char* argv[]) {
         newNx = Nx * NyTiles * NzTiles;
     }
     catch (MyException1& e) {
-        std::cout << e.what() << std::endl;
+        pcout << e.what() << '\n';
         exit(1);
     }
     catch (MyException2& e) {
-        std::cout << e.what() << std::endl;
+        pcout << e.what() << '\n';
         exit(1);
     }
-     catch (MyException3& e) {
-        std::cout << e.what() << std::endl;
+    catch (MyException3& e) {
+        pcout << e.what() << '\n';
+        exit(1);
+    }
+    catch (MyException4& e) {
+        pcout << e.what() << '\n';
         exit(1);
     }
     catch (...) {
