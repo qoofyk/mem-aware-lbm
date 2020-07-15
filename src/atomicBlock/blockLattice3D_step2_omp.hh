@@ -396,7 +396,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_omp_whole_blockwise_unr
   const plint blockSize = cachePolicy().getBlockSize();
 
 #if 0
-  printf("Here! I am step2_whole_omp_unroll_pyramid, blockSize=%ld, domain-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
+  printf("Here! I am step2CollideAndStream_omp_whole_blockwise_unroll, blockSize=%ld, domain-(%ld, %ld) (%ld, %ld) (%ld, %ld)\n",
     blockSize, domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
 #endif
 
@@ -1377,15 +1377,15 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
 
   #if defined (PILLAR_MEM)  // THREE_PARTS_STEP2_Implementation
 
-    #if 0
+    #ifdef PILLAR_SEQ_OMP
+    plint pillar_x0 = domain.x0;
     for (plint iY=domain.y0; iY<=domain.y1; iY += ykTile) {
       for (plint iZ=domain.z0; iZ<=domain.z1; iZ += ykTile, pillar_x0 += Nx) {
         plint pillar_x1 = pillar_x0 + Nx - 1;
         step2CollideAndStream_omp_whole_blockwise_unroll(Box3D(pillar_x0, pillar_x1, 1, ykTile, 1, ykTile));
       }
     }
-    #endif
-
+    #else
     #pragma omp parallel default(shared)
     {
       plint tid = omp_get_thread_num();
@@ -1405,6 +1405,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
         step2CollideAndStream_end(pillar);
       #endif
     }
+    #endif
 
   #elif defined(STEP2_3PARTS)
     // step i: 2 collideAndStream on x0; 1 collideAndStream on x0+1
