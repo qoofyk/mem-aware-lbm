@@ -206,15 +206,20 @@ public:
     void boundSwapStream(Box3D bound, plint iX, plint iY, plint iZ);
     void swapStream(plint iX, plint iY, plint iZ);
     void step2CollideAndStream(Box3D domain);
+
+    // 3parts
     void step2CollideAndStream_init(Box3D domain);
     void step2CollideAndStream_bulk(Box3D domain);
     void step2CollideAndStream_bulk_omp(Box3D domain);
     void step2CollideAndStream_bulk_blockwise(Box3D domain);
     void step2CollideAndStream_end(Box3D domain);
-    #ifdef PILLAR_MEM
-    void pillarStep2CollideAndStream_omp(Box3D bound, Box3D domain);
-    void pillarStep2CollideAndStream_seq(Box3D bound, Box3D domain);
-    #endif
+
+    // whole
+    void step2CollideAndStream_seq_whole_blockwise_unroll(Box3D domain);
+    void step2CollideAndStream_seq_whole_blockwise(Box3D domain);
+    // omp
+    void step2CollideAndStream_omp_whole_blockwise_unroll(Box3D domain);
+    void step2CollideAndStream_omp_whole_unroll_blockwise_pillar(Box3D domain);
     // End add by Yuankun
 private:
     /// Generic implementation of bulkCollideAndStream(domain).

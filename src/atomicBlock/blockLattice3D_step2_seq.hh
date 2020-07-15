@@ -169,7 +169,9 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk(Box3D domain){
 #if 1
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_bulk(Box3D domain){
+#ifdef DEBUG_PRINT  
   printf("Here! I am step2_3parts_seq_unroll_line\n");
+#endif
 
   for (plint iX = domain.x0+2; iX < domain.x1; ++iX) {
 
@@ -537,28 +539,25 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_end(Box3D domain){
 }
 #endif
 
-#ifdef STEP2_WHOLE
-/** This operation is 2 step collision and stream using 1 buffer
- * collide(int,int,int,int,int,int) and stream(int,int,int,int,int,int),
- * because memory is traversed only once instead of twice.
- */
-  #ifndef STEP2_OMP // sequential
-    #ifdef STEP2_UNROLL
 template<typename T, template<typename U> class Descriptor>
-void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
+void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unroll(Box3D domain) {
     // printf("Here! I am step2_whole_seq_unroll_pyramid\n");
-
+#if 0
     // Make sure domain is contained within current lattice
-    PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
+    // PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
-    global::profiler().start("collStream");
-    global::profiler().increment("collStreamCells", domain.nCells());
+    // global::profiler().start("collStream");
+    // global::profiler().increment("collStreamCells", domain.nCells());
+#endif
 
     // For cache efficiency, memory is traversed block-wise. The three outer loops enumerate
     //   the blocks, whereas the three inner loops enumerate the cells inside each block.
     const plint blockSize = cachePolicy().getBlockSize();
-    // printf("blockSize=%ld, domain(%ld, %ld, %ld, %ld, %ld, %ld)\n",
-    //     blockSize, domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
+    #if 0
+    int tid = omp_get_thread_num();
+    printf("Tid%d: blockSize=%ld, domain(%ld, %ld, %ld, %ld, %ld, %ld)\n",
+        tid, blockSize, domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
+    #endif
 
     for (plint outerX = domain.x0; outerX <= domain.x1; outerX += blockSize) {
       // printf("outerX=%ld\n", outerX);
@@ -739,25 +738,27 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
 
     global::profiler().stop("collStream");
 }
-    #else
+
 template<typename T, template<typename U> class Descriptor>
-void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
+void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise(Box3D domain) {
     // printf("Here! I am step2_whole_seq_pyramid\n");
 
+#if 0
     // Make sure domain is contained within current lattice
     PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
 
     global::profiler().start("collStream");
     global::profiler().increment("collStreamCells", domain.nCells());
-
-    // Make sure domain is contained within current lattice
-    //PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
+#endif
 
     // For cache efficiency, memory is traversed block-wise. The three outer loops enumerate
     //   the blocks, whereas the three inner loops enumerate the cells inside each block.
     const plint blockSize = cachePolicy().getBlockSize();
-    // printf("blockSize=%ld, domain(%ld, %ld, %ld, %ld, %ld, %ld)\n",
-    //     blockSize, domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
+    #if 0
+    int tid = omp_get_thread_num();
+    printf("Tid%d: blockSize=%ld, domain(%ld, %ld, %ld, %ld, %ld, %ld)\n",
+        tid, blockSize, domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
+    #endif
 
     for (plint outerX = domain.x0; outerX <= domain.x1; outerX += blockSize) {
       // printf("outerX=%ld\n", outerX);
@@ -838,11 +839,9 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
 
     global::profiler().stop("collStream");
 }
-    #endif
-  #endif
 
-#elif STEP2_3PARTS  // THREE_PARTS_STEP2_Implementation
-  #ifndef STEP2_OMP // sequential
+
+#ifndef STEP2_OMP // sequential
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
     // Make sure domain is contained within current lattice
@@ -851,32 +850,36 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
     global::profiler().start("collStream");
     global::profiler().increment("collStreamCells", domain.nCells());
 
+  #if defined(STEP2_3PARTS) // THREE_PARTS_STEP2_Implementation
     // step i: 2 collideAndStream on x0; 1 collideAndStream on x0+1
     step2CollideAndStream_init(domain);
 
     // step ii: Then bulk [x0+2, x0-1]
-      #ifdef STEP2_PYRAMID
+    #ifdef STEP2_PYRAMID
     // if (domain.x1 - domain.x0 <= 250) {
     //   step2CollideAndStream_bulk(domain);
     // }
     // else {
       step2CollideAndStream_bulk_blockwise(domain);
     // }
-      #else
+    #else
         step2CollideAndStream_bulk(domain);
-      #endif
+    #endif
 
     // step iii : computing the rest
     step2CollideAndStream_end(domain);
 
-    global::profiler().stop("collStream");
-}
+  #elif defined(STEP2_WHOLE)
+    #ifdef STEP2_UNROLL
+      step2CollideAndStream_seq_whole_blockwise_unroll(domain);
+    #else
+      step2CollideAndStream_seq_whole_blockwise(domain);
+    #endif
+
   #endif
 
-#else
-// default
-template<typename T, template<typename U> class Descriptor>
-void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) { }
+    global::profiler().stop("collStream");
+}
 #endif
 
 }  // namespace plb

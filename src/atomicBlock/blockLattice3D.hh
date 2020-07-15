@@ -441,7 +441,6 @@ void BlockLattice3D<T,Descriptor>::resetDynamics(Dynamics<T,Descriptor> const& d
     }
 }
 
-#if 0
 #ifdef PILLAR_MEM
 /** This method is slower than bulkStream(int,int,int,int), because it must
  * be verified which distribution functions are to be kept from leaving
@@ -450,7 +449,7 @@ void BlockLattice3D<T,Descriptor>::resetDynamics(Dynamics<T,Descriptor> const& d
  * \sa stream()
  */
 template<typename T, template<typename U> class Descriptor>
-void BlockLattice3D<T,Descriptor>::boundaryStream(Cell<T,Descriptor> ***pillar, Box3D bound, Box3D domain) {
+void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
     // Make sure bound is contained within current lattice
     PLB_PRECONDITION( contained(bound, this->getBoundingBox()) );
     // Make sure domain is contained within bound
@@ -459,25 +458,37 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Cell<T,Descriptor> ***pillar, 
     for (plint iX=domain.x0; iX<=domain.x1; ++iX) {
         for (plint iY=domain.y0; iY<=domain.y1; ++iY) {
             for (plint iZ=domain.z0; iZ<=domain.z1; ++iZ) {
+                plint iX_t = pillar_map_iX(iX, iY, iZ);
+                plint iY_t = pillar_map(iY);
+                plint iZ_t = pillar_map(iZ);
+
                 for (plint iPop=1; iPop<=Descriptor<T>::q/2; ++iPop) {
                     plint nextX = iX + Descriptor<T>::c[iPop][0];
                     plint nextY = iY + Descriptor<T>::c[iPop][1];
                     plint nextZ = iZ + Descriptor<T>::c[iPop][2];
+
                     if ( nextX>=bound.x0 && nextX<=bound.x1 &&
                          nextY>=bound.y0 && nextY<=bound.y1 &&
                          nextZ>=bound.z0 && nextZ<=bound.z1 )
                     {
-                        std::swap(pillar[iX][iY][iZ][iPop+Descriptor<T>::q/2],
-                                  pillar[nextX][nextY][nextZ][iPop]);
+                        #ifdef CUBE_MAP
+                        plint nextX_t = pillar_map_iX(nextX, nextY, nextZ);
+                        #else
+                        plint nextX_t = iX_t + Descriptor<T>::c[iPop][0];
+                        #endif
+
+                        plint nextY_t = pillar_map(nextY);
+                        plint nextZ_t = pillar_map(nextZ);
+
+                        std::swap(grid[iX_t][iY_t][iZ_t][iPop + Descriptor<T>::q/2],
+                                  grid[nextX_t][nextY_t][nextZ_t][iPop]);
                     }
                 }
             }
         }
     }
 }
-#endif
-#endif
-
+#else
 /** This method is slower than bulkStream(int,int,int,int), because it must
  * be verified which distribution functions are to be kept from leaving
  * the domain.
@@ -510,6 +521,7 @@ void BlockLattice3D<T,Descriptor>::boundaryStream(Box3D bound, Box3D domain) {
         }
     }
 }
+#endif
 
 /** This method is faster than boundaryStream(int,int,int,int,int,int), but it
  * is erroneous when applied to boundary cells.

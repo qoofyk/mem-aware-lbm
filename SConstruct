@@ -148,6 +148,9 @@ if MPIparallel:
             if step2_pyramid_Flags:
                 palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_3parts_omp_pyramid',
                                       source  = sourceFiles )
+            elif pillar_mem_Flags:
+                palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_3parts_omp_line_pillar',
+                                  source  = sourceFiles )
             else:
                 palabos_library = LibraryGen( target  = palabosRoot+'/lib/plb_mpi_step2_3parts_omp_line',
                                   source  = sourceFiles )
