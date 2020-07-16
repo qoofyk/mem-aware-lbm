@@ -1382,7 +1382,14 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream(Box3D domain) {
     for (plint iY=domain.y0; iY<=domain.y1; iY += ykTile) {
       for (plint iZ=domain.z0; iZ<=domain.z1; iZ += ykTile, pillar_x0 += Nx) {
         plint pillar_x1 = pillar_x0 + Nx - 1;
-        step2CollideAndStream_omp_whole_blockwise_unroll(Box3D(pillar_x0, pillar_x1, 1, ykTile, 1, ykTile));
+        Box3D pillar = {pillar_x0, pillar_x1, 1, ykTile, 1, ykTile};
+        #if defined(STEP2_WHOLE)
+          step2CollideAndStream_omp_whole_blockwise_unroll(pillar);
+        #elif defined(STEP2_3PARTS)
+          step2CollideAndStream_init(pillar);
+          step2CollideAndStream_bulk_omp(pillar);
+          step2CollideAndStream_end(pillar);
+        #endif
       }
     }
     #else
