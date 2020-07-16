@@ -152,8 +152,8 @@ int main(int argc, char* argv[]) {
         global::argv(6).read(Ny);
         global::argv(7).read(Nz);
         global::argv(8).read(ykTile); // pillar Tile
-        global::argv(9).read(Ty);
-        global::argv(10).read(Tz);
+        // global::argv(9).read(Ty);
+        // global::argv(10).read(Tz);
 
         // check Nx % NUM_THREADS == 0
         #ifdef PILLAR_SEQ_OMP
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
         if (Nz % ykTile != 0 && Ny % ykTile != 0) throw MyException3();
         NzTiles = Nz / ykTile;
         NyTiles = Ny / ykTile;
-        if (NzTiles % Tz != 0 && NyTiles % Ty != 0) throw MyException4();
+        // if (NzTiles % Tz != 0 && NyTiles % Ty != 0) throw MyException4();
         newNx = Nx * NyTiles * NzTiles;
     }
     catch (MyException1& e) {
@@ -180,10 +180,10 @@ int main(int argc, char* argv[]) {
         pcout << e.what() << '\n';
         exit(1);
     }
-    catch (MyException4& e) {
-        pcout << e.what() << '\n';
-        exit(1);
-    }
+    // catch (MyException4& e) {
+    //     pcout << e.what() << '\n';
+    //     exit(1);
+    // }
     catch (...) {
         pcout << "Wrong parameters. The syntax is " << std::endl;
         pcout << argv[0] << " N" << std::endl;
