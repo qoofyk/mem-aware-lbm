@@ -78,6 +78,7 @@ mpirun -n 1 ./cavity3d_step2 10 0 0 2 4
 
 ### Post-operation on script
 `less 1node.6473699.out | grep 'Mega' | cut -d ":" -f 2 | cut -d " " -f 2`
+
 `less step2.1node.cube.strong.whole-omp-unroll-pymd.pillar-mem.bind.576.6060103.out | grep 'Mega' | cut -d ":" -f 2 | cut -d " " -f 2 | awk 'BEGIN{ORS=""}{print $0" "; if((NR)%3==0) print "\n" }'`
 
 ### Pillar_test
