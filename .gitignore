@@ -10,6 +10,8 @@ ExpAnalysis
 *.o
 *.obj
 .sconsign.dblite
+*.dwo
+*.optrpt
 
 # Precompiled Headers
 *.gch
@@ -34,6 +36,9 @@ ExpAnalysis
 *.exe
 *.out
 *.app
+tmp*
+cavity3d
+cavity3d_step2
 
 *.csv
 *.html
