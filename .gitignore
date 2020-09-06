@@ -9,6 +9,7 @@ ExpAnalysis
 *.lo
 *.o
 *.obj
+.sconsign.dblite
 
 # Precompiled Headers
 *.gch
@@ -34,6 +35,7 @@ ExpAnalysis
 *.out
 *.app
 
+*.csv
 *.html
 *.xml
 *.swp
