@@ -34,6 +34,8 @@
 using namespace plb;
 using namespace std;
 
+#include "ykglobal.h"
+
 #define K 2 // current merge K = 2 steps
 
 typedef double T;
@@ -104,30 +106,20 @@ int main(int argc, char* argv[]) {
             1.         // lz
     );
 
-    pcout << "Starting benchmark with " << Nx << "x" << Ny << "x" << Nz << " grid points "
-          << " Estimated memory occupied " << Nx * Ny * Nz * 168 / (1024*1024) << " MB "
-          << " (approx. 2 minutes on modern processors).\n";
+    pcout << "Nx=" << Nx << ", Ny=" << Ny << ", Nz=" << Nz << ", Memory="
+          << Nx * Ny * Nz * 168 / (1024*1024) << " MB, warmUpIter=" << warmUpIter 
+          << ", numIter=" << numIter << ", tile=" << ykBlockSize << '\n';
 
-    // MultiBlockLattice3D<T, DESCRIPTOR> lattice (
-    //         parameters.getNx(), parameters.getNy(), parameters.getNz(),
-    //         new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
     MultiBlockLattice3D<T, DESCRIPTOR> lattice (
             Nx, Ny, Nz,
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
-
+    
     plint numProcs = global::mpi().getSize();
-    pcout << "Number of MPI threads: " << numProcs << " Num of OpenMP threads: " << NUM_THREADS
-            << " thread_block: " << thread_block << " ykBlockSize: " << ykBlockSize << std::endl;
-    // Current cores run approximately at 5 Mega Sus.
-    T estimateSus= 5.e6 * numProcs;
-    // The benchmark should run for approximately two minutes
-    // (2*60 seconds).
-    T wishNumSeconds = 60.;
-    plint numCells = lattice.getBoundingBox().nCells();
 
-    // Run at least three iterations.
-    // plint numIter = std::max( (plint)3,
-    //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
+    pcout << "my_domain_H="<< thread_block << ", NUM_THREADS=" << NUM_THREADS << '\n';
+
+    // plint numCells = lattice.getBoundingBox().nCells();
+    plint numCells = Nx * Ny * Nz;
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
@@ -160,13 +152,13 @@ int main(int argc, char* argv[]) {
     // Run the benchmark for good.
     __itt_resume();
     global::timer("benchmark").start();
-    global::profiler().turnOn();
+    // global::profiler().turnOn();
     for (plint iT = 0; iT < numIter; iT += K) {
         // pcout << "iT=" << iT << std::endl;
         lattice.step2collideAndStream();
     }
 
-#if 0
+#ifdef SAVE
     pcout << "After: Velocity norm of the box: " << endl;
     // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
     for (plint iX = 0; iX <= N; ++iX){
@@ -183,7 +175,7 @@ int main(int argc, char* argv[]) {
              global::timer("benchmark").getTime() / 1.e6
           << " Mega site updates per second.\n";
     pcout << "Running time (s) = "<< global::timer("benchmark").getTime() << "\n\n";
-    global::profiler().writeReport();
+    // global::profiler().writeReport();
 
     delete boundaryCondition;
 }

@@ -159,29 +159,20 @@ int main(int argc, char* argv[]) {
             1.         // lz
     );
 
-    pcout << "Starting benchmark with " << Nx << "x" << Ny << "x" << Nz << " grid points "
-          << " Estimated memory occupied " << Nx * Ny * Nz * 168 / (1024*1024) << " MB\n";
+    pcout << "Nx=" << Nx << ", Ny=" << Ny << ", Nz=" << Nz << ", Memory="
+          << Nx * Ny * Nz * 168 / (1024*1024) << " MB, warmUpIter=" << warmUpIter 
+          << ", numIter=" << numIter << ", tile=" << ykBlockSize << '\n';
 
-    // MultiBlockLattice3D<T, DESCRIPTOR> lattice (
-    //         parameters.getNx(), parameters.getNy(), parameters.getNz(),
-    //         new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
     MultiBlockLattice3D<T, DESCRIPTOR> lattice (
             Nx, Ny, Nz,
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
 
     plint numProcs = global::mpi().getSize();
-    pcout << "Number of MPI threads: " << numProcs << " Num of OpenMP threads: " << NUM_THREADS
-            << " thread_block: " << thread_block << " ykBlockSize: " << ykBlockSize << std::endl;
-    // Current cores run approximately at 5 Mega Sus.
-    T estimateSus= 5.e6 * numProcs;
-    // The benchmark should run for approximately two minutes
-    // (2*60 seconds).
-    T wishNumSeconds = 60.;
-    plint numCells = lattice.getBoundingBox().nCells();
 
-    // Run at least three iterations.
-    // plint numIter = std::max( (plint)3,
-    //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
+    pcout << "my_domain_H="<< thread_block << ", NUM_THREADS=" << NUM_THREADS << '\n';
+
+    // plint numCells = lattice.getBoundingBox().nCells();
+    plint numCells = Nx * Ny * Nz;
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();

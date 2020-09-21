@@ -99,8 +99,9 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    pcout << "Starting benchmark with " << Nx << "x" << Ny << "x" << Nz << " grid points "
-          << " Estimated memory occupied " << Nx * Ny * Nz * 168 / (1024*1024) << " MB\n";
+    pcout << "Nx=" << Nx << ", Ny=" << Ny << ", Nz=" << Nz << ", Memory="
+          << Nx * Ny * Nz * 168 / (1024*1024) << " MB, warmUpIter=" << warmUpIter 
+          << ", numIter=" << numIter << ", tile=" << ykBlockSize << '\n';
 
     IncomprFlowParam<T> parameters(
             (T) 1e-2,  // uMax
@@ -122,17 +123,10 @@ int main(int argc, char* argv[]) {
 #endif
 
     plint numCores = global::mpi().getSize();
-    pcout << "Number of MPI threads: " << numCores << " ykBlockSize: " << ykBlockSize << std::endl;
-    // Current cores run approximately at 5 Mega Sus.
-    T estimateSus= 5.e6*numCores;
-    // The benchmark should run for approximately two minutes
-    // (2*60 seconds).
-    T wishNumSeconds = 60.;
-    plint numCells = lattice.getBoundingBox().nCells();
+    pcout << "NUM_THREADS=" << numCores << '\n';
 
-    // Run at least three iterations.
-    // plint numIter = std::max( (plint)3,
-    //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
+    // plint numCells = lattice.getBoundingBox().nCells();
+    plint numCells = Nx * Ny * Nz;
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();

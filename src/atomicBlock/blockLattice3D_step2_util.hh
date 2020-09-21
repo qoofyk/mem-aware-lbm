@@ -42,6 +42,7 @@
 #include <typeinfo>
 #include <cmath>
 
+#include "atomicBlock/ykparameters.h"
 #include "atomicBlock/blockLattice3D_pillar_mem.h"
 
 #ifdef _OPENMP
@@ -52,10 +53,6 @@
 
 namespace plb {
 // BlockLattice3D_step2_util /////////////////////////
-
-// Add by Yuankun
-plint thread_block;
-// End add by Yuankun
 
 #if 1
 inline plint pillar_map_iX(plint iX, plint iY, plint iZ) {

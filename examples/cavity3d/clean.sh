@@ -1,4 +1,5 @@
 # sequential
+rm ../../lib/*.a
 cd fuse
 make clean
 cd ../fuse_prism

@@ -46,6 +46,8 @@
   #include <omp.h>
 #endif
 
+#include "atomicBlock/ykparameters.h"
+
 namespace plb {
 
 // Class BlockLattice3D /////////////////////////
@@ -1108,9 +1110,6 @@ void BlockLatticeDataTransfer3D<T,Descriptor>::attribute_regenerate (
         }
     }
 }
-
-// add by Yuankun
-plint ykBlockSize;
 
 template<typename T, template<typename U> class Descriptor>
 CachePolicy3D& BlockLattice3D<T,Descriptor>::cachePolicy() {

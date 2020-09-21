@@ -11,6 +11,6 @@
 #ifndef YKGLOBAL_H_
 #define YKGLOBAL_H_
 
-#define SAVE
+// #define SAVE
 
 #endif

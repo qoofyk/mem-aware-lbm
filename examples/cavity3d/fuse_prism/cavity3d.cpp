@@ -97,9 +97,9 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    // pcout << "Starting benchmark with " << N+1 << "x" << N+1 << "x" << N+1 << " grid points "
-    pcout << "Starting benchmark with " << Nx << "x" << Ny << "x" << Nz << " grid points "
-          << " Estimated memory occupied " << Nx * Ny * Nz * 168 / (1024*1024) << " MB\n";
+    pcout << "Nx=" << Nx << ", Ny=" << Ny << ", Nz=" << Nz << ", Memory="
+          << Nx * Ny * Nz * 168 / (1024*1024) << " MB, warmUpIter=" << warmUpIter 
+          << ", numIter=" << numIter << ", tile=" << ykBlockSize << '\n';
     
     IncomprFlowParam<T> parameters(
             (T) 1e-2,  // uMax
@@ -116,17 +116,11 @@ int main(int argc, char* argv[]) {
             new BGKdynamics<T,DESCRIPTOR>(parameters.getOmega()) );
 
     plint numCores = global::mpi().getSize();
-    pcout << "Number of MPI threads: " << numCores << " ykBlockSize: " << ykBlockSize << std::endl;
-    // Current cores run approximately at 5 Mega Sus.
-    T estimateSus= 5.e6*numCores;
-    // The benchmark should run for approximately two minutes
-    // (2*60 seconds).
-    T wishNumSeconds = 60.;
-    plint numCells = lattice.getBoundingBox().nCells();
+    pcout << "NUM_THREADS=" << numCores << '\n';
 
-    // Run at least three iterations.
-    // plint numIter = std::max( (plint)3,
-    //                           (plint)(estimateSus*wishNumSeconds/numCells+0.5));
+    // plint numCells = lattice.getBoundingBox().nCells();
+    plint numCells = Nx * Ny * Nz;
+
 
     OnLatticeBoundaryCondition3D<T,DESCRIPTOR>* boundaryCondition
         = createLocalBoundaryCondition3D<T,DESCRIPTOR>();
@@ -165,7 +159,7 @@ int main(int argc, char* argv[]) {
         lattice.collideAndStream();
     }
 
-#if 0
+#ifdef SAVE
     pcout << "After: Velocity norm of the box: " << endl;
     // pcout << setprecision(3) << *computeVelocityNorm(*extractSubDomain(lattice, mybox)) << endl;
     for (plint iX=0; iX<=N; ++iX){

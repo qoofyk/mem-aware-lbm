@@ -1,6 +1,11 @@
 # mem-aware-lbm
 
+# Implementation
+
+We have `2step-(prism)-(omp)` versions to compare with `Palabos`
+
 ## Prerequisite
+
 download scons
 ```bash
 tar xf scons-3.1.1.tar.gz
@@ -11,7 +16,16 @@ python3 setup.py install --prefix=./build/
 source ~/intel/compilers_and_libraries/linux/bin/compilervars.sh -arch intel64 -platform linux
 ```
 
+## Compile & Build
+```bash
+cd mem-aware-lbm/examples/cavity3d
+sh modify_bridges_Makefile.sh
+sh compile.sh
+```
+
 ## Benchmark
+
+The input parameters are `dim` `Measure_time_steps` `PrismSize` `Warm_up` `Height` `Width` `Length`.
 ```bash
 cd ./examples/benchmarks/cavity3d
 make
@@ -21,8 +35,14 @@ mpirun -n 3 ./cavity3d 100
 where N is the resolution. The benchmark cases published 
 on the Palabos Wiki use N=100, N=400, N=1000, or N=4000.
 
-## Verification
+## Verification of Correctness
+
+Open the Macro `#define SAVE` in `src/ykglobal.h`
 ```bash
+cd mem-aware-lbm/examples/cavity3d
+sh verify.sh
+
+# Or: do it one by one
 mpirun -n 1 ./cavity3d_step2 31 10 4 0 32 32 32 > tmp_32_10
 mpirun -n 1 ./cavity3d 31 10 4 0 32 32 32 > tmp_32_10
 cd ~/Workspace/Palabos/palabos-v2.0r0/examples/benchmarks/cavity3d/
