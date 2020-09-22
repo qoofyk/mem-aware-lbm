@@ -1,0 +1,5 @@
+name,label,visible
+fuse,Palabos Fuse,True
+fuse_tile,Palabos Fuse Prism,True
+2step,2-Step,True
+2step_tile,2-Step Prism,True
