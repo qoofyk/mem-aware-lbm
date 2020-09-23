@@ -685,6 +685,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_omp_whole_blockwise_unr
 #pragma omp parallel default(shared)
 {
   plint tid = omp_get_thread_num();
+  plint my_height = (tid + 1) * thread_block;
   // printf("tid: %ld, thread_block=%ld\n", tid, thread_block);
 #if 1
   // ---------------1. compute thread boundaries surface ---------------------
@@ -712,9 +713,8 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_omp_whole_blockwise_unr
         // printf("outerZ=%ld\n", outerZ);
         // Inner loops.
         plint dx = 0;
-        for (plint innerX = outerX; innerX <= std::min(outerX+blockSize-1, domain.x1);
-          ++innerX, ++dx)
-        {
+        plint innerX_max = std::min(outerX+blockSize-1, my_height);
+        for (plint innerX = outerX; innerX <= innerX_max; ++innerX, ++dx) {
           plint surface_id = innerX % thread_block;
           // Y-index is shifted in negative direction at each x-increment. to ensure
           //   that only post-collision cells are accessed during the swap-operation
@@ -725,9 +725,10 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_omp_whole_blockwise_unr
           // printf("innerX=%ld, dx=%ld, dy=%ld, minY=%ld, maxY=%ld\n",
           //   innerX, dx, dy, minY, maxY);
 
-          for (plint innerY=std::max(minY, domain.y0);
-            innerY <= std::min(maxY, domain.y1);
-            ++innerY, ++dy)
+          plint innerY_start = std::max(minY, domain.y0);
+          plint innerY_end = std::min(maxY, domain.y1);
+
+          for (plint innerY = innerY_start; innerY <= innerY_end; ++innerY, ++dy)
           {
             // Z-index is shifted in negative direction at each x-increment. and at each
             //    y-increment, to ensure that only post-collision cells are accessed during
@@ -737,9 +738,9 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_omp_whole_blockwise_unr
             // printf("innerY=%ld, dx=%ld, dy=%ld, minY=%ld, maxY=%ld, minZ=%ld, maxZ=%ld\n",
                           // innerY, dx, dy, minY, maxY, minZ, maxZ);
 
-            for (plint innerZ=std::max(minZ, domain.z0);
-              innerZ <= std::min(maxZ, domain.z1);
-              ++innerZ)
+            plint innerZ_start = std::max(minZ, domain.z0);
+            plint innerZ_end = std::min(maxZ, domain.z1);
+            for (plint innerZ = innerZ_start; innerZ <= innerZ_end; ++innerZ)
             {
               // printf("tid%ld: inner(%ld, %ld, %ld)\n", tid, innerX, innerY, innerZ);
 

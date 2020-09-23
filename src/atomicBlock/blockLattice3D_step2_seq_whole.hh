@@ -48,6 +48,7 @@
 
 namespace plb {
 
+#if 0
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unroll(Box3D domain) {
     // printf("Here! I am step2_whole_seq_unroll_pyramid\n");
@@ -478,8 +479,9 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unr
 
     // global::profiler().stop("collStream");
 }
+#endif
 
-#if 0
+#if 1 
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unroll(Box3D domain) {
     // printf("Here! I am step2_whole_seq_unroll_pyramid\n");
@@ -508,7 +510,8 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unr
           // printf("outerZ=%ld\n", outerZ);
           // Inner loops.
           plint dx = 0;
-          for (plint innerX = outerX; innerX <= std::min(outerX+blockSize-1, domain.x1);
+          plint innerX_max = std::min(outerX+blockSize-1, domain.x1);
+          for (plint innerX = outerX; innerX <= std::min(outerX+blockSize-1, innerX_max);
             ++innerX, ++dx)
           {
             // Y-index is shifted in negative direction at each x-increment. to ensure
@@ -517,12 +520,13 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unr
             plint minY = outerY-dx;
             plint maxY = minY+blockSize-1;
             plint dy = 0;
+            
             // printf("innerX=%ld, dx=%ld, dy=%ld, minY=%ld, maxY=%ld\n",
             //   innerX, dx, dy, minY, maxY);
+            plint innerY_start = std::max(minY, domain.y0);
+            plint innerY_end = std::min(maxY, domain.y1);
 
-            for (plint innerY=std::max(minY, domain.y0);
-              innerY <= std::min(maxY, domain.y1);
-              ++innerY, ++dy)
+            for (plint innerY = innerY_start; innerY <= innerY_end; ++innerY, ++dy)
             {
               // Z-index is shifted in negative direction at each x-increment. and at each
               //    y-increment, to ensure that only post-collision cells are accessed during
@@ -531,10 +535,10 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unr
               plint maxZ = minZ+blockSize-1;
               // printf("innerY=%ld, dx=%ld, dy=%ld, minY=%ld, maxY=%ld, minZ=%ld, maxZ=%ld\n",
                             // innerY, dx, dy, minY, maxY, minZ, maxZ);
+              plint innerZ_start = std::max(minZ, domain.z0);
+              plint innerZ_end = std::min(maxZ, domain.z1);
 
-              for (plint innerZ=std::max(minZ, domain.z0);
-                innerZ <= std::min(maxZ, domain.z1);
-                ++innerZ)
+              for (plint innerZ = innerZ_start; innerZ <= innerZ_end; ++innerZ)
               {
                 // printf("inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
 

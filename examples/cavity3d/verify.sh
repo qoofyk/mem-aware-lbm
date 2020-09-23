@@ -36,7 +36,7 @@ Length=32
 dim=$(( Height - 1 ))
 
 Warm_up=0
-Measure=20
+Measure=40
 
 # Height=16
 # Width=16
@@ -105,4 +105,4 @@ for CODE in 2step_whole_prism_unroll_omp; do
   echo "---------------------------------------"
 done
 
-# rm -rf */*.dat
+rm -rf */*.dat
