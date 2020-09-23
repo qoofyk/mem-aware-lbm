@@ -48,6 +48,7 @@
 
 namespace plb {
 
+<<<<<<< HEAD
 #if 0
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unroll(Box3D domain) {
@@ -481,7 +482,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unr
 }
 #endif
 
-#if 1 
+#if 1
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unroll(Box3D domain) {
     // printf("Here! I am step2_whole_seq_unroll_pyramid\n");
@@ -511,8 +512,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unr
           // Inner loops.
           plint dx = 0;
           plint innerX_max = std::min(outerX+blockSize-1, domain.x1);
-          for (plint innerX = outerX; innerX <= std::min(outerX+blockSize-1, innerX_max);
-            ++innerX, ++dx)
+          for (plint innerX = outerX; innerX <= innerX_max; ++innerX, ++dx)
           {
             // Y-index is shifted in negative direction at each x-increment. to ensure
             //   that only post-collision cells are accessed during the swap-operation
