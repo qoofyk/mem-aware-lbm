@@ -37,4 +37,4 @@ seq_square () {
 dim=(         64  128 256 384 512 640 768 896)
 warmup_steps=(600 100 20  4   4   2   2   2)
 steps=(       400 200 100 36  20  8   8   4)
-seq_square > seq_${CODE}${PrismSize:+_}${PrismSize}.log
+time seq_square > seq_${CODE}${PrismSize:+_}${PrismSize}.log

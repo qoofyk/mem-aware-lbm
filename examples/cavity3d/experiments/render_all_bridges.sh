@@ -17,9 +17,9 @@ else
     function crop { true; }
 fi
 
-python3 ${root_dir}/seq_mflups.py -m "bridges" > bridges_seq_square.csv
-python3 ${root_dir}/render_mflups.py ./bridges_seq_square.csv --xdata "dims" --xlabel "Side length of a square lattice"  --ylim "(0,45)" --no-ylog
-${root_dir}/pdfcrop bridges_seq_square.pdf bridges_seq_square.pdf
+python3 ${root_dir}/seq_mflups.py -m "bridges" > bridges_seq_cube.csv
+python3 ${root_dir}/render_mflups.py ./bridges_seq_cube.csv --xdata "dims" --xlabel "Side length of a 3D cube cavity"  --ylim "(0,15)" --no-xlog --no-ylog --legend "./legend-seq.csv"
+${root_dir}/pdfcrop bridges_seq_cube.pdf bridges_seq_cube.pdf
 
 # for DIM in 112; do
 #   python3 ${root_dir}/omp_mflups.py -m "bridges" -d ${DIM} > bridges_omp_square_dim_${DIM}.csv

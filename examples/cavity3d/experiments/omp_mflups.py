@@ -18,7 +18,7 @@ import traceback
 _columns = collections.OrderedDict([
     ('mflups', (re.compile(r'^.*iterations: ([0-9.]+) Mega.*$', re.MULTILINE), float)),
     ('cores', (re.compile(r'^.*NUM_THREADS=([0-9]+)$', re.MULTILINE), int)),
-    ('dims', (re.compile(r'^lx=([0-9]+).*$', re.MULTILINE), int)),
+    ('dims', (re.compile(r'^Nx=([0-9]+).*$', re.MULTILINE), int)),
     ('iterations', (re.compile(r'^.*numIter=([0-9]+).*$', re.MULTILINE), int)),
     ('warmup', (re.compile(r'^.*warmUpIter=([0-9]+).*$', re.MULTILINE), int)),
 ])

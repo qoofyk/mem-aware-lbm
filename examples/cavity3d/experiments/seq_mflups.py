@@ -17,7 +17,7 @@ import traceback
 
 _columns = collections.OrderedDict([
     ('mflups', (re.compile(r'^.*iterations: ([0-9.]+) Mega.*$', re.MULTILINE), float)),
-    ('dims', (re.compile(r'^lx=([0-9]+).*$', re.MULTILINE), int)),
+    ('dims', (re.compile(r'^Nx=([0-9]+).*$', re.MULTILINE), int)),
     ('iterations', (re.compile(r'^.*numIter=([0-9]+).*$', re.MULTILINE), int)),
     ('warmup', (re.compile(r'^.*warmUpIter=([0-9]+).*$', re.MULTILINE), int)),
 ])
@@ -41,7 +41,7 @@ class Parser:
         self.tile = tile
         self.machine = machine
 
-        self.header = ['origin', 'fuse', 'fuse tile', '2step', '2step tile', '3step', '3step tile']
+        self.header = ['fuse', 'fuse prism', '2step', '2step 3parts prism', '2step whole prism', '2step whole prism unroll']
         self.table = collections.defaultdict(lambda: collections.defaultdict(lambda: float('-inf')))
         self.max_mflups_tile = collections.defaultdict(lambda: collections.defaultdict(lambda: 1))
     
@@ -121,8 +121,11 @@ class Parser:
         for values in zip(*list(data.values())):
             items = dict(zip(data.keys(), values))
             name = row['name']
-            if 'tile' in name:
-                name = name[0 : name.index('tile') + 4]
+
+            if 'unroll' in name:
+                name = name[0 : name.index('unroll') + 6] # if file contains prism, add the word prism
+            elif 'prism' in name:
+                name = name[0 : name.index('prism') + 5] # if file contains prism, add the word prism
 
             # if name not in self.header:
             #     self.header.append(name)
