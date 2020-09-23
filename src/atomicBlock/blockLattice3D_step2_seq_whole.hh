@@ -48,7 +48,6 @@
 
 namespace plb {
 
-<<<<<<< HEAD
 #if 0
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unroll(Box3D domain) {
@@ -681,7 +680,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unr
     collideRevertAndBoundSwapStream(domain, Box3D(domain.x1, domain.x1,
                 domain.y0, domain.y1, domain.z0, domain.z1) );
 
-    global::profiler().stop("collStream");
+    // global::profiler().stop("collStream");
 }
 #endif
 
