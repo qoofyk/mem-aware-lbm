@@ -52,7 +52,7 @@
 
 namespace plb {
 
-#if 0
+#if 1 
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_omp_whole_blockwise_unroll(Box3D domain) {
 
@@ -634,21 +634,6 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_omp_whole_blockwise_unr
   }
 #endif
 
-#if 0
-  /* 2nd collide Stream on thread_boundaries, case 3.1 */ // can be optimized
-  #pragma omp for private(iX, iY, iZ) schedule(static)
-  for (iX = domain.x0 + thread_block - 1; iX <= domain.x1; iX += thread_block){
-    collideRevertAndBoundSwapStream(domain, Box3D(iX, iX, domain.y0, domain.y1, domain.z0, domain.z1) );
-  }
-
-  // 2nd swap Stream on 1st surface of every thread block, e.g. x0, x0 + thread_block, case-3.2
-  // iX = 1, 5, ... when thread_block = 4
-  #pragma omp for private(iX, iY, iZ) schedule(static)
-  for (iX = domain.x0; iX < domain.x1; iX += thread_block){
-    boundaryStream(domain, Box3D(iX, iX, domain.y0, domain.y1, domain.z0, domain.z1) );
-  }
-#endif
-
   /*-------------------------- Finish 3 -------------------------*/
 #endif // end step III
 }
@@ -658,7 +643,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_omp_whole_blockwise_unr
 /******************************End of STEP2_OMP + STEP2_WHOLE + STEP2_UNROLL*******************************************/
 #endif
 
-#if 1
+#if 0 
 // use STEP2_UNROLL but NOT using PILLAR_MEM
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_omp_whole_blockwise_unroll(Box3D domain) {

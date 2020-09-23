@@ -48,6 +48,7 @@
 
 namespace plb {
 
+#if 0 
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unroll(Box3D domain) {
     // printf("Here! I am step2_whole_seq_unroll_pyramid\n");
@@ -478,8 +479,9 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unr
 
     // global::profiler().stop("collStream");
 }
+#endif
 
-#if 0
+#if 1
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unroll(Box3D domain) {
     // printf("Here! I am step2_whole_seq_unroll_pyramid\n");
