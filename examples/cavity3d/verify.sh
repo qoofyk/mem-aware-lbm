@@ -6,13 +6,45 @@
 # Author: Yuankun Fu
 # email: qoofyk@gmail.com
 
+# Height=256
+# Width=256
+# Length=256
+# dim=$(( Height - 1 ))
+
+# Warm_up=0
+# Measure=40
+
+# Height=128
+# Width=128
+# Length=128
+# dim=$(( Height - 1 ))
+
+# Warm_up=0
+# Measure=20
+
+# Height=64
+# Width=64
+# Length=64
+# dim=$(( Height - 1 ))
+
+# Warm_up=100
+# Measure=100
+
 Height=32
 Width=32
 Length=32
 dim=$(( Height - 1 ))
 
 Warm_up=0
-Measure=10
+Measure=20
+
+# Height=16
+# Width=16
+# Length=16
+# dim=$(( Height - 1 ))
+
+# Warm_up=0
+# Measure=4
 
 PrismSize=4
 
@@ -73,4 +105,4 @@ for CODE in 2step_whole_prism_unroll_omp; do
   echo "---------------------------------------"
 done
 
-rm -rf */*.dat
+# rm -rf */*.dat

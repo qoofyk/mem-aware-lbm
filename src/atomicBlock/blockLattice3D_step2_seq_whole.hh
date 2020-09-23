@@ -76,6 +76,438 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unr
           // printf("outerZ=%ld\n", outerZ);
           // Inner loops.
           plint dx = 0;
+          plint innerX_max = std::min(outerX+blockSize-1, domain.x1);
+          for (plint innerX = outerX; innerX <= innerX_max; ++innerX, ++dx)
+          {
+            // Y-index is shifted in negative direction at each x-increment. to ensure
+            //   that only post-collision cells are accessed during the swap-operation
+            //   of the streaming.
+            plint minY = outerY-dx;
+            plint maxY = minY+blockSize-1;
+            plint dy = 0;
+            plint innerY_start = std::max(minY, domain.y0);
+            plint innerY_end = std::min(maxY, domain.y1);
+
+            if (innerX == domain.x0) {
+              for (plint innerY = innerY_start; innerY <= innerY_end; ++innerY, ++dy) {
+                // Z-index is shifted in negative direction at each x-increment. and at each
+                //    y-increment, to ensure that only post-collision cells are accessed during
+                //    the swap-operation of the streaming.
+                plint minZ = outerZ-dx-dy;
+                plint maxZ = minZ+blockSize-1;
+
+                plint innerZ_start = std::max(minZ, domain.z0);
+                plint innerZ_end = std::min(maxZ, domain.z1);
+
+                for (plint innerZ = innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+                  collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                }
+              }
+            }
+
+            else if (innerX == domain.x0 + 1) {
+              for (plint innerY = innerY_start; innerY <= innerY_end; ++innerY, ++dy) {
+            
+                plint minZ = outerZ-dx-dy;
+                plint maxZ = minZ+blockSize-1;
+
+                plint innerZ_start = std::max(minZ, domain.z0);
+                plint innerZ_end = std::min(maxZ, domain.z1);
+
+                // i. the first row of a surface
+                if (innerY == domain.y0) {
+                  for (plint innerZ = innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+                    collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                  }
+                }
+
+                // ii. the second row of a surface
+                else if (innerY == domain.y0 + 1) {
+                  for (plint innerZ=innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+
+                    // 1. the first node in a row
+                    if (innerZ == domain.z0) {
+                      collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                    }
+
+                    // 2. the last node in a row
+                    else if  (innerZ == domain.z1) {
+                      // first
+                      collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY-1, innerZ-1)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY-1, innerZ)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ);
+                    }
+                    // 3. other nodes in a row
+                    else {
+                      grid[innerX][innerY][innerZ].collide(this->getInternalStatistics());
+                      latticeTemplates<T,Descriptor>::swapAndStream3D(grid, innerX, innerY, innerZ);
+                      
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY-1, innerZ-1)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+                    }
+                  }
+                }
+
+                // iii. the last row of a surface
+                else if (innerY == domain.y1) {
+                  for (plint innerZ = innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+
+                    // first comp
+                    // printf("case-2.2 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+
+                    collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+
+                    if (innerZ == domain.z0) continue;
+
+                    // second comp
+                    if (innerZ == domain.z0+1){
+                      // printf("case-2.2.1 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY-1, innerZ-1)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+                    }
+                    else{
+                      // printf("case-2.2.2 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY-1, innerZ-1)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY, innerZ-2)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ-2);
+                    }
+
+                    // z=z1, more things to do for second
+                    if (innerZ == domain.z1){
+                      // printf("case-2.2.3 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY-1, innerZ)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ);
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY-1, innerZ-1)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ-1);
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY, innerZ)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ);
+                    }
+                  }
+                } // end iii
+
+                // iv. other rows of a surface
+                else {
+                  for (plint innerZ = innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+
+                    if (innerZ == domain.z0) {
+                      collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                    }
+
+                    else if (innerZ == domain.z0+1) {
+                      // first
+                      // printf("case-2.3 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      grid[innerX][innerY][innerZ].collide (
+                            this->getInternalStatistics() );
+                      latticeTemplates<T,Descriptor>::swapAndStream3D (
+                            grid, innerX, innerY, innerZ );
+
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY-1, innerZ-1)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+                    }
+
+                    // 2.4. On z = z1
+                    else if (innerZ == domain.z1) {
+                      // printf("case-2.4 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY-1, innerZ-1)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY-1, innerZ)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ);
+                    }
+
+                    // Other cases
+                    else {
+                      // printf("case-2.5 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      // first Collide & swapStream the cell.
+                      grid[innerX][innerY][innerZ].collide (
+                            this->getInternalStatistics() );
+                      latticeTemplates<T,Descriptor>::swapAndStream3D (
+                            grid, innerX, innerY, innerZ );
+                      
+
+                      // second collideRevertAndBoundSwapStream on (innerX-1, innerY-1, innerZ-1)
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+                    }
+                  }
+                } // end iv
+              } // end innverY
+            } // end innerX == domain.x0 + 1
+
+
+            else if (innerX == domain.x1) {
+              for (plint innerY = innerY_start; innerY <= innerY_end; ++innerY, ++dy) {
+          
+                plint minZ = outerZ-dx-dy;
+                plint maxZ = minZ+blockSize-1;
+
+                plint innerZ_start = std::max(minZ, domain.z0);
+                plint innerZ_end = std::min(maxZ, domain.z1);
+
+                // i. the first row of a surface
+                if (innerY == domain.y0) {
+                  for (plint innerZ=innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+                    collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                  }
+                }
+
+                // ii. the second row of a surface
+                else if (innerY == domain.y0 + 1) {
+                  for (plint innerZ=innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+                    // first comp
+                    // printf("case-3.2 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                    // 1. the first node in a row
+                    collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                    if (innerZ == domain.z0) continue;
+
+                    // second comp            
+                    collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+                    // 2. the last node in a row
+                    if (innerZ == domain.z1) {
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ);
+                    }
+                  }
+                }
+
+                // iii. the last row of a surface
+                else if (innerY == domain.y1) {
+                  for (plint innerZ=innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+                    // first
+                    // printf("case-3.2 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                    collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                    if (innerZ == domain.z0) continue;
+
+                    // second
+                    if (innerZ == domain.z0+1){
+                      // printf("case-3.1 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);                  }
+                    else{
+                      // printf("case-3.2 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                      latticeTemplates<T,Descriptor>::swapAndStream3D(grid, innerX-1, innerY-1, innerZ-1);
+
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ-2);
+                    }
+
+                    // z=z1, more things to do for second
+                    if (innerZ == domain.z1){
+                      // printf("case-3.3 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ);
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ-1);
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ);
+                    }
+                  }
+                }
+
+                // iv. other rows of a surface
+                else {
+                  for (plint innerZ=innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+                    // first comp
+                    collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                    if (innerZ == domain.z0) continue;
+
+                    // second comp
+                    if (innerZ == domain.z0+1){
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+                    }
+
+                    else if (innerZ == domain.z1){
+                      grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                      latticeTemplates<T,Descriptor>::swapAndStream3D(
+                          grid, innerX-1, innerY-1, innerZ-1);
+                      
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ);
+                    }
+
+                    // Other cases
+                    else {
+                      grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                      latticeTemplates<T,Descriptor>::swapAndStream3D(
+                              grid, innerX-1, innerY-1, innerZ-1);
+                    }
+                  }
+                }
+              } // end innverY
+            } // end innerX == domain.x1
+
+            else {
+              for (plint innerY = innerY_start; innerY <= innerY_end; ++innerY, ++dy) {
+                // Z-index is shifted in negative direction at each x-increment. and at each
+                //    y-increment, to ensure that only post-collision cells are accessed during
+                //    the swap-operation of the streaming.
+                plint minZ = outerZ-dx-dy;
+                plint maxZ = minZ+blockSize-1;
+
+                plint innerZ_start = std::max(minZ, domain.z0);
+                plint innerZ_end = std::min(maxZ, domain.z1);
+
+                // i. the first row of a surface
+                if (innerY == domain.y0) {
+                  for (plint innerZ = innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+                    collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                  }
+                }
+
+                // ii. the second row of a surface On y=y0+1
+                else if (innerY == domain.y0+1){
+                  for (plint innerZ=innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+                    if (innerZ == domain.z0) {
+                      collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                    }
+
+                    // printf("case-4.1 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                    else if (innerZ == domain.z1) {
+                      // first
+                      collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                      // second
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ);
+                    }
+                    else {
+                      // first
+                      grid[innerX][innerY][innerZ].collide(this->getInternalStatistics());
+                      latticeTemplates<T,Descriptor>::swapAndStream3D(grid, innerX, innerY, innerZ);
+
+                      // second
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+                    }
+                  }
+                }
+
+                // iii. the last row of a surface
+                else if (innerY == domain.y1){
+                  for (plint innerZ = innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+                    // first
+                    // printf("case-4.2 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                    collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                    if (innerZ == domain.z0) continue;
+
+                    // second
+                    if (innerZ == domain.z0+1){
+                      // printf("case-4.2.1 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+                    }
+                    else{
+                      // printf("case-4.2.2 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                      latticeTemplates<T,Descriptor>::swapAndStream3D(grid, innerX-1, innerY-1, innerZ-1);
+
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ-2);
+                    }
+
+                    // z=z1, more things to do for second
+                    if (innerZ == domain.z1){
+                      // printf("case-4.2.3 second inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ);
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ-1);
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY, innerZ);
+                    }
+                  }
+                }
+
+                // iv. other rows of a surface
+                else {
+                  for (plint innerZ = innerZ_start; innerZ <= innerZ_end; ++innerZ) {
+                    if (innerZ == domain.z0) {
+                      collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+                    }
+
+                    // On z = z0+1
+                    else if (innerZ == domain.z0+1){
+                      // first
+                      // printf("case-4.3 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      grid[innerX][innerY][innerZ].collide (
+                            this->getInternalStatistics() );
+                      latticeTemplates<T,Descriptor>::swapAndStream3D (
+                            grid, innerX, innerY, innerZ );
+                      
+                      // second
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ-1);
+                    }
+
+                    // On z = z1
+                    else if (innerZ == domain.z1){
+                      // printf("case-4.4 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      collideRevertAndBoundSwapStream(domain, innerX, innerY, innerZ);
+
+                      // second collide
+                      grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                      latticeTemplates<T,Descriptor>::swapAndStream3D(
+                          grid, innerX-1, innerY-1, innerZ-1);
+                      
+                      collideRevertAndBoundSwapStream(domain, innerX-1, innerY-1, innerZ);
+                    }
+
+                    // Other cases
+                    else {
+                      // printf("case-4.5 inner(%ld, %ld, %ld)\n", innerX, innerY, innerZ);
+                      // first Collide the cell.
+                      
+                      grid[innerX][innerY][innerZ].collide (
+                              this->getInternalStatistics() );
+                      // Swap the populations on the cell, and then with post-collision
+                      //   neighboring cell, to perform the streaming step.
+                      latticeTemplates<T,Descriptor>::swapAndStream3D (
+                              grid, innerX, innerY, innerZ );
+                      
+
+                      // second collide
+                      grid[innerX-1][innerY-1][innerZ-1].collide(this->getInternalStatistics());
+                      latticeTemplates<T,Descriptor>::swapAndStream3D(
+                              grid, innerX-1, innerY-1, innerZ-1);
+                    }
+                  }
+                }
+              } // end innerY
+            } // end case 4 
+
+          } // end innerX
+        } // end outerZ
+      } // end outerY
+    } // end outerX
+
+    // second collision on top
+    collideRevertAndBoundSwapStream(domain, Box3D(domain.x1, domain.x1,
+                domain.y0, domain.y1, domain.z0, domain.z1) );
+
+    // global::profiler().stop("collStream");
+}
+
+#if 0
+template<typename T, template<typename U> class Descriptor>
+void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unroll(Box3D domain) {
+    // printf("Here! I am step2_whole_seq_unroll_pyramid\n");
+#if 0
+    // Make sure domain is contained within current lattice
+    // PLB_PRECONDITION( contained(domain, this->getBoundingBox()) );
+
+    // global::profiler().start("collStream");
+    // global::profiler().increment("collStreamCells", domain.nCells());
+#endif
+
+    // For cache efficiency, memory is traversed block-wise. The three outer loops enumerate
+    //   the blocks, whereas the three inner loops enumerate the cells inside each block.
+    const plint blockSize = cachePolicy().getBlockSize();
+    #if 0
+    int tid = omp_get_thread_num();
+    printf("Tid%d: blockSize=%ld, domain(%ld, %ld, %ld, %ld, %ld, %ld)\n",
+        tid, blockSize, domain.x0, domain.x1, domain.y0, domain.y1, domain.z0, domain.z1);
+    #endif
+
+    for (plint outerX = domain.x0; outerX <= domain.x1; outerX += blockSize) {
+      // printf("outerX=%ld\n", outerX);
+      for (plint outerY = domain.y0; outerY <= domain.y1+blockSize-1; outerY += blockSize) {
+        // printf("outerY=%ld\n", outerY);
+        for (plint outerZ = domain.z0; outerZ <= domain.z1+2*(blockSize-1); outerZ += blockSize) {
+          // printf("outerZ=%ld\n", outerZ);
+          // Inner loops.
+          plint dx = 0;
           for (plint innerX = outerX; innerX <= std::min(outerX+blockSize-1, domain.x1);
             ++innerX, ++dx)
           {
@@ -247,6 +679,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise_unr
 
     global::profiler().stop("collStream");
 }
+#endif
 
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_seq_whole_blockwise(Box3D domain) {

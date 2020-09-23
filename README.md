@@ -19,7 +19,7 @@ source ~/intel/compilers_and_libraries/linux/bin/compilervars.sh -arch intel64 -
 ## Compile & Build
 ```bash
 cd mem-aware-lbm/examples/cavity3d
-sh modify_bridges_Makefile.sh
+COMPILER=gnu sh modify_bridges_Makefile.sh
 sh compile.sh
 ```
 

@@ -6,6 +6,11 @@
 # Author: Yuankun Fu
 # email: qoofyk@gmail.com
 
+###########################
+# Command: COMPILER=gnu sh modify_wk30_Makefile.sh
+# Command: COMPILER=intel sh modify_wk30_Makefile.sh
+###########################
+
 ############### sequential
 cd fuse
 sed '/compileFlags =*/a\step2_whole_Flags = false\nstep2_3parts_Flags = false\nstep2_omp_Flags = false\nstep2_unroll_Flags = false\nstep2_pyramid_Flags = false' ../wk30.seq.Makefile > Makefile
