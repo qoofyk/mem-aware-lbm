@@ -52,7 +52,7 @@
 
 namespace plb {
 
-#if 1
+#if 0
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_omp_whole_blockwise_unroll(Box3D domain) {
 
@@ -544,7 +544,7 @@ void BlockLattice3D<T,Descriptor>::step2CollideAndStream_omp_whole_blockwise_unr
 /******************************End of STEP2_OMP + STEP2_WHOLE + STEP2_UNROLL*******************************************/
 #endif
 
-#if 0
+#if 1
 template<typename T, template<typename U> class Descriptor>
 void BlockLattice3D<T,Descriptor>::step2CollideAndStream_omp_whole_blockwise_unroll(Box3D domain) {
 
