@@ -43,7 +43,7 @@ class Parser:
         self.tile = tile
         self.machine = machine
 
-        self.header = ['origin', 'fuse', 'fuse tile', '2step', '2step tile', '3step', '3step tile']
+        self.header = ['fuse', 'fuse prism', '2step whole prism unroll']
         self.table = collections.defaultdict(lambda: collections.defaultdict(lambda: float('-inf')))
         self.max_mflups_tile = collections.defaultdict(lambda: collections.defaultdict(lambda: 1))
     
@@ -140,7 +140,12 @@ class Parser:
             items = dict(zip(data.keys(), values))
             # print(items)
             name = row['name']
-            name = name[0 : name.index('omp') - 1]
+
+            if 'omp' in name: 
+                name = name[0 : name.index('omp') - 1]
+            else:
+                name = name.rsplit(' ', 1)[0]
+                
 
             # if name not in self.header:
             #     self.header.append(name)
@@ -188,7 +193,7 @@ class Parser:
 
     def parse(self, dim, tile):
         has_exception = False
-        log_filenames = glob.glob(self.machine + '/omp_square/*.log', recursive=False)
+        log_filenames = glob.glob(self.machine + '/omp_cube/*.log', recursive=False)
         # print(log_filenames)
         
         for filename in log_filenames:
