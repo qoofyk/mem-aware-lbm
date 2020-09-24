@@ -26,7 +26,7 @@ seq_square () {
     fi
 
     for repeat in 0 1 2 3 4; do
-      echo "$mybin $Height $Width ${warmup_steps[k]} ${steps[k]} ${PrismSize:-1}"
+      echo "$mybin $dim ${steps[k]} ${PrismSize:-1} ${warmup_steps[k]} $Height $Width $Length"
       mpirun -n 1 $mybin $dim ${steps[k]} ${PrismSize:-1} ${warmup_steps[k]} $Height $Width $Length
       echo "---------------------------------------------------------------------"
     echo

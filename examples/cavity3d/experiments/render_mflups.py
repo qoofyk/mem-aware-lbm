@@ -90,11 +90,11 @@ colors = [
     'gold', # no use
     (126 / 255.0, 0 / 255.0, 33 / 255.0), #'tab:red', # origin
     'orangered', # (255 / 255.0, 66 / 255.0, 14 / 255.0), # fuse_tile = google orange
-    'C1', # fuse_tile = google yellow (255 / 255.0, 211 / 255.0, 32 / 255.0),
+    # 'C1', # fuse_tile = google yellow (255 / 255.0, 211 / 255.0, 32 / 255.0),
     'tab:green', # 2step
-    'mediumorchid', #(49 / 255.0, 64 / 255.0, 4 / 255.0), # 2step_tile = google dark green
+    # 'mediumorchid', #(49 / 255.0, 64 / 255.0, 4 / 255.0), # 2step_tile = google dark green
     'tab:blue', # 3step = google blue (0 / 255.0, 69 / 255.0, 134 / 255.0) / 'C0' / 
-    'navy', #3step_tile
+    # 'navy', #3step_tile
     
     # 'tab:brown',
     # 'mediumorchid',
@@ -150,10 +150,12 @@ if args.legend:
     # print(legend_raw)
     legend_label = dict(zip(legend_raw[:, 0], legend_raw[:, 1]))
     legend_visible = dict(zip(legend_raw[:, 0], legend_raw[:, 2]))
+    # print(legend_visible)
     legend_idx = {}
     next_idx = 0
     for name in legend_raw[:, 0]:
         if legend_visible[name]:
+            # print(legend_visible[name])
             legend_idx[name] = next_idx
             next_idx += 1
         else:
@@ -177,6 +179,7 @@ for column in columns:
         if colname in legend_label:
             label = legend_label[colname] + colsuffix
             visible = legend_visible[colname]
+            # print(colname, visible)
             idx = legend_idx[colname]
         else:
             label = column.replace('_', ' ')
@@ -193,7 +196,7 @@ for column in columns:
             continue
         label = '$%s^{%.0f}$' % (args.legend_base, exponent)
 
-    if not visible:
+    if visible == 'False':
         continue
 
     if args.highlight_column == column:
