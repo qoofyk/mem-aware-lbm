@@ -2,7 +2,7 @@
 #SBATCH --partition=RM
 #SBATCH --qos=regular
 #SBATCH --exclusive
-#SBATCH --time=02:30:00
+#SBATCH --time=04:30:00
 
 export OMP_PROC_BIND=spread
 total_cores=$(( $(echo $SLURM_JOB_CPUS_PER_NODE | cut -d'(' -f 1) ))
@@ -54,9 +54,9 @@ if [ $DIM == 112 ]; then
 
 elif [ $DIM == 224 ]; then
   threads=(1 2 4 8 14 16 28)
-  Height=(  224 112 56  28  16  28  16
-  Width=( 224 224 448 448 448 448 448
-  Length=(  224 448 448 896 1568  896 1568
+  Height=(  224 112 56  28  16  28  16)
+  Width=( 224 224 448 448 448 448 448)
+  Length=(  224 448 448 896 1568  896 1568)
   warmup_steps=(10 10 50 50 50 50 50)
   steps=(20 40 100 150 250 250 550)
 
