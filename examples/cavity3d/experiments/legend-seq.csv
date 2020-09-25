@@ -1,7 +1,7 @@
 name,label,visible
 fuse,Palabos Fuse,True
 fuse_prism,Palabos Fuse Prism,True
+2step_3parts_prism,2-Step Prism,True
 2step,2-Step,True
-2step_3parts_prism,2-Step 3Parts Prism,True
-2step_whole_prism,2-Step Whole Prism,True
-2step_whole_prism_unroll,2-Step Whole Prism Unroll,True
+2step_whole_prism,2-Step Whole Prism,False
+2step_whole_prism_unroll,2-Step Whole Prism Unroll,False
