@@ -38,10 +38,11 @@ def group_by(keys, values):
         yield (last_key, last_group)
 
 class Parser:
-    def __init__(self, machine, dim, tile):
+    def __init__(self, machine, dim, exptype, tile):
         self.dim = dim
         self.tile = tile
         self.machine = machine
+        self.exptype = exptype
 
         self.header = ['fuse', 'fuse prism', '2step whole prism unroll']
         self.table = collections.defaultdict(lambda: collections.defaultdict(lambda: float('-inf')))
@@ -113,7 +114,7 @@ class Parser:
         
         for outlier in table['std']:
             if (outlier > 1):
-                print(filename, "has a potential outlier", outlier, file=open("omp_square_outlier.txt", "a"))
+                print(filename, "has a potential outlier", outlier, file=open(self.exptype + "_outlier.txt", "a"))
     
         # Post-process table for output:
         result = collections.OrderedDict()
@@ -181,7 +182,7 @@ class Parser:
             row['cores'] = c #add a key-value pair
             out.writerow(row)
         
-        with open('best_tile_omp_square_dim_' + str(self.dim) + '_' + self.machine + '.csv', 'w') as f:
+        with open('best_tile_' + self.exptype + '_dim_' + str(self.dim) + '_' + self.machine + '.csv', 'w') as f:
             out = csv.DictWriter(f, self.header, dialect="excel")
             out.writeheader()
             for c in sorted(self.max_mflups_tile.keys()):
@@ -193,7 +194,7 @@ class Parser:
 
     def parse(self, dim, tile):
         has_exception = False
-        log_filenames = glob.glob(self.machine + '/omp_cube/*.log', recursive=False)
+        log_filenames = glob.glob(self.machine + '/' + self.exptype + '/*.log', recursive=False)
         # print(log_filenames)
         
         for filename in log_filenames:
@@ -221,15 +222,16 @@ class Parser:
             print('Errors were encountered while parsing. Run with -v to see full error messages.', file=sys.stderr)
             print(file=sys.stderr)
             
-def driver(machine, dim, tile):
-    parser = Parser(machine, dim, tile)
+def driver(machine, dim, exptype, tile):
+    parser = Parser(machine, dim, exptype, tile)
     parser.parse(dim, tile)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--machine', required=True)
     parser.add_argument('-d', '--dim',  type=int, required=True)
+    parser.add_argument('-e', '--exptype', required=True)
     parser.add_argument('-t', '--tile', type=int, default=0)
-
+    
     args = parser.parse_args()
     driver(**vars(args)) #all parameters combined into dict (hash table)

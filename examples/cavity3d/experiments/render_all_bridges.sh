@@ -17,24 +17,35 @@ else
     function crop { true; }
 fi
 
+# sequential exp
 python3 ${root_dir}/seq_mflups.py -m "bridges" > bridges_seq_cube.csv
-python3 ${root_dir}/render_mflups.py ./bridges_seq_cube.csv --xdata "dims" --xlabel "Side length of a 3D cube cavity"  --ylim "(0,15)" --no-xlog --no-ylog --legend "./legend-seq.csv"
+python3 ${root_dir}/render_mflups.py ./bridges_seq_cube.csv --xdata "dims" --xlabel "Side length of a 3D cube cavity"  --ylim "(5,16)" --no-xlog --no-ylog --legend "./legend-seq.csv"
 ${root_dir}/pdfcrop bridges_seq_cube.pdf bridges_seq_cube.pdf
 
-# for DIM in 112; do
-#   python3 ${root_dir}/omp_mflups.py -m "bridges" -d ${DIM} > bridges_omp_square_dim_${DIM}.csv
-#   python3 ${root_dir}/render_mflups.py ./bridges_omp_square_dim_${DIM}.csv --ylim "(0,600)" --no-xlog --no-ylog
-#   ${root_dir}/pdfcrop bridges_omp_square_dim_${DIM}.pdf bridges_omp_square_dim_${DIM}.pdf
-# done
+# parallel cube inut exp
+exptype="omp_cube"
+for DIM in 112; do
+  python3 ${root_dir}/omp_mflups.py -m "bridges" -d ${DIM} -e "${exptype}" > bridges_${exptype}_dim_${DIM}.csv
+  python3 ${root_dir}/render_mflups.py ./bridges_${exptype}_dim_${DIM}.csv --ylim "(0,200)" --no-xlog --no-ylog
+  ${root_dir}/pdfcrop bridges_${exptype}_dim_${DIM}.pdf bridges_${exptype}_dim_${DIM}.pdf
+done
 
-# for DIM in 448; do
-#   python3 ${root_dir}/omp_mflups.py -m "bridges" -d ${DIM} > bridges_omp_square_dim_${DIM}.csv
-#   python3 ${root_dir}/render_mflups.py ./bridges_omp_square_dim_${DIM}.csv --ylim "(0,900)" --no-xlog --no-ylog
-#   ${root_dir}/pdfcrop bridges_omp_square_dim_${DIM}.pdf bridges_omp_square_dim_${DIM}.pdf
-# done
+for DIM in 224 336 448 560 672 784 840; do
+  python3 ${root_dir}/omp_mflups.py -m "bridges" -d ${DIM} -e ${exptype} > bridges_${exptype}_dim_${DIM}.csv
+  python3 ${root_dir}/render_mflups.py ./bridges_${exptype}_dim_${DIM}.csv --ylim "(0,300)" --no-xlog --no-ylog
+  ${root_dir}/pdfcrop bridges_${exptype}_dim_${DIM}.pdf bridges_${exptype}_dim_${DIM}.pdf
+done
 
-# for DIM in 224 896 1792 3584 7168 14336 20720 27104; do
-#   python3 ${root_dir}/omp_mflups.py -m "bridges" -d ${DIM} > bridges_omp_square_dim_${DIM}.csv
-#   python3 ${root_dir}/render_mflups.py ./bridges_omp_square_dim_${DIM}.csv --ylim "(0,800)" --no-xlog --no-ylog
-#   ${root_dir}/pdfcrop bridges_omp_square_dim_${DIM}.pdf bridges_omp_square_dim_${DIM}.pdf
-# done
+# fair cube, palabos change to -> step2's dimension
+exptype="omp_fair_cube"
+for DIM in 112; do
+  python3 ${root_dir}/omp_mflups.py -m "bridges" -d ${DIM} -e "${exptype}" > bridges_${exptype}_dim_${DIM}.csv
+  python3 ${root_dir}/render_mflups.py ./bridges_${exptype}_dim_${DIM}.csv --ylim "(0,200)" --no-xlog --no-ylog
+  ${root_dir}/pdfcrop bridges_${exptype}_dim_${DIM}.pdf bridges_${exptype}_dim_${DIM}.pdf
+done
+
+for DIM in 224 336 448 560 672 784; do
+  python3 ${root_dir}/omp_mflups.py -m "bridges" -d ${DIM} -e "${exptype}" > bridges_${exptype}_dim_${DIM}.csv
+  python3 ${root_dir}/render_mflups.py ./bridges_${exptype}_dim_${DIM}.csv --ylim "(0,300)" --no-xlog --no-ylog
+  ${root_dir}/pdfcrop bridges_${exptype}_dim_${DIM}.pdf bridges_${exptype}_dim_${DIM}.pdf
+done
